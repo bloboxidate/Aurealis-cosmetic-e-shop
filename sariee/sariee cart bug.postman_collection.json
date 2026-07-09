@@ -1,13 +1,14 @@
 {
   "info": {
     "name": "Sariee Cart Bug Report (aurealis)",
-    "description": "For aurealis.sariee.shop.\n\nTWO server-side cart bugs on api.sariee.com. Both surface as database errors from your backend (MySQL), so they look like they need a migration / missing table on the Sariee side. The storefront request format is correct (proven earlier: register/login/checkout all work).\n\nBUG 1 — Updating the quantity of an item already in the cart.\n  POST /api/frontend/cart/add-update with a barcode that is ALREADY in the cart returns HTTP 500:\n    {\"status\":false,\"internal_code\":500,\"code\":500,\"message\":\"Something Went Wrong\",\"data\":null}\n  The FIRST add of a barcode works (200). Only changing the quantity of an existing line fails.\n\nBUG 2 — Reading a cart that has items.\n  POST /api/frontend/cart/init on a NON-EMPTY cart returns HTTP 406 with a raw SQL error, e.g.:\n    SQLSTATE[42S02]: Base table or view not found: 1146 Table 'sariee.cart_bundle_selections' doesn't exist\n      (select * from `cart_bundle_selections` where `cart_item_id` in (...) and `deleted_at` is null)\n    ...and sometimes: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'cart...'.\n  init on an EMPTY cart works (200).\n\nHOW TO USE: Run the requests top to bottom (or 'Run collection'). Step C1 auto-fills the barcode id and mints a FRESH cart token for the run. Screenshot the responses of C4 (BUG 1) and C5 (BUG 2).\n\nNet effect: a cart works for the first add of each product, but cannot have item quantities changed and cannot be re-read once it has items — because the backend queries a `cart_bundle_selections` table/column that doesn't exist.",
+    "description": "For aurealis.sariee.shop.\n\nTHREE server-side failures on api.sariee.com that all appear to share ONE root cause: a recently-shipped 'cart bundles' feature that is incomplete on the backend. The storefront request format is correct (register/login/avail-methods all return 200; checkout worked previously — order a23783c8 was created earlier). These are backend errors (MySQL + an undefined PHP method), not client-payload problems.\n\nBUG 1 — Updating the quantity of an item already in the cart.\n  POST /api/frontend/cart/add-update with a barcode that is ALREADY in the cart returns HTTP 500:\n    {\"status\":false,\"internal_code\":500,\"code\":500,\"message\":\"Something Went Wrong\",\"data\":null}\n  The FIRST add of a barcode works (200). Only changing the quantity of an existing line fails.\n\nBUG 2 — Reading a cart that has items.\n  POST /api/frontend/cart/init on a NON-EMPTY cart returns HTTP 406 with a raw SQL error, e.g.:\n    SQLSTATE[42S02]: Base table or view not found: 1146 Table 'sariee.cart_bundle_selections' doesn't exist\n      (select * from `cart_bundle_selections` where `cart_item_id` in (...) and `deleted_at` is null)\n    ...and sometimes: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'cart_bundle_selections.deleted_at'.\n  init on an EMPTY cart works (200).\n\nBUG 3 — Checkout (placing an order) on a cart with items.\n  POST /api/frontend/checkout/checkout-action returns HTTP 500:\n    {\"status\":false,\"message\":\"Call to undefined method Modules\\\\Frontend\\\\App\\\\Models\\\\CartItem::isBundle()\"}\n  This blocks ALL orders — no customer can check out. avail-methods (read) still returns 200.\n\nCOMMON ROOT CAUSE: the code queries a `cart_bundle_selections` table that doesn't exist and calls a `CartItem::isBundle()` method that isn't defined. Looks like a missing migration + missing model method from the cart-bundles feature.\n\nHOW TO USE: Run the requests top to bottom (or 'Run collection'). Step C1 auto-fills the barcode id and mints a FRESH cart token for the run. Screenshot the responses of C4 (BUG 1), C5 (BUG 2) and C6 (BUG 3).\n\nNet effect: the storefront cart works only for the first add of each product; quantities can't be changed, a non-empty cart can't be re-read, and NO order can be placed — all from the same broken cart-bundles code.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "https://api.sariee.com" },
     { "key": "cartToken", "value": "cart-bug-REPLACED-AT-RUNTIME" },
-    { "key": "barcodeId", "value": "a235b6b2-025e-4915-a2f1-1d35be4664e5" }
+    { "key": "barcodeId", "value": "a235b6b2-025e-4915-a2f1-1d35be4664e5" },
+    { "key": "cityId", "value": "9b930aad-8f82-46e2-aff8-6a6af83dd294" }
   ],
   "item": [
     {
@@ -114,7 +115,23 @@
         ],
         "url": { "raw": "{{baseUrl}}/api/frontend/cart/init", "host": ["{{baseUrl}}"], "path": ["api", "frontend", "cart", "init"] },
         "body": { "mode": "raw", "raw": "{}" },
-        "description": "*** SCREENSHOT THIS — BUG 2 *** Same token, but the cart now has an item (from C3). Expect HTTP 406 with a raw SQL error: SQLSTATE[42S02] Table 'sariee.cart_bundle_selections' doesn't exist (or SQLSTATE[42S22] Unknown column 'cart...'). init works on an empty cart (C2) but not once the cart contains items."
+        "description": "*** SCREENSHOT THIS — BUG 2 *** Same token, but the cart now has an item (from C3). Expect HTTP 406 with a raw SQL error: SQLSTATE[42S02] Table 'sariee.cart_bundle_selections' doesn't exist (or SQLSTATE[42S22] Unknown column 'cart_bundle_selections.deleted_at'). init works on an empty cart (C2) but not once the cart contains items."
+      }
+    },
+    {
+      "name": "C6 · Checkout the cart  (BUG 3 → 500 isBundle)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/checkout/checkout-action", "host": ["{{baseUrl}}"], "path": ["api", "frontend", "checkout", "checkout-action"] },
+        "body": { "mode": "raw", "raw": "{\n  \"payment_id\": 0,\n  \"details\": {\n    \"customer\": {\n      \"first_name\": \"Bug\",\n      \"last_name\": \"Report\",\n      \"mobile\": \"1000000123\",\n      \"email\": \"cart-bug@example.com\"\n    },\n    \"address\": {\n      \"street\": \"1 Test Street\",\n      \"building\": \"5\",\n      \"city_id\": \"{{cityId}}\"\n    }\n  }\n}" },
+        "description": "*** SCREENSHOT THIS — BUG 3 *** Cash-On-Delivery checkout of the cart from C3 (payment_id 0). This is the CORRECT payload (same shape that created order a23783c8 previously). Expect HTTP 500: {\"status\":false,\"message\":\"Call to undefined method Modules\\\\Frontend\\\\App\\\\Models\\\\CartItem::isBundle()\"}. No order can be placed while this is broken."
       }
     }
   ]

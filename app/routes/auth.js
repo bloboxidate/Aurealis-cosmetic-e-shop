@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const db = require('../db/database');
+const Orders = require('../lib/orders');
 const ah = require('../lib/ah');
 const { flash, requireAuth } = require('../middleware/auth');
 
@@ -85,13 +86,14 @@ router.post('/logout', (req, res) => {
 });
 
 router.get('/account', requireAuth, ah(async (req, res) => {
-  const orders = await db.all(
-    'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
-    [req.session.userId]
-  );
-  for (const o of orders) {
-    o.items = await db.all('SELECT * FROM order_items WHERE order_id = ?', [o.id]);
-  }
+  // Orders live in Sariee; fetch the ones placed under this account.
+  let orders = [];
+  try {
+    orders = await Orders.forUser({
+      userId: req.session.userId,
+      email: res.locals.user ? res.locals.user.email : '',
+    });
+  } catch (_) { orders = []; }
   res.render('account', { title: 'My Account — Auréalis', orders });
 }));
 

@@ -9,9 +9,13 @@ const ah = require('../lib/ah');
 
 // Home
 router.get('/', ah(async (req, res) => {
+  // Degrade gracefully if Sariee is unreachable — show the page without cards
+  // rather than a 500.
+  let bestsellers = [];
+  try { bestsellers = await Products.bestsellers(4); } catch (_) { bestsellers = []; }
   res.render('home', {
     title: 'Auréalis — Born of the aurora',
-    bestsellers: await Products.bestsellers(4),
+    bestsellers,
     home: await content.get('home'),
   });
 }));
@@ -22,7 +26,10 @@ router.get('/shop', ah(async (req, res) => {
   const catSlugs = categories.map((c) => c.slug);
   const category = catSlugs.includes(req.query.category) ? req.query.category : null;
 
-  let products = await Products.all({ category });
+  // Sariee-backed; degrade to an empty catalog on error instead of a 500.
+  let products = [];
+  try { products = await Products.all({ category }); } catch (_) { products = []; }
+  const base = products.slice();
   const sub = req.query.sub || 'all';
   if (sub && sub !== 'all') products = products.filter((p) => p.subcategory === sub);
 
@@ -31,7 +38,6 @@ router.get('/shop', ah(async (req, res) => {
   else if (sort === 'price-desc') products.sort((a, b) => b.price_cents - a.price_cents);
   else if (sort === 'newest') products.sort((a, b) => b.id - a.id);
 
-  const base = await Products.all({ category });
   const subcats = category ? await Cats.subcategoriesForSlug(category) : await Cats.listSubcategories();
   const catObj = categories.find((c) => c.slug === category);
 

@@ -3,6 +3,7 @@ const router = express.Router();
 const cart = require('../lib/scart');   // Sariee-backed cart
 const geo = require('../lib/geo');
 const sariee = require('../lib/sariee');
+const orders = require('../lib/orders');
 const ah = require('../lib/ah');
 const { flash } = require('../middleware/auth');
 
@@ -104,6 +105,11 @@ router.post('/checkout', ah(async (req, res) => {
     total_cents: t.total_cents,
     items: t.items.map((it) => ({ name: it.name, size: it.size, unit_price_cents: it.price_cents, qty: it.qty })),
   };
+
+  // Record the Sariee order so it shows in the customer's account history.
+  try {
+    await orders.record({ sarieeOrderId: orderId, userId: req.session.userId || null, email: f.email });
+  } catch (_) { /* non-fatal */ }
 
   await cart.clear(req);
   req.session.promo = '';

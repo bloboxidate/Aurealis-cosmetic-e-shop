@@ -133,6 +133,17 @@ CREATE TABLE IF NOT EXISTS site_content (
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- Orders placed through this storefront, mapped to their Sariee order id.
+CREATE TABLE IF NOT EXISTS sariee_orders (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  sariee_order_id TEXT NOT NULL UNIQUE,
+  user_id         INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  email           TEXT NOT NULL DEFAULT '',
+  created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_sariee_orders_user ON sariee_orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_sariee_orders_email ON sariee_orders(email);
+
 CREATE INDEX IF NOT EXISTS idx_cart_session ON cart_items(session_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
