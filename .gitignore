@@ -1,0 +1,13 @@
+# Node
+node_modules/
+app/node_modules/
+
+# Local data / secrets — never commit these
+app/.env
+app/.env.local
+.env
+app/data/
+*.log
+
+# Vercel
+.vercel

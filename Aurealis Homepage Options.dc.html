@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body{margin:0;background:#efece5;font-family:'Manrope',sans-serif}
+  .dv-turn{padding:40px 44px 60px;border-bottom:1px solid rgba(0,0,0,.08)}
+  .dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}
+  .dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+  .dv-tname{font:600 13px/1.2 'Manrope',sans-serif;color:#1a1a1a}
+  .dv-opts{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}
+  .dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}
+  .dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+  .dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'Manrope',sans-serif;color:rgba(0,0,0,.55)}
+  .dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}
+  .dv-next{margin:22px 0 0;font:12px/1.5 'Manrope',sans-serif;color:rgba(0,0,0,.5)}
+  a.au-link{text-decoration:none}
+  a.au-link:hover{opacity:.7}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<section class="dv-turn" id="t3">
+  <div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Official brand palette applied to <a class="dv-oid" href="#2a">2a</a></span></div>
+  <div class="dv-opts">
+
+    <!-- ============ OPTION 3a — Official Palette ============ -->
+    <div class="dv-opt" id="3a">
+      <div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Petal Veil / Honey Dune / Azure Mist / Sage Harmony / Lavender Haze / Apricot Glow</div>
+      <div class="dv-card" style="width:1440px">
+        <div style="background-color:#fff9f3;background-repeat:repeat-y;background-size:100% 950px;background-image:
+            radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.7), transparent 60%),
+            radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.65), transparent 58%),
+            radial-gradient(750px circle at 30% 55%, rgba(165,191,151,.65), transparent 60%),
+            radial-gradient(700px circle at 88% 62%, rgba(247,213,149,.7), transparent 58%),
+            radial-gradient(750px circle at 15% 92%, rgba(248,174,127,.65), transparent 58%),
+            radial-gradient(650px circle at 75% 98%, rgba(165,209,228,.55), transparent 55%)
+            ;color:#3a352e;width:1440px">
+
+          <!-- header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:28px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
+            <div style="display:flex;align-items:center">
+              <img src="assets/aurealis-logo-black.webp" alt="Auréalis" style="height:126px;width:auto;display:block">
+            </div>
+            <div style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
+              <a class="au-link" href="#" style="color:#3a352e">Skincare</a>
+              <a class="au-link" href="#" style="color:#3a352e">Makeup</a>
+              <a class="au-link" href="#" style="color:#3a352e">About</a>
+              <a class="au-link" href="#" style="color:#3a352e">Journal</a>
+            </div>
+            <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em">
+              <a class="au-link" href="#" style="color:#3a352e">Login</a>
+              <a class="au-link" href="#" style="color:#3a352e">Bag (0)</a>
+            </div>
+          </div>
+
+          <!-- hero -->
+          <div style="position:relative;padding:90px 64px 0;overflow:hidden">
+            <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1">
+              <div>
+                <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:18px">Inspired by the Northern Lights</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:74px;line-height:1.03;margin-bottom:26px">Born of<br>the aurora.</div>
+                <div style="font-size:17px;line-height:1.6;color:#6b6357;max-width:420px;margin-bottom:36px">Skincare and makeup formulated around the colors of the aurora borealis — glow that shifts like light across the sky.</div>
+                <a class="au-link" href="#" style="display:inline-block;background:#f8ae7f;color:#3a2317;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700">Shop the Collection</a>
+              </div>
+              <div style="position:relative;width:100%;height:500px">
+                <image-slot id="hp3a-hero" shape="rect" placeholder="Drop hero image — aurora sky / soft northern-lights mood" style="width:100%;height:100%"></image-slot>
+              </div>
+            </div>
+          </div>
+
+          <!-- category strip -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:70px 64px 0">
+            <div style="position:relative;height:340px;border-radius:20px;overflow:hidden;background:#a5bf97">
+              <image-slot id="hp3a-cat-skincare" shape="rect" placeholder="Skincare category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:28px;bottom:24px;pointer-events:none;background:rgba(255,249,243,.9);padding:8px 18px;border-radius:100px">
+                <div style="font-size:15px;font-weight:700;color:#3a352e">Skincare</div>
+              </div>
+            </div>
+            <div style="position:relative;height:340px;border-radius:20px;overflow:hidden;background:#f7d595">
+              <image-slot id="hp3a-cat-makeup" shape="rect" placeholder="Makeup category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:28px;bottom:24px;pointer-events:none;background:rgba(255,249,243,.9);padding:8px 18px;border-radius:100px">
+                <div style="font-size:15px;font-weight:700;color:#3a352e">Makeup</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- bestsellers -->
+          <div style="padding:80px 64px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:36px">Bestsellers</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.05em;color:#e0885a;text-transform:uppercase;font-weight:700">View all</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:#a5d1e4"><image-slot id="hp3a-p1" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Aurora Drops</div>
+                <div style="font-size:14px;color:#8a8175">$52</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:#bfb5e8"><image-slot id="hp3a-p2" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Polar Mist Toner</div>
+                <div style="font-size:14px;color:#8a8175">$34</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:#f8ae7f"><image-slot id="hp3a-p3" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Halo Glow Stick</div>
+                <div style="font-size:14px;color:#8a8175">$29</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:#a5bf97"><image-slot id="hp3a-p4" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Nightfall Serum</div>
+                <div style="font-size:14px;color:#8a8175">$64</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- brand story -->
+          <div style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
+            <div style="width:100%;height:420px;border-radius:20px;overflow:hidden"><image-slot id="hp3a-story" shape="rect" placeholder="Founder / studio image" style="width:100%;height:100%"></image-slot></div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1.4;margin-bottom:24px">"The aurora taught us that light is never one color. Every formula moves through sage, azure and lavender the way the sky does."</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#c1602f;font-weight:700">Our Story →</a>
+            </div>
+          </div>
+
+          <!-- footer -->
+          <div style="padding:56px 64px;background:linear-gradient(100deg,#3f6f86,#4c6b45,#5f4f96);color:#f4f1ea;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;margin-bottom:12px">AUREALIS</div>
+              <div style="font-size:13px;line-height:1.6;max-width:260px;color:rgba(244,241,234,.85)">Beauty inspired by the northern lights — radiant, ever-shifting glow.</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2;color:rgba(244,241,234,.85)">
+              <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Shop</div>
+              <div>Skincare</div><div>Makeup</div><div>Gift Sets</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2;color:rgba(244,241,234,.85)">
+              <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Company</div>
+              <div>About</div><div>Journal</div><div>Contact</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2;color:rgba(244,241,234,.85)">
+              <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Support</div>
+              <div>Shipping</div><div>Returns</div><div>FAQ</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "adjust the balance of colors in <a class="dv-oid" href="#3a">3a</a>" · "pick <a class="dv-oid" href="#3a">3a</a>, build the full site"</p>
+</section>
+<section class="dv-turn" id="t2">
+  <div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Aurora-inspired riff on <a class="dv-oid" href="#1a">1a</a> — no dark/gold, northern-lights palette</span></div>
+  <div class="dv-opts">
+
+    <!-- ============ OPTION 2a — Aurora / Northern Lights ============ -->
+    <div class="dv-opt" id="2a">
+      <div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>Light throughout, aurora-gradient accents (teal / green / violet / blue)</div>
+      <div class="dv-card" style="width:1440px">
+        <div style="background:#f8f7f3;color:#232622;width:1440px">
+
+          <!-- header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:28px 64px;border-bottom:1px solid rgba(35,38,34,.08)">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;letter-spacing:.05em;font-weight:600;background:linear-gradient(90deg,#3ba892,#5a8fd6,#8a6fd1);-webkit-background-clip:text;background-clip:text;color:transparent">AUREALIS</div>
+            <div style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
+              <a class="au-link" href="#" style="color:#232622">Skincare</a>
+              <a class="au-link" href="#" style="color:#232622">Makeup</a>
+              <a class="au-link" href="#" style="color:#232622">About</a>
+              <a class="au-link" href="#" style="color:#232622">Journal</a>
+            </div>
+            <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em">
+              <a class="au-link" href="#" style="color:#232622">Login</a>
+              <a class="au-link" href="#" style="color:#232622">Bag (0)</a>
+            </div>
+          </div>
+
+          <!-- hero -->
+          <div style="position:relative;padding:90px 64px 0;overflow:hidden">
+            <div style="position:absolute;top:-220px;left:-100px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(59,168,146,.35),rgba(59,168,146,0) 70%);filter:blur(6px);pointer-events:none"></div>
+            <div style="position:absolute;top:-180px;right:-140px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(138,111,209,.3),rgba(138,111,209,0) 70%);filter:blur(6px);pointer-events:none"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1">
+              <div>
+                <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#3ba892;margin-bottom:18px">Inspired by the Northern Lights</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:74px;line-height:1.03;margin-bottom:26px">Born of<br>the aurora.</div>
+                <div style="font-size:17px;line-height:1.6;color:#565a53;max-width:420px;margin-bottom:36px">Skincare and makeup formulated around the colors of the aurora borealis — glow that shifts like light across the sky.</div>
+                <a class="au-link" href="#" style="display:inline-block;background:linear-gradient(90deg,#3ba892,#5a8fd6,#8a6fd1);color:#fff;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700">Shop the Collection</a>
+              </div>
+              <div style="position:relative;width:100%;height:500px">
+                <image-slot id="hp2a-hero" shape="rect" placeholder="Drop hero image — aurora sky / soft northern-lights mood" style="width:100%;height:100%"></image-slot>
+              </div>
+            </div>
+          </div>
+
+          <!-- category strip -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:70px 64px 0">
+            <div style="position:relative;height:340px;border-radius:20px;overflow:hidden">
+              <image-slot id="hp2a-cat-skincare" shape="rect" placeholder="Skincare category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:28px;bottom:24px;pointer-events:none;background:rgba(255,255,255,.88);padding:8px 18px;border-radius:100px">
+                <div style="font-size:15px;font-weight:700">Skincare</div>
+              </div>
+            </div>
+            <div style="position:relative;height:340px;border-radius:20px;overflow:hidden">
+              <image-slot id="hp2a-cat-makeup" shape="rect" placeholder="Makeup category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:28px;bottom:24px;pointer-events:none;background:rgba(255,255,255,.88);padding:8px 18px;border-radius:100px">
+                <div style="font-size:15px;font-weight:700">Makeup</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- bestsellers -->
+          <div style="padding:80px 64px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:36px">Bestsellers</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.05em;color:#3ba892;text-transform:uppercase;font-weight:700">View all</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#cdeee2,#c8dcf0,#dcd0f0)"><image-slot id="hp2a-p1" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Aurora Drops</div>
+                <div style="font-size:14px;color:#6c7268">$52</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#cdeee2,#c8dcf0,#dcd0f0)"><image-slot id="hp2a-p2" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Polar Mist Toner</div>
+                <div style="font-size:14px;color:#6c7268">$34</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#cdeee2,#c8dcf0,#dcd0f0)"><image-slot id="hp2a-p3" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Halo Glow Stick</div>
+                <div style="font-size:14px;color:#6c7268">$29</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#cdeee2,#c8dcf0,#dcd0f0)"><image-slot id="hp2a-p4" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Nightfall Serum</div>
+                <div style="font-size:14px;color:#6c7268">$64</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- brand story -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:linear-gradient(120deg,#e4f4ed,#e3ecf7,#ece3f5);padding:80px 64px;gap:60px">
+            <div style="width:100%;height:420px;border-radius:20px;overflow:hidden"><image-slot id="hp2a-story" shape="rect" placeholder="Founder / studio image" style="width:100%;height:100%"></image-slot></div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1.4;margin-bottom:24px">"The aurora taught us that light is never one color. Every formula moves through green, teal and violet the way the sky does."</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#3ba892;font-weight:700">Our Story →</a>
+            </div>
+          </div>
+
+          <!-- footer -->
+          <div style="padding:56px 64px;background:#eef1ec;color:#4c534b;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;border-top:1px solid rgba(35,38,34,.08)">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#232622;margin-bottom:12px">AUREALIS</div>
+              <div style="font-size:13px;line-height:1.6;max-width:260px">Beauty inspired by the northern lights — radiant, ever-shifting glow.</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#232622;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Shop</div>
+              <div>Skincare</div><div>Makeup</div><div>Gift Sets</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#232622;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Company</div>
+              <div>About</div><div>Journal</div><div>Contact</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#232622;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Support</div>
+              <div>Shipping</div><div>Returns</div><div>FAQ</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "make the aurora glow more visible in the hero" · "apply this palette to the product listing page too" · "pick <a class="dv-oid" href="#2a">2a</a>, build the full site"</p>
+</section>
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Aurealis homepage — three directions from the moodboard</span></div>
+  <div class="dv-opts">
+
+    <!-- ============ OPTION 1a — Warm & Minimal Editorial ============ -->
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Warm &amp; minimal — ivory, clay, editorial serif</div>
+      <div class="dv-card" style="width:1440px">
+        <div style="background:#f7f3ec;color:#2b2621;width:1440px">
+
+          <!-- header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:28px 64px;border-bottom:1px solid rgba(43,38,33,.1)">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;letter-spacing:.06em;font-weight:500">AUREALIS</div>
+            <div style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
+              <a class="au-link" href="#" style="color:#2b2621">Skincare</a>
+              <a class="au-link" href="#" style="color:#2b2621">Makeup</a>
+              <a class="au-link" href="#" style="color:#2b2621">About</a>
+              <a class="au-link" href="#" style="color:#2b2621">Journal</a>
+            </div>
+            <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em">
+              <a class="au-link" href="#" style="color:#2b2621">Login</a>
+              <a class="au-link" href="#" style="color:#2b2621">Bag (0)</a>
+            </div>
+          </div>
+
+          <!-- hero -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;padding:80px 64px;gap:60px">
+            <div>
+              <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#a9764f;margin-bottom:18px">New — Golden Hour Collection</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-weight:400;font-size:72px;line-height:1.02;margin-bottom:26px">Radiance,<br>restored.</div>
+              <div style="font-size:17px;line-height:1.6;color:#5a5148;max-width:420px;margin-bottom:36px">Clean, golden-hour skincare and makeup formulated to bring out the light already in your skin.</div>
+              <a class="au-link" href="#" style="display:inline-block;background:#2b2621;color:#f7f3ec;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase">Shop the Collection</a>
+            </div>
+            <div style="position:relative;width:100%;height:520px">
+              <image-slot id="hp1a-hero" shape="rect" placeholder="Drop hero image — model, golden light" style="width:100%;height:100%"></image-slot>
+            </div>
+          </div>
+
+          <!-- category strip -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;background:rgba(43,38,33,.1)">
+            <div style="position:relative;height:360px;background:#f7f3ec">
+              <image-slot id="hp1a-cat-skincare" shape="rect" placeholder="Skincare category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:36px;bottom:32px;pointer-events:none">
+                <div style="font-family:'Cormorant Garamond',serif;font-size:34px;color:#f7f3ec;text-shadow:0 2px 12px rgba(0,0,0,.35)">Skincare</div>
+              </div>
+            </div>
+            <div style="position:relative;height:360px;background:#f7f3ec">
+              <image-slot id="hp1a-cat-makeup" shape="rect" placeholder="Makeup category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:36px;bottom:32px;pointer-events:none">
+                <div style="font-family:'Cormorant Garamond',serif;font-size:34px;color:#f7f3ec;text-shadow:0 2px 12px rgba(0,0,0,.35)">Makeup</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- bestsellers -->
+          <div style="padding:80px 64px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:36px">Bestsellers</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.05em;color:#a9764f;text-transform:uppercase">View all</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px">
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:16px"><image-slot id="hp1a-p1" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Dew Veil Serum</div>
+                <div style="font-size:14px;color:#7a6f63">$68</div>
+              </div>
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:16px"><image-slot id="hp1a-p2" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Clay Bloom Balm</div>
+                <div style="font-size:14px;color:#7a6f63">$42</div>
+              </div>
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:16px"><image-slot id="hp1a-p3" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Golden Hour Tint</div>
+                <div style="font-size:14px;color:#7a6f63">$36</div>
+              </div>
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:16px"><image-slot id="hp1a-p4" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Sage Water Mist</div>
+                <div style="font-size:14px;color:#7a6f63">$28</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- brand story -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:#eae4d8;padding:80px 64px;gap:60px">
+            <div style="width:100%;height:420px"><image-slot id="hp1a-story" shape="rect" placeholder="Founder / studio image" style="width:100%;height:100%"></image-slot></div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;line-height:1.4;margin-bottom:24px">"We believe glow is not applied — it's uncovered. Every formula starts with what your skin already knows how to do."</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#a9764f">Our Story →</a>
+            </div>
+          </div>
+
+          <!-- footer -->
+          <div style="padding:56px 64px;background:#2b2621;color:#cfc6ba;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#f7f3ec;margin-bottom:12px">AUREALIS</div>
+              <div style="font-size:13px;line-height:1.6;max-width:260px">Golden, radiant, minimalist beauty — formulated to glow from within.</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#f7f3ec;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Shop</div>
+              <div>Skincare</div><div>Makeup</div><div>Gift Sets</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#f7f3ec;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Company</div>
+              <div>About</div><div>Journal</div><div>Contact</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#f7f3ec;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Support</div>
+              <div>Shipping</div><div>Returns</div><div>FAQ</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 1b — Luxury & Opulent Dark ============ -->
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Luxury &amp; opulent — espresso dark, gold, dramatic serif</div>
+      <div class="dv-card" style="width:1440px">
+        <div style="background:#14100d;color:#f3ead9;width:1440px">
+
+          <!-- header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:28px 64px;border-bottom:1px solid rgba(203,161,53,.25)">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;letter-spacing:.08em;font-weight:500;color:#e8c874">AUREALIS</div>
+            <div style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
+              <a class="au-link" href="#" style="color:#f3ead9">Skincare</a>
+              <a class="au-link" href="#" style="color:#f3ead9">Makeup</a>
+              <a class="au-link" href="#" style="color:#f3ead9">About</a>
+              <a class="au-link" href="#" style="color:#f3ead9">Journal</a>
+            </div>
+            <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em">
+              <a class="au-link" href="#" style="color:#f3ead9">Login</a>
+              <a class="au-link" href="#" style="color:#f3ead9">Bag (0)</a>
+            </div>
+          </div>
+
+          <!-- hero -->
+          <div style="position:relative;padding:110px 64px 130px;text-align:center;overflow:hidden">
+            <div style="position:absolute;top:-260px;left:50%;transform:translateX(-50%);width:900px;height:900px;border-radius:50%;background:radial-gradient(circle,rgba(232,200,116,.25) 0%,rgba(232,200,116,0) 70%);pointer-events:none"></div>
+            <div style="position:relative;z-index:1">
+              <div style="font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#e8c874;margin-bottom:22px">The Aurealis Ritual</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:400;font-size:88px;line-height:1.05;margin-bottom:30px">Glow like gold.</div>
+              <div style="font-size:17px;line-height:1.6;color:#cdbfa9;max-width:520px;margin:0 auto 40px">Luxury skincare rituals distilled from light — for the moments you want to be seen.</div>
+              <a class="au-link" href="#" style="display:inline-block;background:#e8c874;color:#14100d;padding:17px 38px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Discover the Ritual</a>
+            </div>
+            <div style="position:relative;z-index:1;width:900px;max-width:100%;height:480px;margin:70px auto 0">
+              <image-slot id="hp1b-hero" shape="rect" placeholder="Drop hero image — dramatic lit portrait or product" style="width:100%;height:100%"></image-slot>
+            </div>
+          </div>
+
+          <!-- category strip -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(232,200,116,.2)">
+            <div style="position:relative;height:380px;background:#14100d">
+              <image-slot id="hp1b-cat-skincare" shape="rect" placeholder="Skincare category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.55),transparent 55%);pointer-events:none"></div>
+              <div style="position:absolute;left:36px;bottom:32px;pointer-events:none">
+                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:34px;color:#e8c874">Skincare</div>
+              </div>
+            </div>
+            <div style="position:relative;height:380px;background:#14100d">
+              <image-slot id="hp1b-cat-makeup" shape="rect" placeholder="Makeup category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.55),transparent 55%);pointer-events:none"></div>
+              <div style="position:absolute;left:36px;bottom:32px;pointer-events:none">
+                <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:34px;color:#e8c874">Makeup</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- bestsellers -->
+          <div style="padding:90px 64px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:44px">
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:38px;color:#e8c874">Bestsellers</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.05em;color:#cdbfa9;text-transform:uppercase">View all</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px">
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:18px;border:1px solid rgba(232,200,116,.25)"><image-slot id="hp1b-p1" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">24K Elixir</div>
+                <div style="font-size:14px;color:#cdbfa9">$120</div>
+              </div>
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:18px;border:1px solid rgba(232,200,116,.25)"><image-slot id="hp1b-p2" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Noir Velvet Lip</div>
+                <div style="font-size:14px;color:#cdbfa9">$46</div>
+              </div>
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:18px;border:1px solid rgba(232,200,116,.25)"><image-slot id="hp1b-p3" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Gilded Radiance Cream</div>
+                <div style="font-size:14px;color:#cdbfa9">$98</div>
+              </div>
+              <div>
+                <div style="width:100%;height:280px;margin-bottom:18px;border:1px solid rgba(232,200,116,.25)"><image-slot id="hp1b-p4" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:600;margin-bottom:4px">Ember Bronzing Oil</div>
+                <div style="font-size:14px;color:#cdbfa9">$58</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- brand story -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:#1c1712;padding:90px 64px;gap:60px">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;line-height:1.4;margin-bottom:26px;color:#f3ead9">"Gold is not a color. It's what light does when it finds something worth catching."</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#e8c874">Our Story →</a>
+            </div>
+            <div style="width:100%;height:420px"><image-slot id="hp1b-story" shape="rect" placeholder="Founder / studio image" style="width:100%;height:100%"></image-slot></div>
+          </div>
+
+          <!-- footer -->
+          <div style="padding:56px 64px;background:#0c0906;color:#8f8578;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#e8c874;margin-bottom:12px">AUREALIS</div>
+              <div style="font-size:13px;line-height:1.6;max-width:260px">Luxury beauty rituals inspired by light and gold.</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#e8c874;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Shop</div>
+              <div>Skincare</div><div>Makeup</div><div>Gift Sets</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#e8c874;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Company</div>
+              <div>About</div><div>Journal</div><div>Contact</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#e8c874;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Support</div>
+              <div>Shipping</div><div>Returns</div><div>FAQ</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 1c — Radiant / Iridescent Bright ============ -->
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Radiant &amp; iridescent — bright, holographic glow accents</div>
+      <div class="dv-card" style="width:1440px">
+        <div style="background:#fbf9f5;color:#26231f;width:1440px">
+
+          <!-- header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:28px 64px;border-bottom:1px solid rgba(38,35,31,.08)">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:26px;letter-spacing:.05em;font-weight:600;background:linear-gradient(90deg,#e8a97a,#cbb0e8,#8fc6d9);-webkit-background-clip:text;background-clip:text;color:transparent">AUREALIS</div>
+            <div style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
+              <a class="au-link" href="#" style="color:#26231f">Skincare</a>
+              <a class="au-link" href="#" style="color:#26231f">Makeup</a>
+              <a class="au-link" href="#" style="color:#26231f">About</a>
+              <a class="au-link" href="#" style="color:#26231f">Journal</a>
+            </div>
+            <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em">
+              <a class="au-link" href="#" style="color:#26231f">Login</a>
+              <a class="au-link" href="#" style="color:#26231f">Bag (0)</a>
+            </div>
+          </div>
+
+          <!-- hero -->
+          <div style="position:relative;padding:76px 64px 0;overflow:hidden">
+            <div style="position:absolute;top:-180px;right:-120px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle,rgba(203,176,232,.5),rgba(143,198,217,0) 70%);filter:blur(10px);pointer-events:none"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1">
+              <div>
+                <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#b98fd0;margin-bottom:18px">Aurora Drop — Out Now</div>
+                <div style="font-family:'Cormorant Garamond',serif;font-weight:500;font-size:76px;line-height:1.03;margin-bottom:26px">Your light,<br>amplified.</div>
+                <div style="font-size:17px;line-height:1.6;color:#5a5148;max-width:420px;margin-bottom:36px">Iridescent skincare and makeup that shifts with you — glow that's never one shade.</div>
+                <a class="au-link" href="#" style="display:inline-block;background:linear-gradient(90deg,#e8a97a,#cbb0e8,#8fc6d9);color:#1c1a17;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700">Shop the Drop</a>
+              </div>
+              <div style="position:relative;width:100%;height:500px">
+                <image-slot id="hp1c-hero" shape="rect" placeholder="Drop hero image — holographic / iridescent mood" style="width:100%;height:100%"></image-slot>
+              </div>
+            </div>
+          </div>
+
+          <!-- category strip -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:70px 64px 0">
+            <div style="position:relative;height:340px;border-radius:20px;overflow:hidden">
+              <image-slot id="hp1c-cat-skincare" shape="rect" placeholder="Skincare category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:28px;bottom:24px;pointer-events:none;background:rgba(255,255,255,.85);padding:8px 18px;border-radius:100px">
+                <div style="font-size:15px;font-weight:700">Skincare</div>
+              </div>
+            </div>
+            <div style="position:relative;height:340px;border-radius:20px;overflow:hidden">
+              <image-slot id="hp1c-cat-makeup" shape="rect" placeholder="Makeup category image" style="width:100%;height:100%"></image-slot>
+              <div style="position:absolute;left:28px;bottom:24px;pointer-events:none;background:rgba(255,255,255,.85);padding:8px 18px;border-radius:100px">
+                <div style="font-size:15px;font-weight:700">Makeup</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- bestsellers -->
+          <div style="padding:80px 64px">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:36px">Bestsellers</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.05em;color:#b98fd0;text-transform:uppercase;font-weight:700">View all</a>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#f6e2cf,#e3d6f2,#cfe9f0)"><image-slot id="hp1c-p1" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Aurora Drops</div>
+                <div style="font-size:14px;color:#7a6f63">$52</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#f6e2cf,#e3d6f2,#cfe9f0)"><image-slot id="hp1c-p2" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Prism Blush Duo</div>
+                <div style="font-size:14px;color:#7a6f63">$34</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#f6e2cf,#e3d6f2,#cfe9f0)"><image-slot id="hp1c-p3" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Halo Glow Stick</div>
+                <div style="font-size:14px;color:#7a6f63">$29</div>
+              </div>
+              <div>
+                <div style="width:100%;height:270px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:linear-gradient(160deg,#f6e2cf,#e3d6f2,#cfe9f0)"><image-slot id="hp1c-p4" shape="rect" placeholder="Product photo" style="width:100%;height:100%"></image-slot></div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:4px">Mist of Light</div>
+                <div style="font-size:14px;color:#7a6f63">$26</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- brand story -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:linear-gradient(120deg,#f6e9dc,#ece3f3,#e2eef2);padding:80px 64px;gap:60px;border-radius:0">
+            <div style="width:100%;height:420px;border-radius:20px;overflow:hidden"><image-slot id="hp1c-story" shape="rect" placeholder="Founder / studio image" style="width:100%;height:100%"></image-slot></div>
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:30px;line-height:1.4;margin-bottom:24px">"Light doesn't have one color. Neither does your glow. We formulate for every shade of radiant."</div>
+              <a class="au-link" href="#" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#b98fd0;font-weight:700">Our Story →</a>
+            </div>
+          </div>
+
+          <!-- footer -->
+          <div style="padding:56px 64px;background:#26231f;color:#c9c1b6;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;margin-bottom:12px">AUREALIS</div>
+              <div style="font-size:13px;line-height:1.6;max-width:260px">Iridescent, radiant beauty — glow that shifts with you.</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Shop</div>
+              <div>Skincare</div><div>Makeup</div><div>Gift Sets</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Company</div>
+              <div>About</div><div>Journal</div><div>Contact</div>
+            </div>
+            <div style="font-size:13px;line-height:2.2">
+              <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Support</div>
+              <div>Shipping</div><div>Returns</div><div>FAQ</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="dv-next">Try next: "combine <a class="dv-oid" href="#1a">1a</a> layout with the gold of <a class="dv-oid" href="#1b">1b</a>" · "make <a class="dv-oid" href="#1c">1c</a> less colorful" · "pick <a class="dv-oid" href="#1a">1a</a>, build the full site"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}"></script>
+</body>
+</html>

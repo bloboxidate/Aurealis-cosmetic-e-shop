@@ -1,0 +1,32 @@
+<div class="au-pad" style="padding:56px 64px;background:linear-gradient(100deg,#3f6f86,#4c6b45,#5f4f96);color:#f4f1ea;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px">
+  <div>
+    <img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:126px;width:auto;max-width:100%;display:block;margin-bottom:12px;filter:brightness(0) invert(1)">
+    <% var _f = (typeof footer !== 'undefined' && footer) ? footer : {}; %>
+    <div style="font-size:13px;line-height:1.6;max-width:260px;color:rgba(244,241,234,.85)"><%= _f.tagline || 'Beauty inspired by the northern lights — radiant, ever-shifting glow.' %></div>
+    <% if (_f.email || _f.phone || _f.instagram || _f.tiktok) { %>
+      <div style="font-size:12px;line-height:2;color:rgba(244,241,234,.8);margin-top:14px">
+        <% if (_f.email) { %><a class="au-link" href="mailto:<%= _f.email %>" style="display:block;color:inherit"><%= _f.email %></a><% } %>
+        <% if (_f.phone) { %><span style="display:block"><%= _f.phone %></span><% } %>
+        <% if (_f.instagram) { %><a class="au-link" href="<%= _f.instagram %>" style="display:inline-block;color:inherit;margin-right:12px">Instagram</a><% } %>
+        <% if (_f.tiktok) { %><a class="au-link" href="<%= _f.tiktok %>" style="display:inline-block;color:inherit">TikTok</a><% } %>
+      </div>
+    <% } %>
+  </div>
+  <div style="font-size:13px;line-height:2.2;color:rgba(244,241,234,.85)">
+    <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Shop</div>
+    <% (typeof navCategories !== 'undefined' ? navCategories : []).forEach(function(c){ %>
+      <a class="au-link" href="/shop?category=<%= c.slug %>" style="display:block;color:inherit"><%= c.name %></a>
+    <% }); %>
+    <a class="au-link" href="/shop" style="display:block;color:inherit">Shop All</a>
+  </div>
+  <div style="font-size:13px;line-height:2.2;color:rgba(244,241,234,.85)">
+    <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Company</div>
+    <a class="au-link" href="/about" style="display:block;color:inherit">About</a>
+    <span style="display:block">Journal</span>
+    <span style="display:block">Contact</span>
+  </div>
+  <div style="font-size:13px;line-height:2.2;color:rgba(244,241,234,.85)">
+    <div style="color:#fff;margin-bottom:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase">Support</div>
+    <div>Shipping</div><div>Returns</div><div>FAQ</div>
+  </div>
+</div>

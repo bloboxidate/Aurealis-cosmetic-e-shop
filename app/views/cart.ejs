@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head') %></head>
+<body>
+<div style="background-color:#fff9f3;min-height:100vh;background-repeat:repeat-y;background-size:100% 950px;background-image:
+    radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.45), transparent 60%),
+    radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.4), transparent 58%),
+    radial-gradient(750px circle at 30% 65%, rgba(165,191,151,.4), transparent 60%)">
+
+  <%- include('partials/header', { navActive: 'cart' }) %>
+
+  <div class="au-pad grid-2" style="padding:56px 64px 100px;display:grid;grid-template-columns:1.6fr 1fr;gap:70px;align-items:flex-start">
+    <div>
+      <div class="serif" style="font-size:42px;margin-bottom:36px">Your Bag</div>
+
+      <% if (items.length === 0) { %>
+        <div style="padding:40px 0;color:#6b6357;font-size:16px">Your bag is empty.</div>
+        <a class="au-link" href="/shop" style="display:inline-block;margin-top:8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#c1602f;font-weight:700">← Continue Shopping</a>
+      <% } else { %>
+        <% items.forEach(function(it){ %>
+          <div style="display:flex;gap:24px;padding:28px 0;border-top:1px solid rgba(58,53,46,.15)">
+            <a href="/product/<%= it.slug %>" style="width:120px;height:120px;border-radius:14px;overflow:hidden;background:<%= it.color %>;flex:none;display:block">
+              <% if (it.image_url) { %><img src="<%= it.image_url %>" alt="<%= it.name %>" style="width:100%;height:100%;object-fit:cover"><% } %>
+            </a>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <div style="font-size:16px;font-weight:700"><%= it.name %></div>
+                <div style="font-size:16px;font-weight:700"><%= money(it.line_cents) %></div>
+              </div>
+              <div style="font-size:13px;color:#6b6357;margin-bottom:16px"><%= it.size || it.subtitle %></div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div style="display:flex;align-items:center;border:1px solid rgba(58,53,46,.3);border-radius:100px;overflow:hidden">
+                  <form action="/cart/update" method="post" style="margin:0"><input type="hidden" name="item_id" value="<%= it.id %>"><input type="hidden" name="op" value="dec"><button type="submit" style="padding:8px 14px;font-size:14px;background:none;border:none;cursor:pointer">−</button></form>
+                  <div style="padding:8px 4px;font-size:13px;min-width:24px;text-align:center"><%= it.qty %></div>
+                  <form action="/cart/update" method="post" style="margin:0"><input type="hidden" name="item_id" value="<%= it.id %>"><input type="hidden" name="op" value="inc"><button type="submit" style="padding:8px 14px;font-size:14px;background:none;border:none;cursor:pointer">+</button></form>
+                </div>
+                <form action="/cart/remove" method="post" style="margin:0"><input type="hidden" name="item_id" value="<%= it.id %>"><button type="submit" style="font-size:13px;color:#8a8175;text-decoration:underline;background:none;border:none;cursor:pointer">Remove</button></form>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+        <div style="border-top:1px solid rgba(58,53,46,.15)"></div>
+        <a class="au-link" href="/shop" style="display:inline-block;margin-top:28px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#c1602f;font-weight:700">← Continue Shopping</a>
+      <% } %>
+    </div>
+
+    <div style="background:rgba(255,255,255,.65);backdrop-filter:blur(3px);border-radius:20px;padding:36px;position:sticky;top:24px">
+      <div style="font-size:18px;font-weight:700;margin-bottom:24px">Order Summary</div>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;color:#5a5148">
+        <span>Subtotal</span><span><%= money(subtotal_cents) %></span>
+      </div>
+      <% if (discount_cents > 0) { %>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;color:#2f4a26">
+        <span>Discount (<%= promo %>)</span><span>−<%= money(discount_cents) %></span>
+      </div>
+      <% } %>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;color:#5a5148">
+        <span>Shipping</span><span>Free</span>
+      </div>
+      <form action="/cart/promo" method="post" style="display:flex;gap:10px;margin:20px 0">
+        <input type="text" name="code" value="<%= promoCode %>" placeholder="Promo code" style="flex:1;padding:12px 14px;border-radius:100px;border:1px solid rgba(58,53,46,.3);font-size:13px;background:#fff9f3">
+        <button type="submit" class="au-link" style="padding:12px 20px;border-radius:100px;border:1px solid #3a352e;font-size:13px;color:#3a352e;background:none;cursor:pointer">Apply</button>
+      </form>
+      <% if (promoError) { %><div style="font-size:12px;color:#8a3d16;margin:-8px 0 12px"><%= promoError %></div><% } %>
+      <% if (discount_cents > 0) { %><div style="font-size:12px;color:#2f4a26;margin:-8px 0 12px">Promo applied 🎉</div><% } %>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding-top:18px;border-top:1px solid rgba(58,53,46,.15);margin-bottom:26px">
+        <span>Total</span><span><%= money(total_cents) %></span>
+      </div>
+      <% if (items.length) { %>
+        <a class="au-link btn-primary" href="/checkout" style="display:block;width:100%">Checkout</a>
+      <% } else { %>
+        <a class="au-link btn-outline" href="/shop" style="display:block;width:100%">Browse products</a>
+      <% } %>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

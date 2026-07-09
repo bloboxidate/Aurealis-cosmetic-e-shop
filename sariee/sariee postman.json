@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "Sariee Bug Report (aurealis)",
+    "description": "For aurealis.sariee.shop.\nA) Customer login returns 412 'Attempt to read property company_id on null' — still under investigation.\nB) Checkout — RESOLVED. This was a client payload-shape issue, not a server bug. checkout-action expects details.customer{first_name,last_name,mobile,email} and details.address{street,building,city_id}. With that structure it returns 200 and creates an order. B5 below now sends the correct body and should succeed.\n\nHow to use: run the requests top to bottom. Screenshot the response of 'A2 Login (BUG)'. B5 should now return 200 with an order_id.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.sariee.com" },
+    { "key": "cartToken", "value": "bug-report-cart-token-000000000000000000000000000000000000000000" },
+    { "key": "barcodeId", "value": "a235b6b2-025e-4915-a2f1-1d35be4664e5" }
+  ],
+  "item": [
+    {
+      "name": "A1 · Register a customer",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/register", "host": ["{{baseUrl}}"], "path": ["api","frontend","register"] },
+        "body": { "mode": "raw", "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"Buyer\",\n  \"email\": \"sariee-bug-login@example.com\",\n  \"phone\": \"1000000001\",\n  \"password\": \"TestPass1234\",\n  \"password_confirm\": \"TestPass1234\"\n}" },
+        "description": "Expect HTTP 200 'success'. Creates the account so login has a real user. If it says the email already exists, skip to A2."
+      }
+    },
+    {
+      "name": "A2 · Login  (BUG → 412)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/login", "host": ["{{baseUrl}}"], "path": ["api","frontend","login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"sariee-bug-login@example.com\",\n  \"password\": \"TestPass1234\"\n}" },
+        "description": "*** SCREENSHOT THIS *** Expect HTTP 412 with message: Attempt to read property \"company_id\" on null."
+      }
+    },
+    {
+      "name": "B1 · Get a product barcode id",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/products/list-all?is_single=1&per_page=5", "host": ["{{baseUrl}}"], "path": ["api","frontend","products","list-all"], "query": [ { "key": "is_single", "value": "1" }, { "key": "per_page", "value": "5" } ] },
+        "description": "Copy data[0].barcodes[0].id from the response. If it differs from the {{barcodeId}} variable, update the variable (Collection > Variables)."
+      }
+    },
+    {
+      "name": "B2 · Cart init",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/cart/init", "host": ["{{baseUrl}}"], "path": ["api","frontend","cart","init"] },
+        "body": { "mode": "raw", "raw": "{}" },
+        "description": "Expect HTTP 200 'success'."
+      }
+    },
+    {
+      "name": "B3 · Add item to cart",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/cart/add-update", "host": ["{{baseUrl}}"], "path": ["api","frontend","cart","add-update"] },
+        "body": { "mode": "raw", "raw": "{\n  \"product_barcode_id\": \"{{barcodeId}}\",\n  \"quantity\": 1\n}" },
+        "description": "Expect HTTP 200 'Item Added To Cart'."
+      }
+    },
+    {
+      "name": "B4 · Available payment methods",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/checkout/avail-methods", "host": ["{{baseUrl}}"], "path": ["api","frontend","checkout","avail-methods"] },
+        "body": { "mode": "raw", "raw": "{}" },
+        "description": "Expect HTTP 200. Shows Cash On Delivery with paymentId 0 — proves a payment method exists."
+      }
+    },
+    {
+      "name": "B5 · Checkout  (FIXED → 200 + order_id)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/checkout/checkout-action", "host": ["{{baseUrl}}"], "path": ["api","frontend","checkout","checkout-action"] },
+        "body": { "mode": "raw", "raw": "{\n  \"payment_id\": 0,\n  \"details\": {\n    \"customer\": {\n      \"first_name\": \"Test\",\n      \"last_name\": \"Buyer\",\n      \"mobile\": \"1000000001\",\n      \"email\": \"buyer@example.com\"\n    },\n    \"address\": {\n      \"street\": \"1 Test Street\",\n      \"building\": \"5\",\n      \"city_id\": \"9b930aad-8f82-46e2-aff8-6a6af83dd294\"\n    }\n  }\n}" },
+        "description": "Correct payload. details.customer uses mobile (not phone); details.address is an OBJECT with street/building/city_id (not an array). Expect HTTP 200 'success' with data.order_id. Verified live: created order a23783c8, total 500."
+      }
+    }
+  ]
+}

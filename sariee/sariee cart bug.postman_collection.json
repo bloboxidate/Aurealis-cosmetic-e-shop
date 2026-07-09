@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "Sariee Cart Bug Report (aurealis)",
+    "description": "For aurealis.sariee.shop.\n\nTWO server-side cart bugs on api.sariee.com. Both surface as database errors from your backend (MySQL), so they look like they need a migration / missing table on the Sariee side. The storefront request format is correct (proven earlier: register/login/checkout all work).\n\nBUG 1 — Updating the quantity of an item already in the cart.\n  POST /api/frontend/cart/add-update with a barcode that is ALREADY in the cart returns HTTP 500:\n    {\"status\":false,\"internal_code\":500,\"code\":500,\"message\":\"Something Went Wrong\",\"data\":null}\n  The FIRST add of a barcode works (200). Only changing the quantity of an existing line fails.\n\nBUG 2 — Reading a cart that has items.\n  POST /api/frontend/cart/init on a NON-EMPTY cart returns HTTP 406 with a raw SQL error, e.g.:\n    SQLSTATE[42S02]: Base table or view not found: 1146 Table 'sariee.cart_bundle_selections' doesn't exist\n      (select * from `cart_bundle_selections` where `cart_item_id` in (...) and `deleted_at` is null)\n    ...and sometimes: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'cart...'.\n  init on an EMPTY cart works (200).\n\nHOW TO USE: Run the requests top to bottom (or 'Run collection'). Step C1 auto-fills the barcode id and mints a FRESH cart token for the run. Screenshot the responses of C4 (BUG 1) and C5 (BUG 2).\n\nNet effect: a cart works for the first add of each product, but cannot have item quantities changed and cannot be re-read once it has items — because the backend queries a `cart_bundle_selections` table/column that doesn't exist.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://api.sariee.com" },
+    { "key": "cartToken", "value": "cart-bug-REPLACED-AT-RUNTIME" },
+    { "key": "barcodeId", "value": "a235b6b2-025e-4915-a2f1-1d35be4664e5" }
+  ],
+  "item": [
+    {
+      "name": "C1 · Get a barcode id + mint a fresh cart token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Mint a fresh cart token so each run starts from an empty cart.",
+              "pm.collectionVariables.set('cartToken', 'cart-bug-' + Date.now() + '-' + Math.random().toString(36).slice(2));",
+              "",
+              "// Grab the first single product's first barcode id.",
+              "try {",
+              "  const data = pm.response.json().data;",
+              "  if (Array.isArray(data) && data[0] && data[0].barcodes && data[0].barcodes[0]) {",
+              "    pm.collectionVariables.set('barcodeId', data[0].barcodes[0].id);",
+              "    console.log('Using barcodeId:', data[0].barcodes[0].id);",
+              "  }",
+              "} catch (e) { console.log('Could not parse products; using the default barcodeId variable.'); }",
+              "console.log('Fresh cartToken:', pm.collectionVariables.get('cartToken'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/frontend/products/list-all?is_single=1&per_page=5",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "frontend", "products", "list-all"],
+          "query": [
+            { "key": "is_single", "value": "1" },
+            { "key": "per_page", "value": "5" }
+          ]
+        },
+        "description": "Expect HTTP 200. Auto-sets {{barcodeId}} from data[0].barcodes[0].id and mints a fresh {{cartToken}} for this run."
+      }
+    },
+    {
+      "name": "C2 · Cart init  (empty cart → OK)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/cart/init", "host": ["{{baseUrl}}"], "path": ["api", "frontend", "cart", "init"] },
+        "body": { "mode": "raw", "raw": "{}" },
+        "description": "Expect HTTP 200 'success'. Proves init works while the cart is EMPTY."
+      }
+    },
+    {
+      "name": "C3 · Add item  (first add → OK)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/cart/add-update", "host": ["{{baseUrl}}"], "path": ["api", "frontend", "cart", "add-update"] },
+        "body": { "mode": "raw", "raw": "{\n  \"product_barcode_id\": \"{{barcodeId}}\",\n  \"quantity\": 1\n}" },
+        "description": "Expect HTTP 200. The FIRST add of a barcode succeeds and returns the cart with 1 item."
+      }
+    },
+    {
+      "name": "C4 · Update quantity of the SAME item  (BUG 1 → 500)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/cart/add-update", "host": ["{{baseUrl}}"], "path": ["api", "frontend", "cart", "add-update"] },
+        "body": { "mode": "raw", "raw": "{\n  \"product_barcode_id\": \"{{barcodeId}}\",\n  \"quantity\": 2\n}" },
+        "description": "*** SCREENSHOT THIS — BUG 1 *** Same barcode as C3, quantity changed to 2. Expect HTTP 500: {\"status\":false,\"internal_code\":500,\"code\":500,\"message\":\"Something Went Wrong\",\"data\":null}. Updating an existing cart line fails server-side."
+      }
+    },
+    {
+      "name": "C5 · Cart init again  (BUG 2 → 406 SQL error)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "x-domain", "value": "aurealis.sariee.shop" },
+          { "key": "x-locale", "value": "en" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "X-Cart-Token", "value": "{{cartToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/frontend/cart/init", "host": ["{{baseUrl}}"], "path": ["api", "frontend", "cart", "init"] },
+        "body": { "mode": "raw", "raw": "{}" },
+        "description": "*** SCREENSHOT THIS — BUG 2 *** Same token, but the cart now has an item (from C3). Expect HTTP 406 with a raw SQL error: SQLSTATE[42S02] Table 'sariee.cart_bundle_selections' doesn't exist (or SQLSTATE[42S22] Unknown column 'cart...'). init works on an empty cart (C2) but not once the cart contains items."
+      }
+    }
+  ]
+}

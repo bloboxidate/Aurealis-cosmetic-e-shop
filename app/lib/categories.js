@@ -1,0 +1,102 @@
+// Category / subcategory taxonomy. Products store category & subcategory as
+// slug strings; these tables provide the canonical, editable list and drive the
+// storefront nav + admin dropdowns.
+const db = require('../db/database');
+
+function slugify(s) {
+  return (s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+async function listCategories() {
+  return db.all('SELECT * FROM categories ORDER BY sort_order ASC, name ASC');
+}
+
+async function listSubcategories() {
+  return db.all(`
+    SELECT s.*, c.slug AS category_slug, c.name AS category_name
+    FROM subcategories s JOIN categories c ON c.id = s.category_id
+    ORDER BY c.sort_order ASC, s.sort_order ASC, s.name ASC
+  `);
+}
+
+async function subcategoriesForSlug(categorySlug) {
+  return db.all(`
+    SELECT s.* FROM subcategories s
+    JOIN categories c ON c.id = s.category_id
+    WHERE c.slug = ? ORDER BY s.sort_order ASC, s.name ASC
+  `, [categorySlug]);
+}
+
+async function getCategory(id) {
+  return db.get('SELECT * FROM categories WHERE id = ?', [id]);
+}
+async function getCategoryBySlug(slug) {
+  return db.get('SELECT * FROM categories WHERE slug = ?', [slug]);
+}
+async function getSubcategory(id) {
+  return db.get('SELECT * FROM subcategories WHERE id = ?', [id]);
+}
+
+async function countProductsInCategory(slug) {
+  return (await db.get('SELECT COUNT(*) AS n FROM products WHERE category = ?', [slug])).n;
+}
+
+async function createCategory({ name, slug, sort_order }) {
+  slug = slugify(slug) || slugify(name);
+  await db.run('INSERT INTO categories (slug, name, sort_order) VALUES (?, ?, ?)',
+    [slug, (name || '').trim(), parseInt(sort_order, 10) || 0]);
+}
+
+async function updateCategory(id, { name, slug, sort_order }) {
+  const cur = await getCategory(id);
+  if (!cur) return;
+  const newSlug = slugify(slug) || slugify(name);
+  await db.tx(async (t) => {
+    await t.run('UPDATE categories SET slug = ?, name = ?, sort_order = ? WHERE id = ?',
+      [newSlug, (name || '').trim(), parseInt(sort_order, 10) || 0, id]);
+    if (newSlug !== cur.slug) {
+      // keep product rows pointing at the renamed category
+      await t.run('UPDATE products SET category = ? WHERE category = ?', [newSlug, cur.slug]);
+    }
+  });
+}
+
+async function deleteCategory(id) {
+  const cur = await getCategory(id);
+  if (!cur) return { ok: false, reason: 'not found' };
+  const n = await countProductsInCategory(cur.slug);
+  if (n > 0) return { ok: false, reason: `${n} product(s) still use this category` };
+  await db.run('DELETE FROM categories WHERE id = ?', [id]); // subcategories cascade
+  return { ok: true };
+}
+
+async function createSubcategory({ category_id, name, slug, sort_order }) {
+  slug = slugify(slug) || slugify(name);
+  await db.run('INSERT INTO subcategories (category_id, slug, name, sort_order) VALUES (?, ?, ?, ?)',
+    [category_id, slug, (name || '').trim(), parseInt(sort_order, 10) || 0]);
+}
+
+async function updateSubcategory(id, { category_id, name, slug, sort_order }) {
+  const cur = await getSubcategory(id);
+  if (!cur) return;
+  const newSlug = slugify(slug) || slugify(name);
+  await db.tx(async (t) => {
+    await t.run('UPDATE subcategories SET category_id = ?, slug = ?, name = ?, sort_order = ? WHERE id = ?',
+      [category_id || cur.category_id, newSlug, (name || '').trim(), parseInt(sort_order, 10) || 0, id]);
+    if (newSlug !== cur.slug) {
+      await t.run('UPDATE products SET subcategory = ? WHERE subcategory = ?', [newSlug, cur.slug]);
+    }
+  });
+}
+
+async function deleteSubcategory(id) {
+  await db.run('DELETE FROM subcategories WHERE id = ?', [id]);
+  return { ok: true };
+}
+
+module.exports = {
+  slugify, listCategories, listSubcategories, subcategoriesForSlug,
+  getCategory, getCategoryBySlug, getSubcategory, countProductsInCategory,
+  createCategory, updateCategory, deleteCategory,
+  createSubcategory, updateSubcategory, deleteSubcategory,
+};

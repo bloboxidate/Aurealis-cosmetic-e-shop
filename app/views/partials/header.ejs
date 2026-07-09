@@ -1,0 +1,22 @@
+<% const active = typeof navActive !== 'undefined' ? navActive : ''; %>
+<div class="au-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
+  <a href="/" style="display:flex;align-items:center"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:126px;width:auto;display:block"></a>
+  <div class="au-nav" style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
+    <% (typeof navCategories !== 'undefined' ? navCategories : []).forEach(function(c){ %>
+      <a class="au-link" href="/shop?category=<%= c.slug %>" style="color:#3a352e;<%= active===c.slug?'font-weight:700':'' %>"><%= c.name %></a>
+    <% }); %>
+    <a class="au-link" href="/about" style="color:#3a352e;<%= active==='about'?'font-weight:700':'' %>">About</a>
+    <a class="au-link" href="/shop" style="color:#3a352e;<%= active==='shop'?'font-weight:700':'' %>">Shop All</a>
+  </div>
+  <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em;align-items:center">
+    <% if (user) { %>
+      <a class="au-link" href="/account" style="color:#3a352e"><%= user.first_name || 'Account' %></a>
+      <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
+      <form action="/logout" method="post" style="margin:0"><button type="submit" style="background:none;border:none;cursor:pointer;font-size:13px;color:#3a352e;padding:0;letter-spacing:.03em">Logout</button></form>
+    <% } else { %>
+      <a class="au-link" href="/login" style="color:#3a352e">Login</a>
+    <% } %>
+    <a class="au-link" href="/cart" style="color:#3a352e<%= active==='cart'?';font-weight:700':'' %>">Bag (<%= cartCount %>)</a>
+  </div>
+</div>
+<%- include('flash') %>

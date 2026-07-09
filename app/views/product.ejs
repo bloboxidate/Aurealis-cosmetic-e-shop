@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head') %></head>
+<body>
+<div style="background-color:#fff9f3;background-repeat:repeat-y;background-size:100% 950px;background-image:
+    radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.45), transparent 60%),
+    radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.4), transparent 58%),
+    radial-gradient(750px circle at 30% 55%, rgba(165,191,151,.4), transparent 60%),
+    radial-gradient(700px circle at 88% 62%, rgba(247,213,149,.45), transparent 58%)">
+
+  <%- include('partials/header', { navActive: product.category }) %>
+
+  <div class="au-pad" style="padding:36px 64px 0;font-size:13px;color:#8a8175">
+    <a class="au-link" href="/" style="color:#8a8175">Home</a> /
+    <a class="au-link" href="/shop?category=<%= product.category %>" style="color:#8a8175;text-transform:capitalize"><%= product.category %></a> /
+    <%= product.name %>
+  </div>
+
+  <div class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:70px;padding:32px 64px 90px">
+    <!-- gallery -->
+    <div>
+      <% const gallery = (typeof images !== 'undefined' ? images : []); %>
+      <div id="pdp-main" style="width:100%;height:520px;border-radius:20px;overflow:hidden;background:<%= product.color %>;margin-bottom:16px">
+        <% if (gallery.length) { %><img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
+      </div>
+      <% if (gallery.length > 1) { %>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+          <% gallery.forEach(function(img){ %>
+            <div class="pdp-thumb" data-full="<%= img.url %>" style="height:110px;border-radius:12px;overflow:hidden;cursor:pointer"><img src="<%= img.url %>" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+          <% }); %>
+        </div>
+      <% } else if (gallery.length === 0) { %>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+          <% ['#bfb5e8','#a5bf97','#f7d595','#f8ae7f'].forEach(function(c){ %>
+            <div style="height:110px;border-radius:12px;overflow:hidden;background:<%= c %>"></div>
+          <% }); %>
+        </div>
+      <% } %>
+    </div>
+
+    <!-- details -->
+    <div>
+      <div style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:14px"><%= product.subtitle %></div>
+      <div class="serif" style="font-size:44px;margin-bottom:12px"><%= product.name %></div>
+      <div style="font-size:20px;color:#3a352e;margin-bottom:20px"><%= money(product.price_cents) %></div>
+      <div style="font-size:15px;line-height:1.7;color:#5a5148;margin-bottom:32px;max-width:460px"><%= product.description %></div>
+
+      <form action="/cart/add" method="post" id="add-form">
+        <input type="hidden" name="product_id" value="<%= product.id %>">
+        <input type="hidden" name="size" id="size-input" value="<%= product.sizes[0] || '' %>">
+
+        <% if (product.sizes.length) { %>
+        <div style="margin-bottom:28px">
+          <div style="font-size:13px;font-weight:700;margin-bottom:10px">Size</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap" id="size-group">
+            <% product.sizes.forEach(function(s, i){ %>
+              <button type="button" class="size-chip" data-size="<%= s %>"
+                style="padding:10px 22px;border-radius:100px;font-size:13px;background:#fff9f3;cursor:pointer;<%= i===0?'border:1.5px solid #3a352e;color:#3a352e':'border:1px solid rgba(58,53,46,.3);color:#6b6357' %>"><%= s %></button>
+            <% }); %>
+          </div>
+        </div>
+        <% } %>
+
+        <div style="display:flex;gap:14px;margin-bottom:32px;max-width:460px">
+          <div style="display:flex;align-items:center;border:1px solid rgba(58,53,46,.3);border-radius:100px;overflow:hidden">
+            <button type="button" class="qty-dec" style="padding:14px 18px;font-size:15px;cursor:pointer;background:none;border:none">−</button>
+            <div class="qty-val" style="padding:14px 6px;font-size:14px;min-width:24px;text-align:center">1</div>
+            <button type="button" class="qty-inc" style="padding:14px 18px;font-size:15px;cursor:pointer;background:none;border:none">+</button>
+            <input type="hidden" name="qty" class="qty-input" value="1">
+          </div>
+          <button type="submit" class="btn-primary" style="flex:1">Add to Bag</button>
+        </div>
+      </form>
+
+      <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid rgba(58,53,46,.12);border-bottom:1px solid rgba(58,53,46,.12);margin-bottom:32px;font-size:12px;color:#6b6357;letter-spacing:.03em;text-transform:uppercase;flex-wrap:wrap">
+        <% product.badges.forEach(function(b){ %><div><%= b %></div><% }); %>
+      </div>
+
+      <% if (product.details) { %>
+      <div style="margin-bottom:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Details</div>
+        <div style="font-size:14px;line-height:1.7;color:#5a5148"><%= product.details %></div>
+      </div>
+      <% } %>
+      <% if (product.how_to_use) { %>
+      <div style="margin-bottom:20px">
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">How to Use</div>
+        <div style="font-size:14px;line-height:1.7;color:#5a5148"><%= product.how_to_use %></div>
+      </div>
+      <% } %>
+      <% if (product.ingredients) { %>
+      <div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Ingredients</div>
+        <div style="font-size:14px;line-height:1.7;color:#5a5148"><%= product.ingredients %></div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- related -->
+  <% if (related.length) { %>
+  <div class="au-pad" style="padding:0 64px 90px">
+    <div class="serif" style="font-size:32px;margin-bottom:32px">You may also like</div>
+    <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+      <% related.forEach(function(p){ %>
+        <%- include('partials/product-card', { p, cardH: 230 }) %>
+      <% }); %>
+    </div>
+  </div>
+  <% } %>
+
+  <%- include('partials/footer') %>
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

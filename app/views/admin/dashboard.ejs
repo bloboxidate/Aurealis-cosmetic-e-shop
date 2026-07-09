@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head') %></head>
+<body>
+<div style="display:flex;min-height:100vh;background:#fbf7f1">
+  <%- include('../partials/admin-nav', { adminActive }) %>
+  <div style="flex:1;padding:40px 48px">
+    <div class="serif" style="font-size:36px;margin-bottom:6px">Site Admin</div>
+    <div style="font-size:14px;color:#8a8175;margin-bottom:8px">Welcome back, <%= user.first_name %>.</div>
+    <div style="font-size:13px;color:#8a8175;margin-bottom:32px;max-width:640px">Manage how your storefront presents the catalog and its page content. Products, orders and customers are managed in your Sariee dashboard.</div>
+    <%- include('../partials/flash') %>
+
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:40px">
+      <% const cards = [['Products', stats.products],['Bestsellers', stats.bestsellers],['Hidden', stats.hidden],['Categories', stats.categories]]; %>
+      <% cards.forEach(function(c){ %>
+        <div style="background:#fff;border-radius:16px;padding:24px;border:1px solid rgba(58,53,46,.08)">
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#8a8175;margin-bottom:10px"><%= c[0] %></div>
+          <div style="font-size:30px;font-weight:800"><%= c[1] %></div>
+        </div>
+      <% }); %>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <% const links = [['Products','Order, categorize, feature or hide products','/admin/products'],['Categories','Manage categories & subcategories','/admin/categories'],['Page Content','Edit Home, About, Shop & Footer copy','/admin/content']]; %>
+      <% links.forEach(function(l){ %>
+        <a class="au-link" href="<%= l[2] %>" style="display:block;background:#fff;border-radius:16px;padding:24px;border:1px solid rgba(58,53,46,.08);text-decoration:none">
+          <div style="font-size:16px;font-weight:700;color:#3a352e;margin-bottom:6px"><%= l[0] %> →</div>
+          <div style="font-size:13px;color:#6b6357;line-height:1.5"><%= l[1] %></div>
+        </a>
+      <% }); %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

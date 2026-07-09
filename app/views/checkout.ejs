@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head') %></head>
+<body>
+<div style="background-color:#fff9f3;min-height:100vh;background-repeat:repeat-y;background-size:100% 950px;background-image:
+    radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.4), transparent 60%),
+    radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.35), transparent 58%)">
+
+  <div class="au-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
+    <a href="/" style="display:flex;align-items:center"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:56px;width:auto;display:block"></a>
+    <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#6b6357">Secure Checkout</div>
+  </div>
+  <%- include('partials/flash') %>
+
+  <form action="/checkout" method="post">
+  <div class="au-pad grid-2" style="padding:56px 64px 100px;display:grid;grid-template-columns:1.5fr 1fr;gap:70px">
+
+    <div>
+      <div style="margin-bottom:40px">
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Contact</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <input class="field" type="email" name="email" required placeholder="Email address" value="<%= values.email || '' %>">
+          <input class="field" type="tel" name="mobile" required placeholder="Mobile number" value="<%= values.mobile || '' %>">
+        </div>
+      </div>
+
+      <div style="margin-bottom:40px">
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Shipping Address</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <input class="field" type="text" name="first_name" required placeholder="First name" value="<%= values.first_name || '' %>">
+          <input class="field" type="text" name="last_name" required placeholder="Last name" value="<%= values.last_name || '' %>">
+        </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
+          <input class="field" type="text" name="street" required placeholder="Street" value="<%= values.street || '' %>">
+          <input class="field" type="text" name="building" required placeholder="Building" value="<%= values.building || '' %>">
+        </div>
+        <select class="field" name="city_id" required style="width:100%">
+          <option value="">Select your city…</option>
+          <% cityGroups.forEach(function(st){ %>
+            <optgroup label="<%= st.name %>">
+              <% st.cities.forEach(function(c){ %>
+                <option value="<%= c.id %>" <%= values.city_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+              <% }); %>
+            </optgroup>
+          <% }); %>
+        </select>
+      </div>
+
+      <div>
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Payment</div>
+        <label style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:10px;font-size:14px;background:#fff;border:1.5px solid #3a352e">
+          <span><input type="radio" name="payment_id" value="<%= codPaymentId %>" checked style="margin-right:10px"><%= codName %></span>
+          <span style="color:#6b6357">Pay on delivery</span>
+        </label>
+      </div>
+    </div>
+
+    <div style="background:rgba(255,255,255,.7);backdrop-filter:blur(3px);border-radius:20px;padding:36px;position:sticky;top:24px;height:fit-content">
+      <div style="font-size:18px;font-weight:700;margin-bottom:24px">Order Summary</div>
+      <% items.forEach(function(it){ %>
+      <div style="display:flex;gap:14px;margin-bottom:16px">
+        <div style="width:64px;height:64px;border-radius:10px;background:<%= it.color %>;flex:none;overflow:hidden"><% if(it.image_url){ %><img src="<%= it.image_url %>" style="width:100%;height:100%;object-fit:cover"><% } %></div>
+        <div style="flex:1;font-size:13px">
+          <div style="font-weight:700"><%= it.name %></div><div style="color:#6b6357">Qty <%= it.qty %><%= it.size ? ' · '+it.size : '' %></div>
+        </div>
+        <div style="font-size:13px;font-weight:700"><%= money(it.line_cents) %></div>
+      </div>
+      <% }); %>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;color:#5a5148;padding-top:16px;border-top:1px solid rgba(58,53,46,.15)">
+        <span>Subtotal</span><span><%= money(subtotal_cents) %></span>
+      </div>
+      <% if (discount_cents > 0) { %>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;color:#2f4a26">
+        <span>Discount (<%= promo %>)</span><span>−<%= money(discount_cents) %></span>
+      </div>
+      <% } %>
+      <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:20px;color:#5a5148">
+        <span>Shipping</span><span><%= shipping_cents > 0 ? money(shipping_cents) : 'Free' %></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding-top:18px;border-top:1px solid rgba(58,53,46,.15);margin-bottom:26px">
+        <span>Total</span><span><%= money(total_cents) %></span>
+      </div>
+      <button type="submit" class="btn-primary" style="width:100%">Place Order</button>
+    </div>
+
+  </div>
+  </form>
+
+</div>
+<script src="/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('../partials/head') %></head>
+<body>
+<%
+  const inp = 'width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(58,53,46,.25);font-size:14px;background:#fff;box-sizing:border-box';
+  const lbl = 'display:block;font-size:11px;font-weight:700;color:#6b6357;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 5px';
+  // field defs per page: [name, label, type]  (type: text | textarea)
+  const pages = [
+    ['home', 'Home page', [
+      ['hero_eyebrow','Hero eyebrow','text'],['hero_title','Hero title','text'],
+      ['hero_text','Hero paragraph','textarea'],['hero_cta','Hero button label','text'],
+      ['bestsellers_title','Bestsellers heading','text'],['bestsellers_text','Bestsellers subtext','text'],
+    ]],
+    ['about', 'About page', [
+      ['eyebrow','Eyebrow','text'],['title','Title','text'],['body','Body (blank line = new paragraph)','textarea'],
+    ]],
+    ['shop', 'Shop page', [
+      ['title','Heading (when no category selected)','text'],['intro','Intro line','textarea'],
+    ]],
+    ['footer', 'Footer & contact', [
+      ['tagline','Tagline','textarea'],['email','Contact email','text'],['phone','Phone','text'],
+      ['instagram','Instagram URL','text'],['tiktok','TikTok URL','text'],['copyright','Copyright line','text'],
+    ]],
+  ];
+%>
+<div style="display:flex;min-height:100vh;background:#fbf7f1">
+  <%- include('../partials/admin-nav', { adminActive }) %>
+  <div style="flex:1;padding:40px 48px;max-width:720px">
+    <div class="serif" style="font-size:36px;margin-bottom:8px">Page Content</div>
+    <div style="font-size:14px;color:#8a8175;margin-bottom:24px">Edit the copy shown across your storefront. Changes go live immediately.</div>
+    <%- include('../partials/flash') %>
+
+    <% pages.forEach(function(pg){ var key = pg[0]; var c = content[key] || {}; %>
+      <form method="post" action="/admin/content/<%= key %>" style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:24px;margin-bottom:22px">
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px"><%= pg[1] %></div>
+        <% pg[2].forEach(function(f){ var name=f[0], label=f[1], type=f[2]; var val=(c[name]!==undefined?c[name]:''); %>
+          <label style="<%= lbl %>"><%= label %></label>
+          <% if (type === 'textarea') { %>
+            <textarea name="<%= name %>" rows="4" style="<%= inp %>;resize:vertical"><%= val %></textarea>
+          <% } else { %>
+            <input name="<%= name %>" value="<%= val %>" style="<%= inp %>">
+          <% } %>
+        <% }); %>
+        <div style="margin-top:18px"><button type="submit" class="btn-primary" style="padding:11px 26px">Save <%= pg[1] %></button></div>
+      </form>
+    <% }); %>
+  </div>
+</div>
+</body>
+</html>
