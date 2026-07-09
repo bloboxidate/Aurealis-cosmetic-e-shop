@@ -23,12 +23,9 @@
 // official "Sariee API Documentation" Postman collection, so `call(id, ...)`
 // can reach any of the 425 documented endpoints in the correct format.
 
-const fs = require('fs');
-const path = require('path');
-
-const endpoints = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'endpoints.json'), 'utf8')
-);
+// require() (not fs.readFileSync) so serverless bundlers (Vercel) trace and
+// include endpoints.json — otherwise the function crashes on load.
+const endpoints = require('./endpoints.json');
 const byId = new Map(endpoints.map((e) => [e.id, e]));
 
 // dotenv trims unquoted values, but trim defensively in case someone quotes.

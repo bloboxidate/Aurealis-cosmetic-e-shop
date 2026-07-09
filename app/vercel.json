@@ -4,6 +4,9 @@
     { "source": "/(.*)", "destination": "/api" }
   ],
   "functions": {
-    "api/index.js": { "maxDuration": 30 }
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "{views,db}/**"
+    }
   }
 }

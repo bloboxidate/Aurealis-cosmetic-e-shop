@@ -96,7 +96,15 @@ if (usePg) {
       }
     },
     async init() {
-      const schema = fs.readFileSync(path.join(__dirname, 'schema.postgres.sql'), 'utf8');
+      // Ensure tables exist. If the schema file isn't bundled (serverless) the
+      // DB was already created by `npm run seed`, so don't take the app down.
+      let schema;
+      try {
+        schema = fs.readFileSync(path.join(__dirname, 'schema.postgres.sql'), 'utf8');
+      } catch (e) {
+        console.warn('Schema file not read (assuming DB already migrated):', e.message);
+        return;
+      }
       await pool.query(schema);
     },
     async close() { await pool.end(); },
