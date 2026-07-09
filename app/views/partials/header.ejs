@@ -1,6 +1,6 @@
 <% const active = typeof navActive !== 'undefined' ? navActive : ''; %>
 <div class="au-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
-  <a href="/" style="display:flex;align-items:center"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:126px;width:auto;display:block"></a>
+  <a href="/" style="display:flex;align-items:center"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:clamp(44px,9vw,110px);width:auto;display:block"></a>
   <div class="au-nav" style="display:flex;gap:40px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
     <% (typeof navCategories !== 'undefined' ? navCategories : []).forEach(function(c){ %>
       <a class="au-link" href="/shop?category=<%= c.slug %>" style="color:#3a352e;<%= active===c.slug?'font-weight:700':'' %>"><%= c.name %></a>

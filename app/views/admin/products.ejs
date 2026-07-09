@@ -3,9 +3,9 @@
 <head><%- include('../partials/head') %></head>
 <body>
 <% const inp='padding:8px 10px;border-radius:8px;border:1px solid rgba(58,53,46,.25);font-size:13px;background:#fff'; %>
-<div style="display:flex;min-height:100vh;background:#fbf7f1">
+<div class="admin-shell" style="display:flex;min-height:100vh;background:#fbf7f1">
   <%- include('../partials/admin-nav', { adminActive }) %>
-  <div style="flex:1;padding:40px 48px;max-width:1000px">
+  <div class="admin-main" style="flex:1;padding:40px 48px;max-width:1000px">
     <div style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:12px;margin-bottom:8px">
       <div class="serif" style="font-size:36px">Products</div>
       <button id="save-order" style="display:none;background:#3a352e;color:#fff9f3;border:none;border-radius:100px;padding:10px 22px;font-size:13px;cursor:pointer">Save new order</button>

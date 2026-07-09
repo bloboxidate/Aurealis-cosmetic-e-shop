@@ -5,9 +5,9 @@
 <% const inp='padding:9px 12px;border-radius:8px;border:1px solid rgba(58,53,46,.25);font-size:13px;background:#fff';
    const mini='background:none;border:none;color:#c1602f;font-weight:700;cursor:pointer;font-size:13px';
    const del='background:none;border:none;color:#b0533a;cursor:pointer;font-size:13px'; %>
-<div style="display:flex;min-height:100vh;background:#fbf7f1">
+<div class="admin-shell" style="display:flex;min-height:100vh;background:#fbf7f1">
   <%- include('../partials/admin-nav', { adminActive }) %>
-  <div style="flex:1;padding:40px 48px;max-width:920px">
+  <div class="admin-main" style="flex:1;padding:40px 48px;max-width:920px">
     <div class="serif" style="font-size:36px;margin-bottom:8px">Categories</div>
     <div style="font-size:14px;color:#8a8175;margin-bottom:24px">Your local storefront taxonomy. Assign products to these on the <a class="au-link" href="/admin/products" style="color:#c1602f">Products</a> page.</div>
     <%- include('../partials/flash') %>

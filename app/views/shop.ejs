@@ -15,7 +15,7 @@
     <div style="font-size:13px;color:#8a8175;margin-bottom:18px"><a class="au-link" href="/" style="color:#8a8175">Home</a> / <%= heading %></div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-bottom:36px">
       <div>
-        <div class="serif" style="font-size:48px;margin-bottom:8px"><%= heading %></div>
+        <div class="serif" style="font-size:clamp(30px,7vw,48px);margin-bottom:8px"><%= heading %></div>
         <div style="font-size:15px;color:#6b6357"><%= (typeof intro !== 'undefined' && intro) ? intro : count + ' products formulated for radiance, hydration and balance.' %></div>
       </div>
       <form method="get" action="/shop" style="display:flex;align-items:center;gap:14px;font-size:13px">
