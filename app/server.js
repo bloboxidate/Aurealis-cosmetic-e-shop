@@ -23,6 +23,11 @@ app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
 app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
+// The site has no locale-prefixed routing (English is the only, unprefixed
+// content) — /en and any /en/* path just redirect to the same path without
+// the prefix, so links like /en or /en/shop resolve instead of 404ing.
+app.use('/en', (req, res) => res.redirect(301, req.url === '/' ? '/' : req.url));
+
 // Body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
