@@ -68,15 +68,22 @@ router.post('/products/order', ah(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Save one product's overlay (category/subcategory/flags).
+// Save one product's overlay (flags) and category assignments (a product can
+// belong to more than one category — checkboxes named cat_<slug>, each with
+// an optional subcat_<slug> select).
 router.post('/products/:id', ah(async (req, res) => {
   await overlay.set(req.params.id, {
-    category_slug: (req.body.category_slug || '').trim(),
-    subcategory_slug: (req.body.subcategory_slug || '').trim(),
     is_featured: !!req.body.is_featured,
     is_bestseller: !!req.body.is_bestseller,
     is_hidden: !!req.body.is_hidden,
   });
+
+  const categories = await Cats.listCategories();
+  const assignments = categories
+    .filter((c) => req.body['cat_' + c.slug])
+    .map((c) => ({ category_slug: c.slug, subcategory_slug: (req.body['subcat_' + c.slug] || '').trim() }));
+  await overlay.setCategories(req.params.id, assignments);
+
   flash(req, 'success', 'Product updated.');
   res.redirect('/admin/products');
 }));

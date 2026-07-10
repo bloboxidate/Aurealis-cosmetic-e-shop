@@ -117,13 +117,21 @@ function buildIndex(list) {
   return { bySlug, byId, byBarcode };
 }
 
-// Merge the overlay onto one already-mapped Sariee product.
-function decorate(p, ov) {
+// Merge the overlay onto one already-mapped Sariee product. A product can
+// belong to several categories at once (product_categories); `categories` is
+// the full list, and `category`/`subcategory` are the first one — kept for
+// display contexts that only ever show a single category (breadcrumbs, nav
+// active-state) and for backward compatibility, falling back to Sariee's own
+// category when nothing's been assigned locally.
+function decorate(p, ov, catsBySariee) {
   const o = ov.get(p.id) || {};
+  const categories = (catsBySariee && catsBySariee.get(p.id)) || [];
+  const primary = categories[0];
   return {
     ...p,
-    category: o.category_slug || slugify(p.sariee_category),
-    subcategory: o.subcategory_slug || '',
+    categories,
+    category: primary ? primary.category_slug : slugify(p.sariee_category),
+    subcategory: primary ? primary.subcategory_slug : '',
     sort_order: Number(o.sort_order) || 0,
     is_featured: !!o.is_featured,
     is_bestseller: !!o.is_bestseller,
@@ -136,19 +144,26 @@ function decorate(p, ov) {
 // Merge the local overlay into every product. Sets category/subcategory (local
 // assignment, falling back to Sariee's), sort_order, featured/bestseller/hidden.
 async function withOverlay() {
-  const [{ list }, ov] = await Promise.all([fetchSariee(), overlay.map()]);
-  return list.map((p) => decorate(p, ov));
+  const [{ list }, ov, catsBySariee] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap()]);
+  return list.map((p) => decorate(p, ov, catsBySariee));
 }
 
 function byOrder(a, b) {
   return (a.sort_order - b.sort_order) || a.name.localeCompare(b.name);
 }
 
+// A product "is in" a category if any of its product_categories rows match
+// (optionally further scoped to a specific subcategory within that category).
+function inCategory(p, category, subcategory) {
+  return p.categories.some((c) =>
+    c.category_slug === category && (!subcategory || subcategory === 'all' || c.subcategory_slug === subcategory)
+  );
+}
+
 // ---- Products (storefront-facing: hidden excluded) ---------------------
 async function all({ category, subcategory } = {}) {
   let products = (await withOverlay()).filter((p) => !p.is_hidden);
-  if (category) products = products.filter((p) => p.category === category);
-  if (subcategory && subcategory !== 'all') products = products.filter((p) => p.subcategory === subcategory);
+  if (category) products = products.filter((p) => inCategory(p, category, subcategory));
   return products.sort(byOrder);
 }
 
@@ -165,17 +180,17 @@ async function featured(limit = 8) {
 }
 
 async function bySlug(slug) {
-  const [{ index }, ov] = await Promise.all([fetchSariee(), overlay.map()]);
+  const [{ index }, ov, catsBySariee] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap()]);
   const p = index.bySlug.get(slug);
   if (!p) return null;
-  const decorated = decorate(p, ov);
+  const decorated = decorate(p, ov, catsBySariee);
   return decorated.is_hidden ? null : decorated;
 }
 
 async function byId(id) {
-  const [{ index }, ov] = await Promise.all([fetchSariee(), overlay.map()]);
+  const [{ index }, ov, catsBySariee] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap()]);
   const p = index.byId.get(id);
-  return p ? decorate(p, ov) : null;
+  return p ? decorate(p, ov, catsBySariee) : null;
 }
 
 // Raw (pre-overlay) lookup by barcode id — used by the cart, which only needs
@@ -193,9 +208,11 @@ async function barcodeIndex() {
 }
 
 async function related(product, limit = 4) {
+  const productSlugs = new Set(product.categories.map((c) => c.category_slug));
+  const shares = (p) => p.categories.some((c) => productSlugs.has(c.category_slug));
   return (await withOverlay())
     .filter((p) => p.id !== product.id && !p.is_hidden)
-    .sort((a, b) => Number(b.category === product.category) - Number(a.category === product.category) || byOrder(a, b))
+    .sort((a, b) => Number(shares(b)) - Number(shares(a)) || byOrder(a, b))
     .slice(0, limit);
 }
 

@@ -51,6 +51,20 @@ CREATE TABLE IF NOT EXISTS product_overlay (
   updated_at       timestamptz NOT NULL DEFAULT now()
 );
 
+-- A product can belong to several categories at once (each optionally with
+-- its own subcategory, since subcategories are scoped per category).
+-- category_slug/subcategory_slug above are legacy, superseded by this table,
+-- left in place unused rather than dropped.
+CREATE TABLE IF NOT EXISTS product_categories (
+  id               integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sariee_id        text NOT NULL,
+  category_slug    text NOT NULL,
+  subcategory_slug text NOT NULL DEFAULT '',
+  UNIQUE(sariee_id, category_slug)
+);
+CREATE INDEX IF NOT EXISTS idx_product_categories_sariee ON product_categories(sariee_id);
+CREATE INDEX IF NOT EXISTS idx_product_categories_slug ON product_categories(category_slug);
+
 -- Editable page content (About, Home, Shop, Footer, …) as JSON blobs by key.
 CREATE TABLE IF NOT EXISTS site_content (
   key        text PRIMARY KEY,

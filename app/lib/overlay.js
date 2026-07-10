@@ -60,20 +60,56 @@ async function setOrder(orderedIds = []) {
 }
 
 // Reassign products when a category/subcategory slug is renamed or deleted.
+// Operates on product_categories (the multi-category join table) — the
+// category_slug/subcategory_slug columns on product_overlay are legacy and
+// no longer written to.
 async function renameCategory(oldSlug, newSlug) {
-  await db.run('UPDATE product_overlay SET category_slug = ? WHERE category_slug = ?', [newSlug, oldSlug]);
+  await db.run('UPDATE product_categories SET category_slug = ? WHERE category_slug = ?', [newSlug, oldSlug]);
 }
 async function clearCategory(slug) {
-  await db.run("UPDATE product_overlay SET category_slug = '', subcategory_slug = '' WHERE category_slug = ?", [slug]);
+  await db.run('DELETE FROM product_categories WHERE category_slug = ?', [slug]);
 }
 async function renameSubcategory(oldSlug, newSlug) {
-  await db.run('UPDATE product_overlay SET subcategory_slug = ? WHERE subcategory_slug = ?', [newSlug, oldSlug]);
+  await db.run('UPDATE product_categories SET subcategory_slug = ? WHERE subcategory_slug = ?', [newSlug, oldSlug]);
 }
 async function clearSubcategory(slug) {
-  await db.run("UPDATE product_overlay SET subcategory_slug = '' WHERE subcategory_slug = ?", [slug]);
+  await db.run("UPDATE product_categories SET subcategory_slug = '' WHERE subcategory_slug = ?", [slug]);
+}
+
+// ---- Multi-category assignment (product_categories) ---------------------
+// Map of sariee_id -> array of {category_slug, subcategory_slug}, for
+// merging into the catalog (mirrors map() above).
+async function categoriesMap() {
+  const rows = await db.all('SELECT * FROM product_categories');
+  const m = new Map();
+  for (const r of rows) {
+    if (!m.has(r.sariee_id)) m.set(r.sariee_id, []);
+    m.get(r.sariee_id).push({ category_slug: r.category_slug, subcategory_slug: r.subcategory_slug });
+  }
+  return m;
+}
+
+async function getCategories(sarieeId) {
+  return db.all('SELECT category_slug, subcategory_slug FROM product_categories WHERE sariee_id = ?', [sarieeId]);
+}
+
+// Replace a product's full set of category assignments in one transaction.
+// `assignments` is [{category_slug, subcategory_slug}, ...].
+async function setCategories(sarieeId, assignments = []) {
+  await db.tx(async (t) => {
+    await t.run('DELETE FROM product_categories WHERE sariee_id = ?', [sarieeId]);
+    for (const a of assignments) {
+      if (!a.category_slug) continue;
+      await t.run(
+        'INSERT INTO product_categories (sariee_id, category_slug, subcategory_slug) VALUES (?, ?, ?)',
+        [sarieeId, a.category_slug, a.subcategory_slug || '']
+      );
+    }
+  });
 }
 
 module.exports = {
   map, get, set, setOrder,
   renameCategory, clearCategory, renameSubcategory, clearSubcategory,
+  categoriesMap, getCategories, setCategories,
 };

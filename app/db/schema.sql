@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS subcategories (
 );
 
 -- Local presentation overlay on top of Sariee products, keyed by Sariee id.
+-- category_slug/subcategory_slug are legacy (superseded by product_categories
+-- below, which allows a product to belong to more than one category) — left
+-- in place, unused, rather than dropped, so no historical data is lost.
 CREATE TABLE IF NOT EXISTS product_overlay (
   sariee_id        TEXT PRIMARY KEY,
   category_slug    TEXT NOT NULL DEFAULT '',
@@ -47,6 +50,18 @@ CREATE TABLE IF NOT EXISTS product_overlay (
   is_hidden        INTEGER NOT NULL DEFAULT 0,
   updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+-- A product can belong to several categories at once (each optionally with
+-- its own subcategory, since subcategories are scoped per category).
+CREATE TABLE IF NOT EXISTS product_categories (
+  id               INTEGER PRIMARY KEY AUTOINCREMENT,
+  sariee_id        TEXT NOT NULL,
+  category_slug    TEXT NOT NULL,
+  subcategory_slug TEXT NOT NULL DEFAULT '',
+  UNIQUE(sariee_id, category_slug)
+);
+CREATE INDEX IF NOT EXISTS idx_product_categories_sariee ON product_categories(sariee_id);
+CREATE INDEX IF NOT EXISTS idx_product_categories_slug ON product_categories(category_slug);
 
 -- Editable page content (About, Home, Shop, Footer, …) as JSON blobs by key.
 CREATE TABLE IF NOT EXISTS site_content (

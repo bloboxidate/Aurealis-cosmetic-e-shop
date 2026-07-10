@@ -37,11 +37,11 @@ async function getSubcategory(id) {
   return db.get('SELECT * FROM subcategories WHERE id = ?', [id]);
 }
 
-// Products live in Sariee, assigned to a local category via product_overlay
-// (lib/overlay.js) — not a local `products` table (that was pre-Sariee-
-// migration dead schema, removed). Counting here checks the overlay.
+// Products live in Sariee, assigned to local categories via product_categories
+// (lib/overlay.js — a product can belong to more than one), not a local
+// `products` table (that was pre-Sariee-migration dead schema, removed).
 async function countProductsInCategory(slug) {
-  return (await db.get('SELECT COUNT(*) AS n FROM product_overlay WHERE category_slug = ?', [slug])).n;
+  return (await db.get('SELECT COUNT(*) AS n FROM product_categories WHERE category_slug = ?', [slug])).n;
 }
 
 async function createCategory({ name, slug, sort_order }) {

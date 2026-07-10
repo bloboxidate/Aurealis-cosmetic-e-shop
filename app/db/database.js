@@ -106,6 +106,15 @@ if (usePg) {
         return;
       }
       await pool.query(schema);
+      // One-time forward migration: carry any existing single category/
+      // subcategory assignment into the new multi-category table. Idempotent
+      // (ON CONFLICT DO NOTHING) so it's safe to run on every cold start.
+      await pool.query(`
+        INSERT INTO product_categories (sariee_id, category_slug, subcategory_slug)
+        SELECT sariee_id, category_slug, subcategory_slug FROM product_overlay
+        WHERE category_slug != ''
+        ON CONFLICT (sariee_id, category_slug) DO NOTHING
+      `);
     },
     async close() { await pool.end(); },
   };
@@ -168,6 +177,15 @@ if (usePg) {
       // manual existence check (schema.sql's CREATE TABLE IF NOT EXISTS only
       // helps brand-new tables).
       ensureColumn('categories', 'image_url', "TEXT NOT NULL DEFAULT ''");
+      // One-time forward migration: carry any existing single category/
+      // subcategory assignment into the new multi-category table. Idempotent
+      // (INSERT OR IGNORE against the UNIQUE constraint) so it's safe to run
+      // on every cold start.
+      sdb.exec(`
+        INSERT OR IGNORE INTO product_categories (sariee_id, category_slug, subcategory_slug)
+        SELECT sariee_id, category_slug, subcategory_slug FROM product_overlay
+        WHERE category_slug != ''
+      `);
     },
     async close() { sdb.close(); },
   };

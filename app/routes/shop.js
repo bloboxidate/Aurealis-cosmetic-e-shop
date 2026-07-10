@@ -33,13 +33,16 @@ router.get('/shop', ah(async (req, res) => {
   // Sariee-backed; degrade to an empty catalog on error instead of a 500, but
   // remember it happened so the page says so rather than looking like an
   // empty store.
+  const sub = req.query.sub || 'all';
   let products = [];
   let catalogError = false;
-  try { products = await Products.all({ category }); }
+  try { products = await Products.all({ category, subcategory: sub }); }
   catch (err) { console.error('[shop] shop listing failed:', err.message); products = []; catalogError = true; }
-  const base = products.slice();
-  const sub = req.query.sub || 'all';
-  if (sub && sub !== 'all') products = products.filter((p) => p.subcategory === sub);
+  // Unfiltered-by-subcategory count, for the "N products" header line.
+  let base = products;
+  if (sub !== 'all') {
+    try { base = await Products.all({ category }); } catch (_) { base = products; }
+  }
 
   // No Sariee product-search endpoint works server-side (products/list-all
   // ignores name/search query params — confirmed by testing against the live
