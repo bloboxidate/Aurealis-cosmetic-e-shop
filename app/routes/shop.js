@@ -10,9 +10,10 @@ const ah = require('../lib/ah');
 // Home
 router.get('/', ah(async (req, res) => {
   // Degrade gracefully if Sariee is unreachable — show the page without cards
-  // rather than a 500.
+  // rather than a 500, but log so the failure is diagnosable.
   let bestsellers = [];
-  try { bestsellers = await Products.bestsellers(4); } catch (_) { bestsellers = []; }
+  try { bestsellers = await Products.bestsellers(4); }
+  catch (err) { console.error('[shop] home bestsellers failed:', err.message); bestsellers = []; }
   res.render('home', {
     title: 'Auréalis — Born of the aurora',
     bestsellers,
@@ -26,9 +27,13 @@ router.get('/shop', ah(async (req, res) => {
   const catSlugs = categories.map((c) => c.slug);
   const category = catSlugs.includes(req.query.category) ? req.query.category : null;
 
-  // Sariee-backed; degrade to an empty catalog on error instead of a 500.
+  // Sariee-backed; degrade to an empty catalog on error instead of a 500, but
+  // remember it happened so the page says so rather than looking like an
+  // empty store.
   let products = [];
-  try { products = await Products.all({ category }); } catch (_) { products = []; }
+  let catalogError = false;
+  try { products = await Products.all({ category }); }
+  catch (err) { console.error('[shop] shop listing failed:', err.message); products = []; catalogError = true; }
   const base = products.slice();
   const sub = req.query.sub || 'all';
   if (sub && sub !== 'all') products = products.filter((p) => p.subcategory === sub);
@@ -52,18 +57,38 @@ router.get('/shop', ah(async (req, res) => {
     activeSub: sub,
     sort,
     count: base.length,
+    catalogError,
   });
 }));
 
 // Product detail
 router.get('/product/:slug', ah(async (req, res, next) => {
-  const product = await Products.bySlug(req.params.slug);
+  let product;
+  try {
+    product = await Products.bySlug(req.params.slug);
+  } catch (err) {
+    console.error('[shop] product lookup failed:', req.params.slug, err.message);
+    return res.status(503).render('error', {
+      title: 'Temporarily unavailable — Auréalis',
+      heading: 'This product is temporarily unavailable',
+      message: 'We couldn’t load this product right now. Please try again in a moment.',
+    });
+  }
   if (!product || !product.is_active) return next();
+
+  let images = [];
+  let related = [];
+  try {
+    [images, related] = await Promise.all([Products.images(product.id), Products.related(product, 4)]);
+  } catch (err) {
+    console.error('[shop] product images/related failed:', req.params.slug, err.message);
+  }
+
   res.render('product', {
     title: product.name + ' — Auréalis',
     product,
-    images: await Products.images(product.id),
-    related: await Products.related(product, 4),
+    images,
+    related,
   });
 }));
 

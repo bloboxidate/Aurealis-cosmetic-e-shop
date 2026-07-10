@@ -68,12 +68,19 @@ function mapProduct(p) {
   };
 }
 
-// The raw Sariee product list (mapped, no overlay), cached.
+// The raw Sariee product list (mapped, no overlay), cached. Logs clearly on
+// failure (visible in Vercel's Runtime Logs) — a failed fetch is NOT cached,
+// so the next request retries rather than being stuck on an empty result.
 function fetchSariee() {
   return cached('sariee', async () => {
-    const r = await sariee.products.listAll({ is_single: 1, per_page: 200 });
-    const list = (r.data && r.data.data) || [];
-    return list.map(mapProduct);
+    try {
+      const r = await sariee.products.listAll({ is_single: 1, per_page: 200 });
+      const list = (r.data && r.data.data) || [];
+      return list.map(mapProduct);
+    } catch (err) {
+      console.error('[catalog] Sariee products.listAll failed:', err.status || '', err.message);
+      throw err;
+    }
   });
 }
 

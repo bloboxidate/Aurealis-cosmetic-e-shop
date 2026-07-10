@@ -44,7 +44,9 @@
 
   <!-- product grid -->
   <div class="au-pad" style="padding:0 64px 90px">
-    <% if (products.length === 0) { %>
+    <% if (typeof catalogError !== 'undefined' && catalogError) { %>
+      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px">We're having trouble loading products right now. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">Try again</a></div>
+    <% } else if (products.length === 0) { %>
       <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px">No products found. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">View all</a></div>
     <% } else { %>
     <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
