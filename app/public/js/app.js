@@ -19,13 +19,34 @@
     });
   }
 
-  // --- Product page: gallery thumbnail swap ---
+  // --- Product page: gallery — click a thumbnail, or use the prev/next
+  // arrows, to switch the main image. Both stay in sync with each other. ---
   var mainImg = document.getElementById('pdp-main-img');
-  document.querySelectorAll('.pdp-thumb').forEach(function (thumb) {
-    thumb.addEventListener('click', function () {
-      if (mainImg && thumb.dataset.full) mainImg.src = thumb.dataset.full;
+  var thumbs = Array.prototype.slice.call(document.querySelectorAll('.pdp-thumb'));
+  if (mainImg && thumbs.length) {
+    var current = thumbs.findIndex(function (t) { return t.classList.contains('pdp-thumb-active'); });
+    if (current < 0) current = 0;
+
+    function showImage(index) {
+      current = (index + thumbs.length) % thumbs.length; // wrap around both ends
+      var thumb = thumbs[current];
+      mainImg.style.opacity = '0';
+      setTimeout(function () {
+        mainImg.src = thumb.dataset.full;
+        mainImg.style.opacity = '1';
+      }, 120);
+      thumbs.forEach(function (t) { t.classList.remove('pdp-thumb-active'); });
+      thumb.classList.add('pdp-thumb-active');
+    }
+
+    thumbs.forEach(function (thumb, i) {
+      thumb.addEventListener('click', function () { showImage(i); });
     });
-  });
+    var prevBtn = document.getElementById('pdp-prev');
+    var nextBtn = document.getElementById('pdp-next');
+    if (prevBtn) prevBtn.addEventListener('click', function () { showImage(current - 1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { showImage(current + 1); });
+  }
 
   // --- Product page: quantity stepper ---
   document.querySelectorAll('.qty-inc, .qty-dec').forEach(function (btn) {
