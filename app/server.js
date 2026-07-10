@@ -71,9 +71,18 @@ app.use(express.json());
 // Ensure the schema exists before any request touches the DB. On serverless
 // this runs once per cold start; `db.init` is idempotent (CREATE TABLE IF NOT
 // EXISTS), and we cache the promise so concurrent requests share one init.
+// If it fails (a transient DB hiccup, e.g. Supabase briefly unreachable), the
+// rejection is NOT cached — otherwise every request for the rest of this
+// server's lifetime would keep failing immediately on the stale rejected
+// promise instead of getting a fresh chance to connect.
 let readyPromise = null;
 function ready() {
-  if (!readyPromise) readyPromise = db.init();
+  if (!readyPromise) {
+    readyPromise = db.init().catch((err) => {
+      readyPromise = null;
+      throw err;
+    });
+  }
   return readyPromise;
 }
 app.use((req, res, next) => { ready().then(() => next()).catch(next); });
