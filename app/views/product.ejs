@@ -20,20 +20,32 @@
     <!-- gallery -->
     <div>
       <% const gallery = (typeof images !== 'undefined' ? images : []); %>
-      <div id="pdp-main" style="width:100%;height:520px;border-radius:20px;overflow:hidden;background:<%= product.color %>;margin-bottom:16px">
-        <% if (gallery.length) { %><img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
-      </div>
-      <% if (gallery.length > 1) { %>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-          <% gallery.forEach(function(img){ %>
-            <div class="pdp-thumb" data-full="<%= img.url %>" style="height:110px;border-radius:12px;overflow:hidden;cursor:pointer"><img src="<%= img.url %>" style="width:100%;height:100%;object-fit:cover;display:block"></div>
-          <% }); %>
-        </div>
-      <% } else if (gallery.length === 0) { %>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-          <% ['#bfb5e8','#a5bf97','#f7d595','#f8ae7f'].forEach(function(c){ %>
-            <div style="height:110px;border-radius:12px;overflow:hidden;background:<%= c %>"></div>
-          <% }); %>
+      <% if (gallery.length === 0) { %>
+        <div style="width:100%;height:520px;border-radius:20px;overflow:hidden;background:<%= product.color %>"></div>
+      <% } else { %>
+        <div class="pdp-gallery">
+          <% if (gallery.length > 1) { %>
+            <div class="pdp-thumbs">
+              <% gallery.forEach(function(img, i){ %>
+                <div class="pdp-thumb<%= i===0 ? ' pdp-thumb-active' : '' %>" data-full="<%= img.url %>" data-index="<%= i %>" style="background:<%= product.color || '#f1ece5' %>">
+                  <img src="<%= img.url %>" alt="" style="width:100%;height:100%;object-fit:contain;display:block">
+                </div>
+              <% }); %>
+            </div>
+          <% } %>
+          <div id="pdp-main" class="pdp-main" style="background:<%= product.color %>">
+            <img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:contain;display:block">
+            <% if (gallery.length > 1) { %>
+              <div class="pdp-nav-arrows">
+                <button type="button" class="pdp-arrow" id="pdp-prev" aria-label="Previous image">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <button type="button" class="pdp-arrow" id="pdp-next" aria-label="Next image">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+            <% } %>
+          </div>
         </div>
       <% } %>
     </div>
@@ -72,6 +84,12 @@
         </div>
       </form>
 
+      <form action="/wishlist/toggle" method="post" style="margin-top:-20px;margin-bottom:32px">
+        <input type="hidden" name="product_id" value="<%= product.id %>">
+        <input type="hidden" name="next" value="/product/<%= product.slug %>">
+        <button type="submit" class="au-link" style="background:none;border:none;cursor:pointer;font-size:13px;color:#6b6357;padding:0"><%= typeof wishlisted !== 'undefined' && wishlisted ? '♥ Saved to Wishlist' : '♡ Save to Wishlist' %></button>
+      </form>
+
       <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid rgba(58,53,46,.12);border-bottom:1px solid rgba(58,53,46,.12);margin-bottom:32px;font-size:12px;color:#6b6357;letter-spacing:.03em;text-transform:uppercase;flex-wrap:wrap">
         <% product.badges.forEach(function(b){ %><div><%= b %></div><% }); %>
       </div>
@@ -95,6 +113,50 @@
       </div>
       <% } %>
     </div>
+  </div>
+
+  <!-- reviews -->
+  <div class="au-pad" style="padding:0 64px 90px;max-width:760px">
+    <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:28px">
+      <div class="serif" style="font-size:28px">Reviews</div>
+      <% if (reviewSummary.count > 0) { %>
+        <div style="font-size:14px;color:#6b6357"><%= reviewSummary.average %> ★ · <%= reviewSummary.count %> review<%= reviewSummary.count === 1 ? '' : 's' %></div>
+      <% } %>
+    </div>
+
+    <% if (productReviews.length === 0) { %>
+      <div style="font-size:14px;color:#6b6357;margin-bottom:28px">No reviews yet.</div>
+    <% } else { %>
+      <% productReviews.forEach(function(r){ %>
+        <div style="border-bottom:1px solid rgba(58,53,46,.1);padding:16px 0">
+          <div style="font-size:13px;font-weight:700;margin-bottom:4px"><%= '★'.repeat(r.rating) %><span style="color:#d8d0c4"><%= '★'.repeat(5 - r.rating) %></span> <span style="font-weight:400;color:#6b6357">by <%= r.first_name || 'a customer' %></span></div>
+          <div style="font-size:14px;color:#5a5148;line-height:1.6"><%= r.body %></div>
+        </div>
+      <% }); %>
+    <% } %>
+
+    <% if (typeof user !== 'undefined' && user && canReview) { %>
+      <div style="margin-top:24px;background:rgba(255,255,255,.6);border-radius:16px;padding:24px 28px">
+        <div style="font-size:15px;font-weight:700;margin-bottom:14px">Write a review</div>
+        <form action="/product/<%= product.slug %>/reviews" method="post">
+          <div style="margin-bottom:14px">
+            <select name="rating" class="field" required>
+              <option value="">Rating…</option>
+              <option value="5">★★★★★ Excellent</option>
+              <option value="4">★★★★ Good</option>
+              <option value="3">★★★ Okay</option>
+              <option value="2">★★ Poor</option>
+              <option value="1">★ Bad</option>
+            </select>
+          </div>
+          <textarea name="body" class="field" rows="3" required placeholder="Share your experience…" style="width:100%;margin-bottom:14px;resize:vertical"></textarea>
+          <button type="submit" class="btn-primary">Submit review</button>
+          <div style="font-size:12px;color:#8a8175;margin-top:10px">Reviews are checked before appearing publicly.</div>
+        </form>
+      </div>
+    <% } else if (typeof user === 'undefined' || !user) { %>
+      <div style="font-size:13px;color:#6b6357;margin-top:12px"><a class="au-link" href="/login?next=/product/<%= product.slug %>" style="color:#c1602f;font-weight:700">Sign in</a> to write a review.</div>
+    <% } %>
   </div>
 
   <!-- related -->

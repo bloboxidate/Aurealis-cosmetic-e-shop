@@ -1,44 +1,74 @@
 <% const active = typeof navActive !== 'undefined' ? navActive : ''; %>
 <% const cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
+<!-- Page-load spinner (the favicon mark, spinning) — removed once the page,
+     including its images, has fully loaded. Never blocks a no-JS visitor. -->
+<noscript><style>#au-loader{display:none}</style></noscript>
+<div id="au-loader" class="au-loader"><img src="/assets/favicon-192.png" alt=""></div>
+<script>
+window.addEventListener('load', function () {
+  var l = document.getElementById('au-loader');
+  if (!l) return;
+  l.classList.add('au-loader-hide');
+  setTimeout(function () { l.remove(); }, 400);
+});
+</script>
 <div class="au-header" style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:16px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
-  <a href="/" style="display:flex;align-items:center"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:clamp(56px,11vw,110px);width:auto;display:block"></a>
 
-  <!-- Desktop nav -->
-  <div class="nav-desktop" style="display:flex;align-items:center;gap:40px">
-    <div class="au-nav" style="display:flex;gap:36px;font-size:13px;letter-spacing:.04em;text-transform:uppercase">
-      <% cats.forEach(function(c){ %><a class="au-link" href="/shop?category=<%= c.slug %>" style="color:#3a352e;<%= active===c.slug?'font-weight:700':'' %>"><%= c.name %></a><% }); %>
-      <a class="au-link" href="/about" style="color:#3a352e;<%= active==='about'?'font-weight:700':'' %>">About</a>
-      <a class="au-link" href="/shop" style="color:#3a352e;<%= active==='shop'?'font-weight:700':'' %>">Shop All</a>
-    </div>
-    <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em;align-items:center">
-      <% if (user) { %>
-        <a class="au-link" href="/account" style="color:#3a352e"><%= user.first_name || 'Account' %></a>
-        <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
-        <form action="/logout" method="post" style="margin:0"><button type="submit" style="background:none;border:none;cursor:pointer;font-size:13px;color:#3a352e;padding:0;letter-spacing:.03em">Logout</button></form>
-      <% } else { %>
-        <a class="au-link" href="/login" style="color:#3a352e">Login</a>
-      <% } %>
-      <a class="au-link" href="/cart" style="color:#3a352e<%= active==='cart'?';font-weight:700':'' %>">Bag (<%= cartCount %>)</a>
+  <!-- Left: hamburger nav (all viewports) -->
+  <div style="display:flex;align-items:center;z-index:2">
+    <input type="checkbox" id="nav-toggle" class="nav-check">
+    <label for="nav-toggle" class="nav-burger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </label>
+    <div class="nav-mobile">
+      <% cats.forEach(function(c){ %><a class="au-link" href="/shop?category=<%= c.slug %>" style="<%= active===c.slug?'font-weight:700':'' %>"><%= c.name %></a><% }); %>
+      <a class="au-link" href="/shop" style="<%= active==='shop'?'font-weight:700':'' %>">Shop All</a>
+      <a class="au-link" href="/about" style="<%= active==='about'?'font-weight:700':'' %>">About</a>
     </div>
   </div>
 
-  <!-- Mobile hamburger (CSS-only toggle) -->
-  <input type="checkbox" id="nav-toggle" class="nav-check">
-  <label for="nav-toggle" class="nav-burger" aria-label="Menu">
-    <span></span><span></span><span></span>
-  </label>
-  <div class="nav-mobile">
-    <% cats.forEach(function(c){ %><a class="au-link" href="/shop?category=<%= c.slug %>"><%= c.name %></a><% }); %>
-    <a class="au-link" href="/shop">Shop All</a>
-    <a class="au-link" href="/about">About</a>
-    <a class="au-link" href="/cart">Bag (<%= cartCount %>)</a>
+  <!-- Center: logo -->
+  <a href="/" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center">
+    <img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:clamp(84px,15.75vw,140px);width:auto;display:block">
+  </a>
+
+  <!-- Right: cart + account -->
+  <div style="display:flex;align-items:center;gap:20px;z-index:2">
+    <a class="au-link" href="/cart" aria-label="Bag" style="color:#3a352e;position:relative;display:flex;align-items:center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+      <span id="cart-badge" style="position:absolute;top:-8px;right:-9px;background:#c1602f;color:#fff9f3;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:100px;display:<%= cartCount > 0 ? 'flex' : 'none' %>;align-items:center;justify-content:center;padding:0 3px"><%= cartCount %></span>
+    </a>
+
     <% if (user) { %>
-      <a class="au-link" href="/account"><%= user.first_name || 'My Account' %></a>
-      <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
-      <form action="/logout" method="post" style="margin:0"><button type="submit" class="nav-mobile-logout">Logout</button></form>
+      <div class="account-menu" style="position:relative;display:flex;align-items:center">
+        <input type="checkbox" id="account-toggle" class="nav-check">
+        <label for="account-toggle" aria-label="Account" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+        </label>
+        <div class="account-dropdown">
+          <div style="padding:14px 18px 10px;font-weight:700;font-size:14px;border-bottom:1px solid rgba(58,53,46,.08)"><%= user.first_name || 'Account' %></div>
+          <a class="au-link" href="/account">Order History</a>
+          <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
+          <form action="/logout" method="post" style="margin:0"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="account-dropdown-logout">Logout</button></form>
+        </div>
+      </div>
     <% } else { %>
-      <a class="au-link" href="/login">Login</a>
+      <div class="account-menu" style="position:relative;display:flex;align-items:center">
+        <input type="checkbox" id="account-toggle" class="nav-check">
+        <label for="account-toggle" aria-label="Account" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
+        </label>
+        <div class="account-dropdown">
+          <a class="au-link" href="/login">Login</a>
+          <a class="au-link" href="/signup">Create account</a>
+        </div>
+      </div>
     <% } %>
   </div>
 </div>
 <%- include('flash') %>
+<!-- Toast for JS-driven confirmations (e.g. add-to-cart) — hidden by default -->
+<div id="au-toast" class="au-toast" role="status" aria-live="polite">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+  <span class="au-toast-text"></span>
+</div>

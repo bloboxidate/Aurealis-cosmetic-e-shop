@@ -12,6 +12,7 @@ const DEFAULTS = {
     hero_title: 'Born of the aurora.',
     hero_text: 'Skincare and makeup formulated around the colors of the aurora borealis — glow that shifts like light across the sky.',
     hero_cta: 'Shop the Collection',
+    hero_image: '',
     bestsellers_title: 'Bestsellers',
     bestsellers_text: 'Our most-loved essentials.',
   },
@@ -19,6 +20,7 @@ const DEFAULTS = {
     eyebrow: 'Our Story',
     title: "Light doesn't have one color. Neither does your glow.",
     body: 'Auréalis began on a winter night beneath the aurora borealis — watching color move across the sky in a way no single pigment could hold. We wanted skincare and makeup that felt like that: alive, shifting, never flat.\n\nEvery formula is built around clean, skin-loving ingredients and a palette drawn directly from the northern lights — sage, azure, lavender, honey, and apricot glow, woven through everything we make.',
+    image: '',
   },
   shop: {
     title: 'All Products',

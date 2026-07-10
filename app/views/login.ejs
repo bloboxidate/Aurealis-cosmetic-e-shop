@@ -17,6 +17,7 @@
       <div style="font-size:14px;color:#6b6357;text-align:center;margin-bottom:32px">Sign in to your Auréalis account</div>
 
       <form action="/login" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <input type="hidden" name="next" value="<%= next %>">
         <div style="margin-bottom:16px">
           <div style="font-size:12px;font-weight:700;margin-bottom:8px">Email</div>
@@ -26,7 +27,7 @@
           <div style="font-size:12px;font-weight:700;margin-bottom:8px">Password</div>
           <input class="field" type="password" name="password" required placeholder="••••••••">
         </div>
-        <div style="text-align:right;margin-bottom:24px"><span style="font-size:12px;color:#8a8175">Forgot password?</span></div>
+        <div style="text-align:right;margin-bottom:24px"><a class="au-link" href="/forgot-password" style="font-size:12px;color:#8a8175">Forgot password?</a></div>
         <button type="submit" class="btn-primary" style="width:100%;margin-bottom:24px">Sign In</button>
       </form>
 

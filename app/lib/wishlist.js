@@ -1,0 +1,31 @@
+// Local wishlist — keyed by the signed-in user and the Sariee product id.
+const db = require('../db/database');
+
+async function list(userId) {
+  return db.all('SELECT sariee_product_id FROM wishlist_items WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+}
+
+async function has(userId, sarieeProductId) {
+  const row = await db.get(
+    'SELECT id FROM wishlist_items WHERE user_id = ? AND sariee_product_id = ?',
+    [userId, sarieeProductId]
+  );
+  return !!row;
+}
+
+async function add(userId, sarieeProductId) {
+  if (await has(userId, sarieeProductId)) return;
+  await db.run(
+    'INSERT INTO wishlist_items (user_id, sariee_product_id) VALUES (?, ?)',
+    [userId, sarieeProductId]
+  );
+}
+
+async function remove(userId, sarieeProductId) {
+  await db.run(
+    'DELETE FROM wishlist_items WHERE user_id = ? AND sariee_product_id = ?',
+    [userId, sarieeProductId]
+  );
+}
+
+module.exports = { list, has, add, remove };

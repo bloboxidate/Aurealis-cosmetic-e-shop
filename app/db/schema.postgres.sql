@@ -12,77 +12,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS products (
-  id            integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  slug          text NOT NULL UNIQUE,
-  name          text NOT NULL,
-  subtitle      text NOT NULL DEFAULT '',
-  category      text NOT NULL DEFAULT 'skincare',
-  subcategory   text NOT NULL DEFAULT '',
-  price_cents   integer NOT NULL DEFAULT 0,
-  description   text NOT NULL DEFAULT '',
-  details       text NOT NULL DEFAULT '',
-  how_to_use    text NOT NULL DEFAULT '',
-  ingredients   text NOT NULL DEFAULT '',
-  color         text NOT NULL DEFAULT '#a5d1e4',
-  image_url     text NOT NULL DEFAULT '',
-  sizes         text NOT NULL DEFAULT '[]',
-  badges        text NOT NULL DEFAULT '[]',
-  is_bestseller integer NOT NULL DEFAULT 0,
-  is_active     integer NOT NULL DEFAULT 1,
-  sort_order    integer NOT NULL DEFAULT 0,
-  created_at    timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS cart_items (
-  id          integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  session_id  text NOT NULL,
-  product_id  integer NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  size        text NOT NULL DEFAULT '',
-  qty         integer NOT NULL DEFAULT 1,
-  created_at  timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(session_id, product_id, size)
-);
-
-CREATE TABLE IF NOT EXISTS promo_codes (
-  id     integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  code   text NOT NULL UNIQUE,
-  kind   text NOT NULL DEFAULT 'percent',
-  value  integer NOT NULL DEFAULT 0,
-  active integer NOT NULL DEFAULT 1
-);
-
-CREATE TABLE IF NOT EXISTS orders (
-  id             integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  order_number   text NOT NULL UNIQUE,
-  user_id        integer REFERENCES users(id) ON DELETE SET NULL,
-  email          text NOT NULL,
-  ship_first     text NOT NULL DEFAULT '',
-  ship_last      text NOT NULL DEFAULT '',
-  address        text NOT NULL DEFAULT '',
-  city           text NOT NULL DEFAULT '',
-  postal         text NOT NULL DEFAULT '',
-  country        text NOT NULL DEFAULT '',
-  ship_method    text NOT NULL DEFAULT 'standard',
-  subtotal_cents integer NOT NULL DEFAULT 0,
-  discount_cents integer NOT NULL DEFAULT 0,
-  shipping_cents integer NOT NULL DEFAULT 0,
-  total_cents    integer NOT NULL DEFAULT 0,
-  promo_code     text NOT NULL DEFAULT '',
-  status         text NOT NULL DEFAULT 'paid',
-  created_at     timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS order_items (
-  id               integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  order_id         integer NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  product_id       integer REFERENCES products(id) ON DELETE SET NULL,
-  name             text NOT NULL,
-  size             text NOT NULL DEFAULT '',
-  unit_price_cents integer NOT NULL DEFAULT 0,
-  qty              integer NOT NULL DEFAULT 1
-);
-
 CREATE TABLE IF NOT EXISTS sessions (
   sid     text PRIMARY KEY,
   data    text NOT NULL,
@@ -95,6 +24,8 @@ CREATE TABLE IF NOT EXISTS categories (
   name       text NOT NULL,
   sort_order integer NOT NULL DEFAULT 0
 );
+-- Additive migration onto a table that already exists in deployed databases.
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS image_url text NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS subcategories (
   id          integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -103,13 +34,6 @@ CREATE TABLE IF NOT EXISTS subcategories (
   name        text NOT NULL,
   sort_order  integer NOT NULL DEFAULT 0,
   UNIQUE(category_id, slug)
-);
-
-CREATE TABLE IF NOT EXISTS product_images (
-  id         integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  product_id integer NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  url        text NOT NULL,
-  sort_order integer NOT NULL DEFAULT 0
 );
 
 -- Local presentation overlay on top of Sariee products, keyed by the Sariee
@@ -126,6 +50,20 @@ CREATE TABLE IF NOT EXISTS product_overlay (
   is_hidden        integer NOT NULL DEFAULT 0,
   updated_at       timestamptz NOT NULL DEFAULT now()
 );
+
+-- A product can belong to several categories at once (each optionally with
+-- its own subcategory, since subcategories are scoped per category).
+-- category_slug/subcategory_slug above are legacy, superseded by this table,
+-- left in place unused rather than dropped.
+CREATE TABLE IF NOT EXISTS product_categories (
+  id               integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sariee_id        text NOT NULL,
+  category_slug    text NOT NULL,
+  subcategory_slug text NOT NULL DEFAULT '',
+  UNIQUE(sariee_id, category_slug)
+);
+CREATE INDEX IF NOT EXISTS idx_product_categories_sariee ON product_categories(sariee_id);
+CREATE INDEX IF NOT EXISTS idx_product_categories_slug ON product_categories(category_slug);
 
 -- Editable page content (About, Home, Shop, Footer, …) as JSON blobs by key.
 CREATE TABLE IF NOT EXISTS site_content (
@@ -146,8 +84,53 @@ CREATE TABLE IF NOT EXISTS sariee_orders (
 CREATE INDEX IF NOT EXISTS idx_sariee_orders_user ON sariee_orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_sariee_orders_email ON sariee_orders(email);
 
-CREATE INDEX IF NOT EXISTS idx_cart_session ON cart_items(session_id);
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
-CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+-- Cancellation requests. Sariee has no cancel/void order endpoint (checked
+-- across all 425 documented endpoints), so this can't be automatic — it just
+-- records the request and emails store ops to action it manually in Sariee.
+CREATE TABLE IF NOT EXISTS cancellation_requests (
+  id              integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sariee_order_id text NOT NULL,
+  user_id         integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  note            text NOT NULL DEFAULT '',
+  created_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_cancellation_requests_order ON cancellation_requests(sariee_order_id);
+
+-- Password reset tokens (local accounts only — Sariee's customer auth is a
+-- separate, unused system; this site's login is entirely local).
+CREATE TABLE IF NOT EXISTS password_resets (
+  id         integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id    integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash text NOT NULL UNIQUE,
+  expires_at timestamptz NOT NULL,
+  used_at    timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_password_resets_user ON password_resets(user_id);
+
+-- Wishlist, keyed by the signed-in user and the Sariee product id.
+CREATE TABLE IF NOT EXISTS wishlist_items (
+  id                integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  user_id           integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  sariee_product_id text NOT NULL,
+  created_at        timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(user_id, sariee_product_id)
+);
+CREATE INDEX IF NOT EXISTS idx_wishlist_user ON wishlist_items(user_id);
+
+-- Product reviews, local to this storefront (Sariee has no review feature).
+-- is_approved gates public display — user-generated content on a live site
+-- needs a moderation step before it's shown to other shoppers.
+CREATE TABLE IF NOT EXISTS reviews (
+  id                integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  sariee_product_id text NOT NULL,
+  user_id           integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  rating            integer NOT NULL,
+  body              text NOT NULL DEFAULT '',
+  is_approved       integer NOT NULL DEFAULT 0,
+  created_at        timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(sariee_product_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(sariee_product_id, is_approved);
+
 CREATE INDEX IF NOT EXISTS idx_subcategories_cat ON subcategories(category_id);
-CREATE INDEX IF NOT EXISTS idx_product_images_product ON product_images(product_id);

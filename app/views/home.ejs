@@ -14,7 +14,7 @@
 
   <!-- hero -->
   <div class="au-pad" style="position:relative;padding:80px 64px 0;overflow:hidden">
-    <div class="grid-hero" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1">
+    <div class="grid-hero au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1">
       <div>
         <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:18px"><%= home.hero_eyebrow %></div>
         <div class="serif" style="font-weight:500;font-size:clamp(42px,10vw,74px);line-height:1.05;margin-bottom:26px"><%= home.hero_title %></div>
@@ -25,7 +25,9 @@
           radial-gradient(120% 120% at 20% 10%, rgba(165,209,228,.95), transparent 55%),
           radial-gradient(120% 120% at 90% 30%, rgba(191,181,232,.9), transparent 55%),
           radial-gradient(140% 120% at 50% 90%, rgba(165,191,151,.9), transparent 55%),
-          linear-gradient(160deg,#2c3e50,#34495e)"></div>
+          linear-gradient(160deg,#2c3e50,#34495e)">
+        <% if (home.hero_image) { %><img src="<%= home.hero_image %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
+      </div>
     </div>
   </div>
 
@@ -33,9 +35,10 @@
   <% var _cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
   <% if (_cats.length) { %>
     <% var _grads = ['#a5bf97','#f7d595','#a5d1e4','#bfb5e8','#f8ae7f']; %>
-    <div class="au-pad" style="display:grid;grid-template-columns:repeat(<%= Math.min(_cats.length, 3) %>,1fr);gap:20px;padding:70px 64px 0">
+    <div class="au-pad au-reveal" style="display:grid;grid-template-columns:repeat(<%= Math.min(_cats.length, 3) %>,1fr);gap:20px;padding:70px 64px 0">
       <% _cats.slice(0,6).forEach(function(c, i){ %>
-        <a href="/shop?category=<%= c.slug %>" style="position:relative;height:clamp(200px,45vw,340px);border-radius:20px;overflow:hidden;background:<%= _grads[i % _grads.length] %>;display:block">
+        <a href="/shop?category=<%= c.slug %>" style="position:relative;height:clamp(200px,45vw,340px);border-radius:20px;overflow:hidden;<%= c.image_url ? '' : 'background:'+_grads[i % _grads.length]+';' %>display:block">
+          <% if (c.image_url) { %><img src="<%= c.image_url %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0"><% } %>
           <div style="position:absolute;left:28px;bottom:24px;background:rgba(255,249,243,.9);padding:8px 18px;border-radius:100px">
             <div style="font-size:15px;font-weight:700;color:#3a352e"><%= c.name %></div>
           </div>
@@ -45,7 +48,8 @@
   <% } %>
 
   <!-- bestsellers -->
-  <div class="au-pad" style="padding:clamp(48px,9vw,80px) 64px">
+  <% if (bestsellers.length) { %>
+  <div class="au-pad au-reveal" style="padding:clamp(48px,9vw,80px) 64px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
       <div class="serif" style="font-size:clamp(28px,6vw,36px)">Bestsellers</div>
       <a class="au-link" href="/shop" style="font-size:13px;letter-spacing:.05em;color:#c1602f;text-transform:uppercase;font-weight:700">View all</a>
@@ -56,10 +60,11 @@
       <% }); %>
     </div>
   </div>
+  <% } %>
 
   <!-- brand story -->
   <div style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
-  <div class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
+  <div class="au-pad grid-2 au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
     <div style="width:100%;height:clamp(220px,50vw,420px);border-radius:20px;overflow:hidden;background:
         radial-gradient(120% 120% at 30% 20%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(120% 120% at 80% 80%, rgba(247,213,149,.9), transparent 55%),

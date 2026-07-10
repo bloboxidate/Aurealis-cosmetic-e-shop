@@ -16,12 +16,14 @@
     <div class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= about.title %></div>
   </div>
 
-  <div class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;padding:0 64px 100px">
+  <div class="au-pad grid-2 au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;padding:0 64px 100px">
     <div style="width:100%;height:480px;border-radius:20px;overflow:hidden;background:
         radial-gradient(120% 120% at 25% 15%, rgba(165,209,228,.95), transparent 55%),
         radial-gradient(120% 120% at 85% 40%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(140% 120% at 50% 95%, rgba(165,191,151,.9), transparent 55%),
-        linear-gradient(160deg,#2c3e50,#34495e)"></div>
+        linear-gradient(160deg,#2c3e50,#34495e)">
+      <% if (about.image) { %><img src="<%= about.image %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
+    </div>
     <div>
       <% (about.body || '').split(/\n\n+/).forEach(function(para, i){ %>
         <div style="font-size:15px;line-height:1.8;color:#4a453d;<%= i>0 ? '' : 'margin-bottom:20px' %>"><%= para %></div>
@@ -30,7 +32,7 @@
   </div>
 
   <div style="background:rgba(255,255,255,.45);backdrop-filter:blur(2px);padding:80px 64px">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:44px;max-width:1100px;margin:0 auto" class="grid-2">
+    <div class="grid-2 au-reveal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:44px;max-width:1100px;margin:0 auto">
       <div style="text-align:center">
         <div style="width:56px;height:56px;border-radius:50%;background:#a5d1e4;margin:0 auto 20px"></div>
         <div class="serif" style="font-size:24px;margin-bottom:10px">Radiance</div>
@@ -49,7 +51,7 @@
     </div>
   </div>
 
-  <div class="au-pad" style="padding:90px 64px;text-align:center">
+  <div class="au-pad au-reveal" style="padding:90px 64px;text-align:center">
     <div class="serif" style="font-size:32px;margin-bottom:12px">Our Palette</div>
     <div style="font-size:14px;color:#6b6357;margin-bottom:48px">Soft, luminous, nature-rooted — drawn straight from the northern sky.</div>
     <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap">

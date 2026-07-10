@@ -1,0 +1,37 @@
+// Synchronizer-token CSRF protection. Scoped to auth, checkout, and the
+// admin panel (the forms with real consequences) rather than every POST in
+// the app — sameSite=lax already covers classic cross-site POST CSRF for
+// the rest; this adds defense-in-depth where it matters most.
+const crypto = require('crypto');
+
+function ensureToken(req) {
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+  }
+  return req.session.csrfToken;
+}
+
+// Expose res.locals.csrfToken so any view can embed it in a form.
+function csrfLocals(req, res, next) {
+  res.locals.csrfToken = ensureToken(req);
+  next();
+}
+
+// Reject POSTs whose token doesn't match the session's — checked in the form
+// body (_csrf) or, for the one AJAX call in the admin panel, the
+// X-CSRF-Token header. GET/HEAD requests pass through untouched.
+function verifyCsrf(req, res, next) {
+  if (req.method === 'GET' || req.method === 'HEAD') return next();
+  const expected = req.session.csrfToken;
+  const provided = (req.body && req.body._csrf) || req.get('X-CSRF-Token');
+  if (!expected || provided !== expected) {
+    return res.status(403).render('error', {
+      title: 'Request blocked — Auréalis',
+      heading: 'This request could not be verified',
+      message: 'Your session may have expired. Please refresh the page and try again.',
+    });
+  }
+  next();
+}
+
+module.exports = { csrfLocals, verifyCsrf };

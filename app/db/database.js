@@ -48,10 +48,22 @@ let api;
 if (usePg) {
   // ---------------- Postgres / Supabase ----------------
   const { Pool } = require('pg');
+  // Serverless, not a long-lived server: every cold start creates a brand
+  // new Pool, and Vercel can run many instances concurrently under load —
+  // each holding its own `max` connections against Supabase's shared limit.
+  // A big per-instance pool (this was `max: 5`) multiplies fast and can
+  // exhaust Supabase's connection cap ("max clients reached" /
+  // EMAXCONNSESSION), especially if DATABASE_URL isn't already the pooled
+  // "Transaction" connection string (see .env.example) that's meant to
+  // absorb exactly this. `max: 1` plus a short idle timeout keeps each
+  // instance's footprint minimal and releases connections quickly instead
+  // of holding them open between requests.
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // Supabase requires SSL
-    max: 5,
+    max: 1,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
   });
 
   const clientApi = (runner) => ({
@@ -106,6 +118,15 @@ if (usePg) {
         return;
       }
       await pool.query(schema);
+      // One-time forward migration: carry any existing single category/
+      // subcategory assignment into the new multi-category table. Idempotent
+      // (ON CONFLICT DO NOTHING) so it's safe to run on every cold start.
+      await pool.query(`
+        INSERT INTO product_categories (sariee_id, category_slug, subcategory_slug)
+        SELECT sariee_id, category_slug, subcategory_slug FROM product_overlay
+        WHERE category_slug != ''
+        ON CONFLICT (sariee_id, category_slug) DO NOTHING
+      `);
     },
     async close() { await pool.end(); },
   };
@@ -117,6 +138,13 @@ if (usePg) {
   const sdb = new Database(path.join(DATA_DIR, 'aurealis.db'));
   sdb.pragma('journal_mode = WAL');
   sdb.pragma('foreign_keys = ON');
+
+  function ensureColumn(table, column, ddl) {
+    const cols = sdb.prepare(`PRAGMA table_info(${table})`).all();
+    if (!cols.some((c) => c.name === column)) {
+      sdb.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+    }
+  }
 
   const sqliteApi = {
     async get(sql, params) {
@@ -156,6 +184,20 @@ if (usePg) {
     async init() {
       const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
       sdb.exec(schema);
+      // SQLite's ALTER TABLE ADD COLUMN has no IF NOT EXISTS, so additive
+      // migrations onto tables that already exist in older local DBs need a
+      // manual existence check (schema.sql's CREATE TABLE IF NOT EXISTS only
+      // helps brand-new tables).
+      ensureColumn('categories', 'image_url', "TEXT NOT NULL DEFAULT ''");
+      // One-time forward migration: carry any existing single category/
+      // subcategory assignment into the new multi-category table. Idempotent
+      // (INSERT OR IGNORE against the UNIQUE constraint) so it's safe to run
+      // on every cold start.
+      sdb.exec(`
+        INSERT OR IGNORE INTO product_categories (sariee_id, category_slug, subcategory_slug)
+        SELECT sariee_id, category_slug, subcategory_slug FROM product_overlay
+        WHERE category_slug != ''
+      `);
     },
     async close() { sdb.close(); },
   };

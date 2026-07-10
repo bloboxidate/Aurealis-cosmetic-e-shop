@@ -50,9 +50,9 @@ async function load(req) {
 // Map a Sariee cart line into the view's item shape. `product.id` on a line is
 // the barcode id; we resolve the storefront slug via the catalog for links.
 async function mapItems(cart) {
-  const products = await catalog.allRaw().catch(() => []);
-  const byBarcode = new Map(products.map((p) => [p.barcode_id, p]));
-  return (cart.items || []).map((it) => {
+  const items = cart.items || [];
+  const byBarcode = await catalog.barcodeIndex().catch(() => new Map());
+  return items.map((it) => {
     const prod = it.product || {};
     const cat = byBarcode.get(prod.id);
     return {
@@ -111,8 +111,8 @@ async function resolveBarcode(productId) {
   const p = await catalog.byId(productId);
   if (p && p.barcode_id) return p.barcode_id;
   // maybe they already posted a barcode id
-  const all = await catalog.allRaw().catch(() => []);
-  if (all.some((x) => x.barcode_id === productId)) return productId;
+  const byBarcode = await catalog.barcodeIndex().catch(() => new Map());
+  if (byBarcode.has(productId)) return productId;
   return null;
 }
 
