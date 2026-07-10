@@ -23,11 +23,13 @@
   .btn-outline{display:inline-block;text-align:center;border:1px solid rgba(58,53,46,.3);padding:14px 28px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#3a352e;border-radius:100px;background:transparent;cursor:pointer;transition:background-color .15s ease,color .15s ease,transform .15s ease}
   .btn-outline:hover{background:#3a352e;color:#fff9f3;transform:translateY(-2px)}
   .btn-outline:active{transform:translateY(0) scale(.98)}
-  /* Product cards: gentle lift + image zoom on hover, tactile press states */
-  .product-card{transition:transform .2s ease}
-  .product-card:hover{transform:translateY(-4px)}
-  .product-card img{transition:transform .35s ease}
-  .product-card:hover img{transform:scale(1.05)}
+  /* Product cards: gentle lift + image zoom on hover, tactile press states.
+     cubic-bezier(.22,1,.36,1) ("ease-out-expo") decelerates smoothly with no
+     mechanical snap, and a longer duration reads as glide rather than jump. */
+  .product-card{transition:transform .45s cubic-bezier(.22,1,.36,1)}
+  .product-card:hover{transform:translateY(-6px)}
+  .product-card img{transition:transform .6s cubic-bezier(.22,1,.36,1)}
+  .product-card:hover img{transform:scale(1.06)}
   /* Toast (bottom-right, slides + fades in) */
   .au-toast{position:fixed;bottom:28px;right:28px;background:#3a352e;color:#fff9f3;padding:14px 20px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.25);z-index:200;transform:translateY(16px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s ease}
   .au-toast svg{flex:none;color:#a5bf97}
@@ -57,9 +59,12 @@
   /* Hamburger menu (CSS-only) — used at all viewport widths, not just mobile */
   .nav-check{display:none}
   .nav-burger{display:flex;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;cursor:pointer;flex:none}
-  .nav-burger span{display:block;height:2px;width:24px;background:#3a352e;border-radius:2px;transition:transform .25s,opacity .2s}
+  /* Hamburger → X morph: a little overshoot on the rotation (spring-like
+     cubic-bezier) plus the middle bar shrinking away, not just fading, so
+     the change reads as an animated transformation rather than a jump-cut. */
+  .nav-burger span{display:block;height:2px;width:24px;background:#3a352e;border-radius:2px;transition:transform .4s cubic-bezier(.68,-.4,.27,1.4),opacity .25s ease}
   .nav-check:checked ~ .nav-burger span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-  .nav-check:checked ~ .nav-burger span:nth-child(2){opacity:0}
+  .nav-check:checked ~ .nav-burger span:nth-child(2){opacity:0;transform:scale(0)}
   .nav-check:checked ~ .nav-burger span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
   .nav-mobile,.admin-nav-mobile{display:none;position:absolute;top:100%;left:0;right:0;background:#fff9f3;flex-direction:column;padding:4px 22px 14px;z-index:60;border-bottom:1px solid rgba(58,53,46,.12);box-shadow:0 12px 26px rgba(58,53,46,.14)}
   .nav-mobile a,.nav-mobile-logout,.admin-nav-mobile a{display:block;width:100%;text-align:left;padding:14px 2px;font-size:15px;color:#3a352e;text-decoration:none;border:none;border-bottom:1px solid rgba(58,53,46,.07);background:none;cursor:pointer;font-family:inherit;letter-spacing:.02em}
@@ -101,4 +106,10 @@
     .au-reveal{opacity:1;transform:none;transition:none}
     *{scroll-behavior:auto !important;animation-duration:.001ms !important;transition-duration:.001ms !important}
   }
+  /* Page-load spinner: the favicon mark, spinning, over a full-screen cream
+     backdrop — removed once the page (incl. images) has fully loaded. */
+  @keyframes au-spin{to{transform:rotate(360deg)}}
+  .au-loader{position:fixed;inset:0;background:#fff9f3;z-index:300;display:flex;align-items:center;justify-content:center;transition:opacity .35s ease}
+  .au-loader img{width:56px;height:56px;animation:au-spin 1s linear infinite}
+  .au-loader-hide{opacity:0;pointer-events:none}
 </style>

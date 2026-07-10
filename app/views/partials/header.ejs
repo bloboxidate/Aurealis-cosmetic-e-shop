@@ -1,5 +1,17 @@
 <% const active = typeof navActive !== 'undefined' ? navActive : ''; %>
 <% const cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
+<!-- Page-load spinner (the favicon mark, spinning) — removed once the page,
+     including its images, has fully loaded. Never blocks a no-JS visitor. -->
+<noscript><style>#au-loader{display:none}</style></noscript>
+<div id="au-loader" class="au-loader"><img src="/assets/favicon-192.png" alt=""></div>
+<script>
+window.addEventListener('load', function () {
+  var l = document.getElementById('au-loader');
+  if (!l) return;
+  l.classList.add('au-loader-hide');
+  setTimeout(function () { l.remove(); }, 400);
+});
+</script>
 <div class="au-header" style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:16px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
 
   <!-- Left: hamburger nav (all viewports) -->
