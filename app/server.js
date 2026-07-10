@@ -35,14 +35,14 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://va.vercel-scripts.com'],
       // Several views use inline onchange/onsubmit handlers (e.g. shop.ejs's
       // sort <select>, admin delete-confirm dialogs) — script-src-attr is a
       // separate CSP directive from script-src and defaults to 'none',
       // which would silently break those without this.
       scriptSrcAttr: ["'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://vitals.vercel-insights.com'],
     },
   },
 }));
