@@ -8,8 +8,10 @@ const ah = require('../lib/ah');
 const { flash } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
 const { checkoutLimiter } = require('../middleware/rate-limit');
-
-router.use(verifyCsrf);
+// Applied directly on the POST /checkout route below, not router.use() —
+// see the comment in routes/auth.js for why a router-wide use() is unsafe
+// when multiple routers share the '/' mount path (it silently 403'd every
+// request to wishlist.js, which is registered after this router).
 const { emailRe, mobileRe } = require('../lib/validators');
 const mailer = require('../lib/mailer');
 const { money } = require('../lib/format');
@@ -57,7 +59,7 @@ router.get('/checkout', ah(async (req, res) => {
   });
 }));
 
-router.post('/checkout', checkoutLimiter, ah(async (req, res) => {
+router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
   const t = await cart.totals(req, { promoCode: req.session.promo || '' });
   if (t.items.length === 0) {
     flash(req, 'error', 'Your bag is empty.');

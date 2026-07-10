@@ -41,7 +41,12 @@ function flash(req, type, message) {
 function requireAuth(req, res, next) {
   if (!req.session.userId) {
     flash(req, 'error', 'Please sign in to continue.');
-    return res.redirect('/login?next=' + encodeURIComponent(req.originalUrl));
+    // For a POST (wishlist toggle, review submit, etc.) req.originalUrl is a
+    // POST-only endpoint with no GET handler — redirecting back to it after
+    // login would 404. Send those back to the referring page instead; only
+    // a GET navigation can safely resume at the exact URL.
+    const back = req.method === 'GET' ? req.originalUrl : (req.get('Referer') || '/');
+    return res.redirect('/login?next=' + encodeURIComponent(back));
   }
   next();
 }

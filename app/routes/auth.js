@@ -12,8 +12,13 @@ const { verifyCsrf } = require('../middleware/csrf');
 const { authLimiter } = require('../middleware/rate-limit');
 const { emailRe } = require('../lib/validators');
 
-router.use(verifyCsrf);
-
+// Applied per-route below (not router.use(verifyCsrf)) — a router-wide
+// use() runs whenever THIS router is invoked at all, even for a path it
+// has no route for, since routers are mounted at '/' in registration
+// order. That silently 403'd every request to any router registered after
+// this one (wishlist.js) before it ever reached its own handler, since
+// Express doesn't know this router won't match until after its middleware
+// has already run.
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1h
 
 function hashToken(raw) {
@@ -46,7 +51,7 @@ router.get('/login', (req, res) => {
   res.render('login', { title: 'Sign in — Auréalis', next: req.query.next || '', values: {} });
 });
 
-router.post('/login', authLimiter, ah(async (req, res) => {
+router.post('/login', verifyCsrf, authLimiter, ah(async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const password = req.body.password || '';
   const next = req.body.next || '';
@@ -65,7 +70,7 @@ router.get('/signup', (req, res) => {
   res.render('signup', { title: 'Create account — Auréalis', values: {} });
 });
 
-router.post('/signup', authLimiter, ah(async (req, res) => {
+router.post('/signup', verifyCsrf, authLimiter, ah(async (req, res) => {
   const first = (req.body.first_name || '').trim();
   const last = (req.body.last_name || '').trim();
   const email = (req.body.email || '').trim().toLowerCase();
@@ -93,7 +98,7 @@ router.post('/signup', authLimiter, ah(async (req, res) => {
   login(req, res, id, '/account');
 }));
 
-router.post('/logout', (req, res) => {
+router.post('/logout', verifyCsrf, (req, res) => {
   req.session.destroy(() => res.redirect('/'));
 });
 
@@ -103,7 +108,7 @@ router.get('/forgot-password', (req, res) => {
 
 // Always show the same generic message whether or not the email exists —
 // otherwise this endpoint becomes an account-enumeration oracle.
-router.post('/forgot-password', authLimiter, ah(async (req, res) => {
+router.post('/forgot-password', verifyCsrf, authLimiter, ah(async (req, res) => {
   const email = (req.body.email || '').trim().toLowerCase();
   const genericMsg = 'If an account exists for that email, we\'ve sent a password reset link.';
 
@@ -141,7 +146,7 @@ router.get('/reset-password/:token', ah(async (req, res) => {
   res.render('reset-password', { title: 'Reset password — Auréalis', token: req.params.token });
 }));
 
-router.post('/reset-password/:token', authLimiter, ah(async (req, res) => {
+router.post('/reset-password/:token', verifyCsrf, authLimiter, ah(async (req, res) => {
   const tokenHash = hashToken(req.params.token);
   const row = await db.get(
     'SELECT id, user_id FROM password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?',
@@ -190,7 +195,7 @@ router.get('/account', requireAuth, ah(async (req, res) => {
 // endpoints), so this records the request and emails store ops to action it
 // manually — the user sees a clear "request sent" message, not a fake instant
 // cancellation.
-router.post('/account/orders/:id/cancel-request', requireAuth, ah(async (req, res) => {
+router.post('/account/orders/:id/cancel-request', verifyCsrf, requireAuth, ah(async (req, res) => {
   const owns = await Orders.belongsToUser(req.params.id, req.session.userId);
   if (!owns) {
     flash(req, 'error', 'We couldn’t find that order on your account.');
