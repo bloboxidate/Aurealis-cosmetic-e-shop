@@ -48,10 +48,22 @@ let api;
 if (usePg) {
   // ---------------- Postgres / Supabase ----------------
   const { Pool } = require('pg');
+  // Serverless, not a long-lived server: every cold start creates a brand
+  // new Pool, and Vercel can run many instances concurrently under load —
+  // each holding its own `max` connections against Supabase's shared limit.
+  // A big per-instance pool (this was `max: 5`) multiplies fast and can
+  // exhaust Supabase's connection cap ("max clients reached" /
+  // EMAXCONNSESSION), especially if DATABASE_URL isn't already the pooled
+  // "Transaction" connection string (see .env.example) that's meant to
+  // absorb exactly this. `max: 1` plus a short idle timeout keeps each
+  // instance's footprint minimal and releases connections quickly instead
+  // of holding them open between requests.
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }, // Supabase requires SSL
-    max: 5,
+    max: 1,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 10000,
   });
 
   const clientApi = (runner) => ({
