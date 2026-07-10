@@ -12,6 +12,9 @@
     </div>
     <div style="font-size:14px;color:#8a8175;margin-bottom:24px">Products come from Sariee. Here you set how they appear: drag to reorder, assign a category/subcategory, and toggle featured / bestseller / hidden. Prices, images and stock are managed in Sariee.</div>
     <%- include('../partials/flash') %>
+    <% if (typeof sarieeError !== 'undefined' && sarieeError) { %>
+      <div style="background:rgba(248,174,127,.35);color:#8a3d16;border-radius:12px;padding:14px 18px;font-size:13px;margin-bottom:24px">Couldn't load products from Sariee right now (<%= sarieeError %>). Try refreshing in a moment.</div>
+    <% } %>
 
     <% if (products.length === 0) { %>
       <div style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:28px;color:#8a8175;font-size:14px">No products found in your Sariee store.</div>

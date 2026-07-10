@@ -9,6 +9,9 @@
     <div style="font-size:14px;color:#8a8175;margin-bottom:8px">Welcome back, <%= user.first_name %>.</div>
     <div style="font-size:13px;color:#8a8175;margin-bottom:32px;max-width:640px">Manage how your storefront presents the catalog and its page content. Products, orders and customers are managed in your Sariee dashboard.</div>
     <%- include('../partials/flash') %>
+    <% if (typeof sarieeError !== 'undefined' && sarieeError) { %>
+      <div style="background:rgba(248,174,127,.35);color:#8a3d16;border-radius:12px;padding:14px 18px;font-size:13px;margin-bottom:24px">Couldn't load products from Sariee right now (<%= sarieeError %>). Product counts below may be incomplete — try refreshing in a moment.</div>
+    <% } %>
 
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:40px">
       <% const cards = [['Products', stats.products],['Bestsellers', stats.bestsellers],['Hidden', stats.hidden],['Categories', stats.categories]]; %>

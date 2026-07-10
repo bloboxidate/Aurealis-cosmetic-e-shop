@@ -1,12 +1,29 @@
 <% const a = typeof adminActive !== 'undefined' ? adminActive : ''; %>
+<% const links = [['dashboard','Dashboard','/admin'],['products','Products','/admin/products'],['categories','Categories','/admin/categories'],['content','Page Content','/admin/content']]; %>
+
+<!-- Desktop sidebar -->
 <div class="admin-side" style="width:230px;flex:none;background:#3a352e;color:#f4f1ea;min-height:100vh;padding:28px 0">
   <a href="/" class="admin-brand" style="display:block;padding:0 28px 24px;text-decoration:none">
     <span class="serif" style="color:#fff;font-size:22px;letter-spacing:.02em">AURÉALIS</span>
     <div style="font-size:11px;color:rgba(244,241,234,.6);letter-spacing:.12em;text-transform:uppercase;margin-top:4px">Site Admin</div>
   </a>
-  <% const links = [['dashboard','Dashboard','/admin'],['products','Products','/admin/products'],['categories','Categories','/admin/categories'],['content','Page Content','/admin/content']]; %>
   <% links.forEach(function(l){ %>
     <a href="<%= l[2] %>" style="display:block;padding:13px 28px;text-decoration:none;font-size:14px;<%= a===l[0]?'background:rgba(248,174,127,.22);color:#fff;font-weight:700;border-left:3px solid #f8ae7f':'color:rgba(244,241,234,.8);border-left:3px solid transparent' %>"><%= l[1] %></a>
   <% }); %>
   <a href="/" style="display:block;padding:13px 28px;text-decoration:none;font-size:13px;color:rgba(244,241,234,.6);margin-top:20px">← View store</a>
+</div>
+
+<!-- Mobile top bar with dropdown menu (CSS-only) -->
+<div class="admin-topbar" style="display:none;background:#3a352e;color:#f4f1ea;position:relative;align-items:center;justify-content:space-between;padding:14px 18px">
+  <a href="/" style="text-decoration:none;color:#fff" class="serif">AURÉALIS <span style="font-size:10px;color:rgba(244,241,234,.6);letter-spacing:.1em;text-transform:uppercase;font-family:'Manrope',sans-serif">Admin</span></a>
+  <input type="checkbox" id="admin-nav-toggle" class="nav-check">
+  <label for="admin-nav-toggle" class="nav-burger admin-burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </label>
+  <div class="admin-nav-mobile">
+    <% links.forEach(function(l){ %>
+      <a href="<%= l[2] %>" style="<%= a===l[0]?'color:#c1602f;font-weight:700':'' %>"><%= l[1] %></a>
+    <% }); %>
+    <a href="/">← View store</a>
+  </div>
 </div>

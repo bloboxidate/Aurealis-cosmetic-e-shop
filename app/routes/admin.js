@@ -16,9 +16,21 @@ const { requireAuth, requireAdmin, flash } = require('../middleware/auth');
 
 router.use(requireAuth, requireAdmin);
 
+// Products come live from Sariee — never let a Sariee hiccup 500 the whole
+// admin panel. Log the real error (visible in Vercel's Runtime Logs) and
+// degrade to an empty list with a banner instead.
+async function safeAdminProducts(req) {
+  try {
+    return { products: await catalog.allForAdmin(), sarieeError: null };
+  } catch (err) {
+    console.error('[admin] catalog.allForAdmin() failed:', err);
+    return { products: [], sarieeError: err.message || 'Could not reach Sariee.' };
+  }
+}
+
 // ---- Dashboard ----------------------------------------------------------
 router.get('/', ah(async (req, res) => {
-  const products = await catalog.allForAdmin();
+  const { products, sarieeError } = await safeAdminProducts(req);
   const categories = await Cats.listCategories();
   const stats = {
     products: products.length,
@@ -26,15 +38,16 @@ router.get('/', ah(async (req, res) => {
     bestsellers: products.filter((p) => p.is_bestseller).length,
     categories: categories.length,
   };
-  res.render('admin/dashboard', { title: 'Site Admin — Auréalis', stats, adminActive: 'dashboard' });
+  res.render('admin/dashboard', { title: 'Site Admin — Auréalis', stats, sarieeError, adminActive: 'dashboard' });
 }));
 
 // ---- Product curation ---------------------------------------------------
 router.get('/products', ah(async (req, res) => {
-  const products = await catalog.allForAdmin();
+  const { products, sarieeError } = await safeAdminProducts(req);
   res.render('admin/products', {
     title: 'Products — Admin',
     products,
+    sarieeError,
     categories: await Cats.listCategories(),
     subcategories: await Cats.listSubcategories(),
     adminActive: 'products',
