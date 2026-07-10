@@ -10,6 +10,15 @@ const reviews = require('../lib/reviews');
 const ah = require('../lib/ah');
 const { requireAuth, flash } = require('../middleware/auth');
 
+// Marks up a list of decorated products with `.wishlisted` for the signed-in
+// user, one query for the whole list rather than one per card.
+async function markWishlisted(req, products) {
+  if (!req.session.userId || !products.length) return products;
+  const ids = await wishlist.idsFor(req.session.userId).catch(() => new Set());
+  products.forEach((p) => { p.wishlisted = ids.has(p.id); });
+  return products;
+}
+
 // Home
 router.get('/', ah(async (req, res) => {
   // Degrade gracefully if Sariee is unreachable — show the page without cards
@@ -21,6 +30,7 @@ router.get('/', ah(async (req, res) => {
     }),
     content.get('home'),
   ]);
+  await markWishlisted(req, bestsellers);
   res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, home });
 }));
 
@@ -71,6 +81,7 @@ router.get('/shop', ah(async (req, res) => {
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const page = Math.min(totalPages, Math.max(1, parseInt(req.query.page, 10) || 1));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  await markWishlisted(req, paged);
   res.render('shop', {
     title: (catObj ? catObj.name : 'Shop') + ' — Auréalis',
     products: paged,
@@ -120,6 +131,7 @@ router.get('/product/:slug', ah(async (req, res, next) => {
   ]);
   const canReview = req.session.userId ? !alreadyReviewed : false;
   const reviewSummary = reviews.summarize(productReviews);
+  await markWishlisted(req, related);
 
   res.render('product', {
     title: product.name + ' — Auréalis',

@@ -10,6 +10,7 @@ router.get('/wishlist', requireAuth, ah(async (req, res) => {
   const products = (await Promise.all(
     rows.map((r) => catalog.byId(r.sariee_product_id).catch(() => null))
   )).filter(Boolean);
+  products.forEach((p) => { p.wishlisted = true; }); // every card here is, by definition
   res.render('wishlist', { title: 'My Wishlist — Auréalis', products });
 }));
 
