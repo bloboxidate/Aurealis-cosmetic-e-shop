@@ -5,23 +5,24 @@ const content = require('../lib/content');   // editable site content
 const { money, price } = require('../lib/format');
 
 // Populate res.locals used by every view: current user, cart count, flash messages.
+// The user/categories/footer lookups are independent of each other, so they
+// run in parallel instead of stacking three round-trips on every request.
 async function locals(req, res, next) {
   try {
-    let user = null;
-    if (req.session.userId) {
-      user = await db.get(
-        'SELECT id, email, first_name, last_name, is_admin FROM users WHERE id = ?',
-        [req.session.userId]
-      );
-      if (!user) req.session.userId = null; // stale
-    }
+    const [user, navCategories, footer, cartCount] = await Promise.all([
+      req.session.userId
+        ? db.get('SELECT id, email, first_name, last_name, is_admin FROM users WHERE id = ?', [req.session.userId])
+        : Promise.resolve(null),
+      Cats.listCategories().catch(() => []),
+      content.get('footer').catch(() => content.defaults('footer')),
+      cart.getCount(req),
+    ]);
+    if (req.session.userId && !user) req.session.userId = null; // stale
+
     res.locals.user = user || null;
-    // Nav + cart count come from Sariee now; degrade gracefully if it hiccups.
-    try { res.locals.navCategories = await Cats.listCategories(); }
-    catch (_) { res.locals.navCategories = []; }
-    try { res.locals.footer = await content.get('footer'); }
-    catch (_) { res.locals.footer = content.defaults('footer'); }
-    res.locals.cartCount = await cart.getCount(req);
+    res.locals.navCategories = navCategories;
+    res.locals.footer = footer;
+    res.locals.cartCount = cartCount;
     res.locals.money = money;
     res.locals.price = price;
     res.locals.flash = req.session.flash || null;

@@ -13,15 +13,15 @@ const { requireAuth, flash } = require('../middleware/auth');
 // Home
 router.get('/', ah(async (req, res) => {
   // Degrade gracefully if Sariee is unreachable — show the page without cards
-  // rather than a 500, but log so the failure is diagnosable.
-  let bestsellers = [];
-  try { bestsellers = await Products.bestsellers(4); }
-  catch (err) { console.error('[shop] home bestsellers failed:', err.message); bestsellers = []; }
-  res.render('home', {
-    title: 'Auréalis — Born of the aurora',
-    bestsellers,
-    home: await content.get('home'),
-  });
+  // rather than a 500, but log so the failure is diagnosable. Independent of
+  // the content lookup, so both run in parallel.
+  const [bestsellers, home] = await Promise.all([
+    Products.bestsellers(4).catch((err) => {
+      console.error('[shop] home bestsellers failed:', err.message); return [];
+    }),
+    content.get('home'),
+  ]);
+  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, home });
 }));
 
 // Shop / catalog, filtered by ?category=<slug> and ?sub=<slug>
@@ -32,43 +32,45 @@ router.get('/shop', ah(async (req, res) => {
 
   // Sariee-backed; degrade to an empty catalog on error instead of a 500, but
   // remember it happened so the page says so rather than looking like an
-  // empty store.
+  // empty store. These four lookups are independent of each other, so they
+  // run in parallel rather than one after another.
   const sub = req.query.sub || 'all';
-  let products = [];
   let catalogError = false;
-  try { products = await Products.all({ category, subcategory: sub }); }
-  catch (err) { console.error('[shop] shop listing failed:', err.message); products = []; catalogError = true; }
-  // Unfiltered-by-subcategory count, for the "N products" header line.
-  let base = products;
-  if (sub !== 'all') {
-    try { base = await Products.all({ category }); } catch (_) { base = products; }
-  }
+  const [products, base, subcats, shopContent] = await Promise.all([
+    Products.all({ category, subcategory: sub }).catch((err) => {
+      console.error('[shop] shop listing failed:', err.message); catalogError = true; return [];
+    }),
+    sub !== 'all'
+      ? Products.all({ category }).catch(() => [])
+      : Promise.resolve(null), // filled in below once we know `products`
+    category ? Cats.subcategoriesForSlug(category) : Cats.listSubcategories(),
+    content.get('shop'),
+  ]);
+  const baseList = base !== null ? base : products;
 
   // No Sariee product-search endpoint works server-side (products/list-all
   // ignores name/search query params — confirmed by testing against the live
   // API), so search is a local substring match over the cached catalog.
   const q = (req.query.q || '').trim();
+  let filtered = products;
   if (q) {
     const needle = q.toLowerCase();
-    products = products.filter((p) =>
+    filtered = filtered.filter((p) =>
       (p.name || '').toLowerCase().includes(needle) || (p.subtitle || '').toLowerCase().includes(needle)
     );
   }
 
   const sort = req.query.sort || 'featured';
-  if (sort === 'price-asc') products.sort((a, b) => a.price_cents - b.price_cents);
-  else if (sort === 'price-desc') products.sort((a, b) => b.price_cents - a.price_cents);
-  else if (sort === 'newest') products.sort((a, b) => b.id - a.id);
+  if (sort === 'price-asc') filtered.sort((a, b) => a.price_cents - b.price_cents);
+  else if (sort === 'price-desc') filtered.sort((a, b) => b.price_cents - a.price_cents);
+  else if (sort === 'newest') filtered.sort((a, b) => b.id - a.id);
 
-  const subcats = category ? await Cats.subcategoriesForSlug(category) : await Cats.listSubcategories();
   const catObj = categories.find((c) => c.slug === category);
 
   const PAGE_SIZE = 24;
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const page = Math.min(totalPages, Math.max(1, parseInt(req.query.page, 10) || 1));
-  const paged = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
-  const shopContent = await content.get('shop');
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   res.render('shop', {
     title: (catObj ? catObj.name : 'Shop') + ' — Auréalis',
     products: paged,
@@ -78,7 +80,7 @@ router.get('/shop', ah(async (req, res) => {
     subcats,
     activeSub: sub,
     sort,
-    count: base.length,
+    count: baseList.length,
     catalogError,
     page,
     totalPages,
@@ -101,26 +103,23 @@ router.get('/product/:slug', ah(async (req, res, next) => {
   }
   if (!product || !product.is_active) return next();
 
-  let images = [];
+  // product.images is already on the decorated product (from bySlug above) —
+  // no need to refetch it via a second byId() lookup.
+  const images = product.images || [];
   let related = [];
   try {
-    [images, related] = await Promise.all([Products.images(product.id), Products.related(product, 4)]);
+    related = await Products.related(product, 4);
   } catch (err) {
-    console.error('[shop] product images/related failed:', req.params.slug, err.message);
+    console.error('[shop] related products failed:', req.params.slug, err.message);
   }
 
-  let wishlisted = false;
-  let canReview = false;
-  if (req.session.userId) {
-    try {
-      wishlisted = await wishlist.has(req.session.userId, product.id);
-      canReview = !(await reviews.hasReviewed(product.id, req.session.userId));
-    } catch (_) { /* leave defaults */ }
-  }
-  const [productReviews, reviewSummary] = await Promise.all([
+  const [productReviews, wishlisted, alreadyReviewed] = await Promise.all([
     reviews.forProduct(product.id).catch(() => []),
-    reviews.summary(product.id).catch(() => ({ count: 0, average: 0 })),
+    req.session.userId ? wishlist.has(req.session.userId, product.id).catch(() => false) : Promise.resolve(false),
+    req.session.userId ? reviews.hasReviewed(product.id, req.session.userId).catch(() => false) : Promise.resolve(false),
   ]);
+  const canReview = req.session.userId ? !alreadyReviewed : false;
+  const reviewSummary = reviews.summarize(productReviews);
 
   res.render('product', {
     title: product.name + ' — Auréalis',

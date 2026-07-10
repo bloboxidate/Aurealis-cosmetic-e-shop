@@ -14,11 +14,17 @@ async function forProduct(sarieeProductId) {
   );
 }
 
-async function summary(sarieeProductId) {
-  const rows = await forProduct(sarieeProductId);
+// Pure aggregate over an already-fetched review list — lets callers that
+// already have the rows (e.g. the product page, which renders them too)
+// avoid a second query just for the count/average.
+function summarize(rows) {
   if (!rows.length) return { count: 0, average: 0 };
   const average = rows.reduce((s, r) => s + r.rating, 0) / rows.length;
   return { count: rows.length, average: Math.round(average * 10) / 10 };
+}
+
+async function summary(sarieeProductId) {
+  return summarize(await forProduct(sarieeProductId));
 }
 
 async function hasReviewed(sarieeProductId, userId) {
@@ -54,4 +60,4 @@ async function reject(id) {
   await db.run('DELETE FROM reviews WHERE id = ?', [id]);
 }
 
-module.exports = { forProduct, summary, hasReviewed, create, listPending, approve, reject };
+module.exports = { forProduct, summary, summarize, hasReviewed, create, listPending, approve, reject };

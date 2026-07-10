@@ -52,8 +52,12 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Static assets (logo, client JS, product images)
-app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
-app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
+// maxAge lets repeat visitors skip re-validating these on every page load.
+// No cache-busting/versioning scheme exists yet, so kept moderate rather than
+// "forever" — a week's staleness for a logo/favicon update is fine; a day for
+// app.js, which changes more often during active development.
+app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '7d' }));
+app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: '1d' }));
 
 // The site has no locale-prefixed routing (English is the only, unprefixed
 // content) — /en and any /en/* path just redirect to the same path without

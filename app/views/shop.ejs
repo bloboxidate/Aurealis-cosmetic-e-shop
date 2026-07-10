@@ -50,7 +50,7 @@
     <% } else if (products.length === 0) { %>
       <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px"><%= (typeof q !== 'undefined' && q) ? 'No products match “' + q + '”.' : 'No products found.' %> <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">View all</a></div>
     <% } else { %>
-    <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+    <div class="grid-4 au-reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% products.forEach(function(p){ %>
         <%- include('partials/product-card', { p, cardH: 270, cardShowSub: true }) %>
       <% }); %>

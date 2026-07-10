@@ -41,6 +41,9 @@
   });
 
   // --- Product cards: quick add-to-bag (hover icon + button below the card) ---
+  var CHECK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2f4a26" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+  var BAG_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>';
+
   function updateCartBadge(count, animate) {
     var badge = document.getElementById('cart-badge');
     if (!badge) return;
@@ -59,7 +62,17 @@
     });
   }
 
-  function addToCart(productId, btn) {
+  var toastTimer = null;
+  function toast(message) {
+    var el = document.getElementById('au-toast');
+    if (!el) return;
+    el.querySelector('.au-toast-text').textContent = message;
+    el.classList.add('au-toast-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('au-toast-show'); }, 2200);
+  }
+
+  function addToCart(productId, btn, productName) {
     if (btn.disabled) return;
     btn.disabled = true;
     var isQuick = btn.classList.contains('product-card-quick-add');
@@ -71,12 +84,20 @@
       body: 'product_id=' + encodeURIComponent(productId) + '&qty=1',
     }).then(function (r) { return r.json(); }).then(function (data) {
       updateCartBadge(data.count || 0, data.ok);
-      if (data.ok) pulse(btn);
-      if (!isQuick) {
+      if (data.ok) {
+        pulse(btn);
+        toast((productName ? productName + ' added' : 'Added') + ' to your bag');
+      }
+      if (isQuick) {
+        if (data.ok) {
+          btn.innerHTML = CHECK_ICON;
+          setTimeout(function () { btn.innerHTML = BAG_ICON; btn.disabled = false; }, 1300);
+        } else {
+          btn.disabled = false;
+        }
+      } else {
         btn.textContent = data.ok ? 'Added ✓' : 'Unavailable';
         setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 1300);
-      } else {
-        btn.disabled = false;
       }
     }).catch(function () {
       if (!isQuick) btn.textContent = label;
@@ -89,13 +110,33 @@
     if (quick) {
       e.preventDefault();
       e.stopPropagation();
-      addToCart(quick.dataset.productId, quick);
+      var quickName = quick.closest('.product-card');
+      addToCart(quick.dataset.productId, quick, quickName && quickName.querySelector('[data-product-name]') ? quickName.querySelector('[data-product-name]').textContent : null);
       return;
     }
     var add = e.target.closest('.product-card-add');
     if (add) {
       e.preventDefault();
-      addToCart(add.dataset.productId, add);
+      var addName = add.closest('.product-card');
+      addToCart(add.dataset.productId, add, addName && addName.querySelector('[data-product-name]') ? addName.querySelector('[data-product-name]').textContent : null);
     }
   });
+
+  // --- Scroll-reveal: fade+rise sections into place the first time they
+  // enter the viewport. No-op (content already visible) if the browser
+  // lacks IntersectionObserver, or the user prefers reduced motion.
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('au-in');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    document.querySelectorAll('.au-reveal').forEach(function (el) { revealObserver.observe(el); });
+  } else {
+    document.querySelectorAll('.au-reveal').forEach(function (el) { el.classList.add('au-in'); });
+  }
 })();

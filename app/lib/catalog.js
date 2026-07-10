@@ -16,13 +16,27 @@ const Cats = require('./categories'); // local taxonomy tables (read side)
 
 const TTL_MS = Number(process.env.CATALOG_CACHE_MS || 60000);
 const cache = new Map();
+const inflight = new Map(); // key -> in-progress promise, so concurrent callers
+                             // on a cold cache share one fetch instead of each
+                             // triggering their own (a real issue once callers
+                             // started running in parallel via Promise.all).
 
 async function cached(key, fn) {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
-  const value = await fn();
-  cache.set(key, { at: Date.now(), value });
-  return value;
+  if (inflight.has(key)) return inflight.get(key);
+  const promise = fn()
+    .then((value) => {
+      cache.set(key, { at: Date.now(), value });
+      inflight.delete(key);
+      return value;
+    })
+    .catch((err) => {
+      inflight.delete(key);
+      throw err;
+    });
+  inflight.set(key, promise);
+  return promise;
 }
 
 function slugify(s) {

@@ -8,18 +8,30 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
   body{margin:0;font-family:'Manrope',sans-serif;color:#3a352e}
-  a.au-link{text-decoration:none}
+  a.au-link{text-decoration:none;transition:opacity .15s ease}
   a.au-link:hover{opacity:.7}
   .serif{font-family:'Cormorant Garamond',serif}
   button{font-family:inherit}
   input,select,textarea{font-family:'Manrope',sans-serif}
-  .btn-primary{display:inline-block;text-align:center;background:#f8ae7f;color:#3a2317;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;border-radius:100px;border:none;cursor:pointer}
-  .btn-primary:hover{opacity:.9}
-  .btn-outline{display:inline-block;text-align:center;border:1px solid rgba(58,53,46,.3);padding:14px 28px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#3a352e;border-radius:100px;background:transparent;cursor:pointer}
+  .btn-primary{display:inline-block;text-align:center;background:#f8ae7f;color:#3a2317;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;border-radius:100px;border:none;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease}
+  .btn-primary:hover{opacity:.92;transform:translateY(-2px);box-shadow:0 8px 20px rgba(248,174,127,.45)}
+  .btn-primary:active{transform:translateY(0) scale(.98)}
+  .btn-outline{display:inline-block;text-align:center;border:1px solid rgba(58,53,46,.3);padding:14px 28px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#3a352e;border-radius:100px;background:transparent;cursor:pointer;transition:background-color .15s ease,color .15s ease,transform .15s ease}
+  .btn-outline:hover{background:#3a352e;color:#fff9f3;transform:translateY(-2px)}
+  .btn-outline:active{transform:translateY(0) scale(.98)}
+  /* Product cards: gentle lift + image zoom on hover, tactile press states */
+  .product-card{transition:transform .2s ease}
+  .product-card:hover{transform:translateY(-4px)}
+  .product-card img{transition:transform .35s ease}
+  .product-card:hover img{transform:scale(1.05)}
+  /* Toast (bottom-right, slides + fades in) */
+  .au-toast{position:fixed;bottom:28px;right:28px;background:#3a352e;color:#fff9f3;padding:14px 20px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.25);z-index:200;transform:translateY(16px);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s ease}
+  .au-toast svg{flex:none;color:#a5bf97}
+  .au-toast.au-toast-show{transform:translateY(0);opacity:1}
   /* Product card interactions — quick-add icon reveals on hover with a pop-in,
      and both add buttons pulse green on a successful add so it's obvious
      something happened. */
@@ -55,12 +67,13 @@
   .admin-nav-mobile{background:#3a352e;box-shadow:0 12px 26px rgba(0,0,0,.25)}
   .admin-nav-mobile a{color:rgba(244,241,234,.85);border-bottom-color:rgba(244,241,234,.1)}
   .admin-burger span{background:#f4f1ea}
-  .nav-check:checked ~ .nav-mobile,.nav-check:checked ~ .admin-nav-mobile{display:flex !important}
+  @keyframes au-drop-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  .nav-check:checked ~ .nav-mobile,.nav-check:checked ~ .admin-nav-mobile{display:flex !important;animation:au-drop-in .2s ease}
   /* Account dropdown (right side, both viewports) */
   .account-dropdown{display:none;position:absolute;top:100%;right:0;margin-top:10px;background:#fff9f3;flex-direction:column;min-width:190px;padding:6px 0;z-index:60;border-radius:12px;border:1px solid rgba(58,53,46,.12);box-shadow:0 12px 26px rgba(58,53,46,.14)}
   .account-dropdown a,.account-dropdown-logout{display:block;width:100%;text-align:left;padding:11px 18px;font-size:14px;color:#3a352e;text-decoration:none;border:none;background:none;cursor:pointer;font-family:inherit}
   .account-dropdown a:hover,.account-dropdown-logout:hover{background:rgba(58,53,46,.06)}
-  .nav-check:checked ~ .account-dropdown{display:flex}
+  .nav-check:checked ~ .account-dropdown{display:flex;animation:au-drop-in .2s ease}
   @media(max-width:820px){
     .au-header{padding:14px 22px !important;flex-wrap:wrap;gap:10px 18px}
     .au-pad{padding-left:22px !important;padding-right:22px !important}
@@ -79,5 +92,13 @@
   @media(max-width:520px){
     .footer-grid{grid-template-columns:1fr !important}
     .btn-primary{padding:15px 26px}
+  }
+  /* Scroll-reveal: fade + rise into place the first time a section enters the
+     viewport (see app.js). Respects reduced-motion preferences. */
+  .au-reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+  .au-reveal.au-in{opacity:1;transform:translateY(0)}
+  @media (prefers-reduced-motion: reduce){
+    .au-reveal{opacity:1;transform:none;transition:none}
+    *{scroll-behavior:auto !important;animation-duration:.001ms !important;transition-duration:.001ms !important}
   }
 </style>
