@@ -27,6 +27,14 @@
 
     <% categories.forEach(function(c){ %>
       <div style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:22px;margin-bottom:18px">
+        <div class="category-image-upload" data-id="<%= c.id %>" style="display:flex;gap:14px;align-items:center;margin-bottom:16px">
+          <img class="image-upload-preview" src="<%= c.image_url %>" style="width:72px;height:72px;object-fit:cover;border-radius:10px;background:#f0ece5;display:<%= c.image_url ? 'block' : 'none' %>">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#6b6357;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Tile image</label>
+            <input type="file" accept="image/*" class="image-upload-input">
+            <div class="image-upload-status" style="font-size:12px;color:#8a8175;margin-top:4px"></div>
+          </div>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
           <form action="/admin/categories/<%= c.id %>/edit" method="post" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
             <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -74,5 +82,33 @@
     <% }); %>
   </div>
 </div>
+<script>
+document.querySelectorAll('.category-image-upload').forEach(function (box) {
+  var input = box.querySelector('.image-upload-input');
+  var preview = box.querySelector('.image-upload-preview');
+  var status = box.querySelector('.image-upload-status');
+  var csrfToken = <%- JSON.stringify(csrfToken) %>;
+  input.addEventListener('change', function () {
+    var file = input.files[0];
+    if (!file) return;
+    var fd = new FormData();
+    fd.append('image', file);
+    status.textContent = 'Uploading…';
+    fetch('/admin/categories/' + box.dataset.id + '/image', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken },
+      body: fd,
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.ok) {
+        preview.src = data.url;
+        preview.style.display = 'block';
+        status.textContent = 'Saved.';
+      } else {
+        status.textContent = data.message || 'Upload failed.';
+      }
+    }).catch(function () { status.textContent = 'Upload failed.'; });
+  });
+});
+</script>
 </body>
 </html>

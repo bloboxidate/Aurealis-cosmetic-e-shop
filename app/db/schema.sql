@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS categories (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   slug       TEXT NOT NULL UNIQUE,
   name       TEXT NOT NULL,
-  sort_order INTEGER NOT NULL DEFAULT 0
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  image_url  TEXT NOT NULL DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS subcategories (

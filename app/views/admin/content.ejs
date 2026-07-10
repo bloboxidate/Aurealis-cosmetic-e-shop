@@ -11,10 +11,10 @@
       ['hero_eyebrow','Hero eyebrow','text'],['hero_title','Hero title','text'],
       ['hero_text','Hero paragraph','textarea'],['hero_cta','Hero button label','text'],
       ['bestsellers_title','Bestsellers heading','text'],['bestsellers_text','Bestsellers subtext','text'],
-    ]],
+    ], { field: 'hero_image', label: 'Hero image' }],
     ['about', 'About page', [
       ['eyebrow','Eyebrow','text'],['title','Title','text'],['body','Body (blank line = new paragraph)','textarea'],
-    ]],
+    ], { field: 'image', label: 'Placeholder image' }],
     ['shop', 'Shop page', [
       ['title','Heading (when no category selected)','text'],['intro','Intro line','textarea'],
     ]],
@@ -45,8 +45,46 @@
         <% }); %>
         <div style="margin-top:18px"><button type="submit" class="btn-primary" style="padding:11px 26px">Save <%= pg[1] %></button></div>
       </form>
+
+      <% if (pg[3]) { %>
+        <% var imgVal = c[pg[3].field] || ''; %>
+        <div class="image-upload" data-key="<%= key %>" data-field="<%= pg[3].field %>" style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:24px;margin-bottom:22px">
+          <label style="<%= lbl %>;margin-top:0"><%= pg[3].label %></label>
+          <img class="image-upload-preview" src="<%= imgVal %>" style="width:160px;height:100px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:<%= imgVal ? 'block' : 'none' %>;background:#f0ece5">
+          <input type="file" accept="image/*" class="image-upload-input">
+          <div class="image-upload-status" style="font-size:12px;color:#8a8175;margin-top:6px"></div>
+        </div>
+      <% } %>
     <% }); %>
   </div>
 </div>
+<script>
+document.querySelectorAll('.image-upload').forEach(function (box) {
+  var input = box.querySelector('.image-upload-input');
+  var preview = box.querySelector('.image-upload-preview');
+  var status = box.querySelector('.image-upload-status');
+  var csrfToken = <%- JSON.stringify(csrfToken) %>;
+  input.addEventListener('change', function () {
+    var file = input.files[0];
+    if (!file) return;
+    var fd = new FormData();
+    fd.append('image', file);
+    status.textContent = 'Uploading…';
+    fetch('/admin/content/' + box.dataset.key + '/image', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken },
+      body: fd,
+    }).then(function (r) { return r.json(); }).then(function (data) {
+      if (data.ok) {
+        preview.src = data.url;
+        preview.style.display = 'block';
+        status.textContent = 'Saved.';
+      } else {
+        status.textContent = data.message || 'Upload failed.';
+      }
+    }).catch(function () { status.textContent = 'Upload failed.'; });
+  });
+});
+</script>
 </body>
 </html>

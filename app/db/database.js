@@ -118,6 +118,13 @@ if (usePg) {
   sdb.pragma('journal_mode = WAL');
   sdb.pragma('foreign_keys = ON');
 
+  function ensureColumn(table, column, ddl) {
+    const cols = sdb.prepare(`PRAGMA table_info(${table})`).all();
+    if (!cols.some((c) => c.name === column)) {
+      sdb.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+    }
+  }
+
   const sqliteApi = {
     async get(sql, params) {
       const s = sdb.prepare(sql);
@@ -156,6 +163,11 @@ if (usePg) {
     async init() {
       const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
       sdb.exec(schema);
+      // SQLite's ALTER TABLE ADD COLUMN has no IF NOT EXISTS, so additive
+      // migrations onto tables that already exist in older local DBs need a
+      // manual existence check (schema.sql's CREATE TABLE IF NOT EXISTS only
+      // helps brand-new tables).
+      ensureColumn('categories', 'image_url', "TEXT NOT NULL DEFAULT ''");
     },
     async close() { sdb.close(); },
   };

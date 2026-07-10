@@ -12,6 +12,8 @@ const Cats = require('../lib/categories');
 const overlay = require('../lib/overlay');
 const content = require('../lib/content');
 const reviews = require('../lib/reviews');
+const storage = require('../lib/storage');
+const upload = require('../middleware/upload');
 const ah = require('../lib/ah');
 const { requireAuth, requireAdmin, flash } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
@@ -106,6 +108,18 @@ router.post('/categories/:id/edit', ah(async (req, res) => {
   res.redirect('/admin/categories');
 }));
 
+// AJAX (fetch + FormData), so the response is JSON, not a redirect.
+router.post('/categories/:id/image', upload.single('image'), ah(async (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, message: 'No file uploaded.' });
+  try {
+    const url = await storage.uploadImage(req.file.buffer, req.file.mimetype, 'categories');
+    await Cats.updateCategoryImage(req.params.id, url);
+    res.json({ ok: true, url });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: err.message });
+  }
+}));
+
 router.post('/categories/:id/delete', ah(async (req, res) => {
   const before = await Cats.getCategory(req.params.id);
   const r = await Cats.deleteCategory(req.params.id);
@@ -159,6 +173,23 @@ router.post('/content/:key', ah(async (req, res) => {
   await content.set(req.params.key, fields);
   flash(req, 'success', `${req.params.key[0].toUpperCase() + req.params.key.slice(1)} content saved.`);
   res.redirect('/admin/content');
+}));
+
+// Which content field an uploaded image saves to, per page.
+const CONTENT_IMAGE_FIELD = { home: 'hero_image', about: 'image' };
+
+// AJAX (fetch + FormData), so the response is JSON, not a redirect.
+router.post('/content/:key/image', upload.single('image'), ah(async (req, res) => {
+  const field = CONTENT_IMAGE_FIELD[req.params.key];
+  if (!field) return res.status(400).json({ ok: false, message: 'This page has no editable image.' });
+  if (!req.file) return res.status(400).json({ ok: false, message: 'No file uploaded.' });
+  try {
+    const url = await storage.uploadImage(req.file.buffer, req.file.mimetype, `content/${req.params.key}`);
+    await content.set(req.params.key, { [field]: url });
+    res.json({ ok: true, url });
+  } catch (err) {
+    res.status(500).json({ ok: false, message: err.message });
+  }
 }));
 
 // ---- Review moderation ---------------------------------------------------

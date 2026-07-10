@@ -152,10 +152,12 @@ async function all({ category, subcategory } = {}) {
   return products.sort(byOrder);
 }
 
+// Only products explicitly flagged is_bestseller in the overlay — no
+// fallback to "show everything" when none are picked yet, which used to
+// make arbitrary products appear in the Bestsellers section unasked.
 async function bestsellers(limit = 4) {
   const products = (await withOverlay()).filter((p) => !p.is_hidden);
-  const picked = products.filter((p) => p.is_bestseller).sort(byOrder);
-  return (picked.length ? picked : products.sort(byOrder)).slice(0, limit);
+  return products.filter((p) => p.is_bestseller).sort(byOrder).slice(0, limit);
 }
 
 async function featured(limit = 8) {

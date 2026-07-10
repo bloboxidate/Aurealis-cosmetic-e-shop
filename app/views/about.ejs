@@ -21,7 +21,9 @@
         radial-gradient(120% 120% at 25% 15%, rgba(165,209,228,.95), transparent 55%),
         radial-gradient(120% 120% at 85% 40%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(140% 120% at 50% 95%, rgba(165,191,151,.9), transparent 55%),
-        linear-gradient(160deg,#2c3e50,#34495e)"></div>
+        linear-gradient(160deg,#2c3e50,#34495e)">
+      <% if (about.image) { %><img src="<%= about.image %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
+    </div>
     <div>
       <% (about.body || '').split(/\n\n+/).forEach(function(para, i){ %>
         <div style="font-size:15px;line-height:1.8;color:#4a453d;<%= i>0 ? '' : 'margin-bottom:20px' %>"><%= para %></div>

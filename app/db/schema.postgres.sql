@@ -24,6 +24,8 @@ CREATE TABLE IF NOT EXISTS categories (
   name       text NOT NULL,
   sort_order integer NOT NULL DEFAULT 0
 );
+-- Additive migration onto a table that already exists in deployed databases.
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS image_url text NOT NULL DEFAULT '';
 
 CREATE TABLE IF NOT EXISTS subcategories (
   id          integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
