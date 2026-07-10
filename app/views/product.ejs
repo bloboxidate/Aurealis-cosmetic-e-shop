@@ -21,12 +21,12 @@
     <div>
       <% const gallery = (typeof images !== 'undefined' ? images : []); %>
       <div id="pdp-main" style="width:100%;height:520px;border-radius:20px;overflow:hidden;background:<%= product.color %>;margin-bottom:16px">
-        <% if (gallery.length) { %><img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
+        <% if (gallery.length) { %><img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:contain;display:block"><% } %>
       </div>
       <% if (gallery.length > 1) { %>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
           <% gallery.forEach(function(img){ %>
-            <div class="pdp-thumb" data-full="<%= img.url %>" style="height:110px;border-radius:12px;overflow:hidden;cursor:pointer"><img src="<%= img.url %>" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+            <div class="pdp-thumb" data-full="<%= img.url %>" style="height:110px;border-radius:12px;overflow:hidden;cursor:pointer;background:<%= product.color || '#f1ece5' %>"><img src="<%= img.url %>" style="width:100%;height:100%;object-fit:contain;display:block"></div>
           <% }); %>
         </div>
       <% } else if (gallery.length === 0) { %>

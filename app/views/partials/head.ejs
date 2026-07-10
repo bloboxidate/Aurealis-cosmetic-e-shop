@@ -20,6 +20,22 @@
   .btn-primary{display:inline-block;text-align:center;background:#f8ae7f;color:#3a2317;padding:16px 34px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;border-radius:100px;border:none;cursor:pointer}
   .btn-primary:hover{opacity:.9}
   .btn-outline{display:inline-block;text-align:center;border:1px solid rgba(58,53,46,.3);padding:14px 28px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#3a352e;border-radius:100px;background:transparent;cursor:pointer}
+  /* Product card interactions — quick-add icon reveals on hover with a pop-in,
+     and both add buttons pulse green on a successful add so it's obvious
+     something happened. */
+  .product-card-quick-add{opacity:0;transform:scale(.75);transition:opacity .2s ease,transform .2s ease,background-color .15s ease}
+  .product-card:hover .product-card-quick-add{opacity:1;transform:scale(1)}
+  .product-card-quick-add:hover{background:#f8ae7f;transform:scale(1.1)}
+  .product-card-quick-add:active{transform:scale(.92)}
+  .product-card-add{transition:background-color .2s ease,color .2s ease,transform .12s ease}
+  .product-card-add:hover{background:#3a352e;color:#fff9f3}
+  .product-card-add:active{transform:scale(.97)}
+  @keyframes au-added-pulse{
+    0%{transform:scale(1)}
+    35%{transform:scale(1.15)}
+    100%{transform:scale(1)}
+  }
+  .au-added{animation:au-added-pulse .4s ease;background-color:#a5bf97 !important;color:#2f4a26 !important;border-color:#a5bf97 !important}
   .field{width:100%;padding:14px 16px;border-radius:10px;border:1px solid rgba(58,53,46,.25);font-size:14px;background:#fff}
   .field:focus{outline:none;border-color:#c1602f}
   .flash{max-width:none;padding:14px 64px;font-size:14px}
