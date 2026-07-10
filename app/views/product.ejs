@@ -36,14 +36,12 @@
           <div id="pdp-main" class="pdp-main" style="background:<%= product.color %>">
             <img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:contain;display:block">
             <% if (gallery.length > 1) { %>
-              <div class="pdp-nav-arrows">
-                <button type="button" class="pdp-arrow" id="pdp-prev" aria-label="Previous image">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <button type="button" class="pdp-arrow" id="pdp-next" aria-label="Next image">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
-              </div>
+              <button type="button" class="pdp-arrow pdp-arrow-prev" id="pdp-prev" aria-label="Previous image">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <button type="button" class="pdp-arrow pdp-arrow-next" id="pdp-next" aria-label="Next image">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
             <% } %>
           </div>
         </div>

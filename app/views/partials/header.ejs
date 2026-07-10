@@ -48,6 +48,7 @@ window.addEventListener('load', function () {
         <div class="account-dropdown">
           <div style="padding:14px 18px 10px;font-weight:700;font-size:14px;border-bottom:1px solid rgba(58,53,46,.08)"><%= user.first_name || 'Account' %></div>
           <a class="au-link" href="/account">Order History</a>
+          <a class="au-link" href="/wishlist">Wishlist</a>
           <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
           <form action="/logout" method="post" style="margin:0"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="account-dropdown-logout">Logout</button></form>
         </div>
