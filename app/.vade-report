@@ -1,0 +1,63 @@
+# Vercel Speed Insights Installation Report
+
+## Summary
+Successfully installed and configured Vercel Speed Insights for the Auréalis e-commerce application following the latest official documentation from https://vercel.com/docs/speed-insights/quickstart.
+
+## Changes Made
+
+### 1. Package Installation
+- **File**: `package.json`
+- **Action**: Added `@vercel/speed-insights` version `^2.0.0` as a dependency
+- **Package Manager**: npm (package-lock.json updated accordingly)
+
+### 2. Speed Insights Integration
+- **File**: `views/partials/head.ejs`
+- **Action**: Added Vercel Speed Insights tracking scripts to the page head
+- **Implementation**: 
+  - Added the Speed Insights queue initialization inline script
+  - Added deferred script tag that loads from `/_vercel/speed-insights/script.js`
+  - Used data attributes to specify SDK name and version for proper tracking
+
+### 3. Content Security Policy Updates
+- **File**: `server.js`
+- **Action**: Updated CSP directives to allow Speed Insights scripts and API connections
+- **Changes**:
+  - Added `https://va.vercel-scripts.com` to `scriptSrc` directive to allow loading the Speed Insights script
+  - Added `https://vitals.vercel-insights.com` to `connectSrc` directive to allow sending performance metrics
+
+## Implementation Details
+
+The implementation follows Vercel's recommended approach for vanilla JavaScript/static sites:
+
+1. **Queue Initialization**: The inline script creates a queue (`window.siq`) to capture early tracking calls before the main script loads
+2. **Script Loading**: The deferred script tag loads the Speed Insights library from Vercel's infrastructure
+3. **Automatic Tracking**: Once deployed to Vercel, the script will automatically:
+   - Track Core Web Vitals (LCP, FID, CLS, FCP, TTFB, INP)
+   - Send performance metrics to Vercel's analytics backend
+   - Only run in production (not in development mode)
+
+## Framework Detection
+- **Framework**: Express.js with EJS templating
+- **Approach**: Vanilla JavaScript integration (no framework-specific component)
+- **Placement**: Added to the shared `head.ejs` partial for site-wide coverage
+
+## Next Steps
+
+After deployment to Vercel:
+1. Enable Speed Insights in the Vercel Dashboard for this project
+2. Performance data will begin appearing in the dashboard after the site receives traffic
+3. Metrics typically become visible within a few hours of deployment
+
+## Verification
+
+✅ Server starts successfully without errors
+✅ Package dependencies installed and lock file updated
+✅ CSP configuration updated to allow Speed Insights
+✅ Scripts added to all pages via shared head partial
+✅ No breaking changes to existing functionality
+
+## Files Modified
+- `app/package.json` - Added @vercel/speed-insights dependency
+- `app/package-lock.json` - Updated with new package and dependencies
+- `app/server.js` - Updated CSP to allow Speed Insights scripts and API calls
+- `app/views/partials/head.ejs` - Added Speed Insights tracking scripts
