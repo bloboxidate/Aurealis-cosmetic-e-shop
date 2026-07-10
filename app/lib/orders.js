@@ -42,29 +42,44 @@ function mapOrder(sarieeOrderId, d) {
 }
 
 // All orders for a signed-in user (matched by user id or the email they used),
-// with live details fetched from Sariee. Fetch failures are skipped, not fatal.
+// with live details fetched from Sariee. Fetch failures are skipped, not
+// fatal — but flagged via `partial` so the caller can distinguish "genuinely
+// no orders" from "some orders exist but Sariee couldn't return them".
 async function forUser({ userId = null, email = '' }) {
   const clauses = [];
   const args = [];
   if (userId) { clauses.push('user_id = ?'); args.push(userId); }
   if (email) { clauses.push('email = ?'); args.push(String(email).toLowerCase()); }
-  if (!clauses.length) return [];
+  if (!clauses.length) return { orders: [], partial: false };
   const rows = await db.all(
     `SELECT DISTINCT sariee_order_id FROM sariee_orders WHERE ${clauses.join(' OR ')}`,
     args
   );
 
-  const orders = [];
-  for (const row of rows) {
+  let failures = 0;
+  const fetched = await Promise.all(rows.map(async (row) => {
     try {
       const r = await sariee.store.singleOrder({ order_id: row.sariee_order_id });
-      const mapped = mapOrder(row.sariee_order_id, r.data && r.data.data);
-      if (mapped) orders.push(mapped);
-    } catch (_) { /* skip an order Sariee can't return right now */ }
-  }
+      return mapOrder(row.sariee_order_id, r.data && r.data.data);
+    } catch (_) {
+      failures += 1;
+      return null; // skip an order Sariee can't return right now
+    }
+  }));
+  const orders = fetched.filter(Boolean);
   // Newest first (invoice numbers ascend with time).
   orders.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  return orders;
+  return { orders, partial: failures > 0 };
 }
 
-module.exports = { record, forUser, mapOrder };
+// Ownership check: does this Sariee order id belong to this signed-in user?
+async function belongsToUser(sarieeOrderId, userId) {
+  if (!sarieeOrderId || !userId) return false;
+  const row = await db.get(
+    'SELECT id FROM sariee_orders WHERE sariee_order_id = ? AND user_id = ?',
+    [String(sarieeOrderId), userId]
+  );
+  return !!row;
+}
+
+module.exports = { record, forUser, mapOrder, belongsToUser };

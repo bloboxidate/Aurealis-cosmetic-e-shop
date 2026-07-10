@@ -21,6 +21,7 @@
       <form method="get" action="/shop" style="display:flex;align-items:center;gap:14px;font-size:13px">
         <% if (category) { %><input type="hidden" name="category" value="<%= category %>"><% } %>
         <% if (activeSub && activeSub !== 'all') { %><input type="hidden" name="sub" value="<%= activeSub %>"><% } %>
+        <input type="text" name="q" value="<%= typeof q !== 'undefined' ? q : '' %>" placeholder="Search products…" style="border:1px solid rgba(58,53,46,.25);background:#fff9f3;padding:10px 14px;border-radius:100px;font-size:13px;color:#3a352e">
         <span style="color:#6b6357">Sort by</span>
         <select name="sort" onchange="this.form.submit()" style="border:1px solid rgba(58,53,46,.25);background:#fff9f3;padding:10px 14px;border-radius:100px;font-size:13px;color:#3a352e">
           <option value="featured" <%= sort==='featured'?'selected':'' %>>Featured</option>
@@ -33,7 +34,7 @@
 
     <!-- filter chips -->
     <% const chipColors = ['rgba(165,209,228,.5)','rgba(165,191,151,.5)','rgba(191,181,232,.5)','rgba(247,213,149,.6)','rgba(248,174,127,.5)']; %>
-    <% function chipUrl(sub){ const q=[]; if(category)q.push('category='+category); if(sub&&sub!=='all')q.push('sub='+sub); if(sort&&sort!=='featured')q.push('sort='+sort); return '/shop'+(q.length?'?'+q.join('&'):''); } %>
+    <% function chipUrl(sub){ const p=[]; if(category)p.push('category='+category); if(sub&&sub!=='all')p.push('sub='+sub); if(sort&&sort!=='featured')p.push('sort='+sort); if(typeof q!=='undefined'&&q)p.push('q='+encodeURIComponent(q)); return '/shop'+(p.length?'?'+p.join('&'):''); } %>
     <div style="display:flex;gap:12px;margin-bottom:44px;flex-wrap:wrap">
       <a class="au-link" href="<%= chipUrl('all') %>" style="padding:9px 20px;border-radius:100px;font-size:13px;<%= activeSub==='all'?'background:#3a352e;color:#fff9f3':'background:rgba(58,53,46,.08);color:#3a352e' %>">All</a>
       <% subcats.forEach(function(s, i){ %>
@@ -47,13 +48,21 @@
     <% if (typeof catalogError !== 'undefined' && catalogError) { %>
       <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px">We're having trouble loading products right now. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">Try again</a></div>
     <% } else if (products.length === 0) { %>
-      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px">No products found. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">View all</a></div>
+      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px"><%= (typeof q !== 'undefined' && q) ? 'No products match “' + q + '”.' : 'No products found.' %> <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">View all</a></div>
     <% } else { %>
     <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% products.forEach(function(p){ %>
         <%- include('partials/product-card', { p, cardH: 270, cardShowSub: true }) %>
       <% }); %>
     </div>
+    <% if (totalPages > 1) { %>
+      <% function pageUrl(n){ const p=[]; if(category)p.push('category='+category); if(activeSub&&activeSub!=='all')p.push('sub='+activeSub); if(sort&&sort!=='featured')p.push('sort='+sort); if(typeof q!=='undefined'&&q)p.push('q='+encodeURIComponent(q)); if(n>1)p.push('page='+n); return '/shop'+(p.length?'?'+p.join('&'):''); } %>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:48px;flex-wrap:wrap">
+        <% for (let p = 1; p <= totalPages; p++) { %>
+          <a class="au-link" href="<%= pageUrl(p) %>" style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:13px;<%= p===page?'background:#3a352e;color:#fff9f3':'background:rgba(58,53,46,.08);color:#3a352e' %>"><%= p %></a>
+        <% } %>
+      </div>
+    <% } %>
     <% } %>
   </div>
 

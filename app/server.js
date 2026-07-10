@@ -2,17 +2,50 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
+const helmet = require('helmet');
 
 const db = require('./db/database');
 const DbStore = require('./db/session-store');
 const { locals } = require('./middleware/auth');
+const { csrfLocals } = require('./middleware/csrf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const isProd = process.env.NODE_ENV === 'production';
 
+// Refuse to start in production without a real session secret — the
+// alternative is silently signing cookies with a hardcoded value that sits
+// in public source control, which lets anyone forge a session (including
+// admin sessions, since is_admin trust flows from req.session.userId).
+if (isProd && !process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET must be set in production. Refusing to start with the dev fallback secret.');
+  process.exit(1);
+}
+
 // Behind Vercel's proxy — needed for secure cookies + correct protocol.
 app.set('trust proxy', 1);
+
+// Security headers. CSP allows 'unsafe-inline' for style/script because the
+// EJS views use inline style attributes and one inline <script> block
+// (admin/products.ejs) — tightening that further needs an external-file
+// refactor, out of scope here. img-src stays open to https: since product
+// photos are served from Sariee's CDN, whose exact host isn't fixed.
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      // Several views use inline onchange/onsubmit handlers (e.g. shop.ejs's
+      // sort <select>, admin delete-confirm dialogs) — script-src-attr is a
+      // separate CSP directive from script-src and defaults to 'none',
+      // which would silently break those without this.
+      scriptSrcAttr: ["'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
 
 // Views
 app.set('view engine', 'ejs');
@@ -21,7 +54,6 @@ app.set('views', path.join(__dirname, 'views'));
 // Static assets (logo, client JS, product images)
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
 app.use('/js', express.static(path.join(__dirname, 'public', 'js')));
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // The site has no locale-prefixed routing (English is the only, unprefixed
 // content) — /en and any /en/* path just redirect to the same path without
@@ -58,12 +90,14 @@ app.use(session({
 
 // Shared view locals (user, cart count, flash)
 app.use(locals);
+app.use(csrfLocals);
 
 // Routes
 app.use('/', require('./routes/shop'));
 app.use('/', require('./routes/cart'));
 app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/checkout'));
+app.use('/', require('./routes/wishlist'));
 app.use('/admin', require('./routes/admin'));
 app.use('/api/sariee', require('./routes/sariee'));
 

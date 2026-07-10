@@ -12,9 +12,10 @@
     </div>
     <div style="display:flex;gap:22px;font-size:13px;letter-spacing:.03em;align-items:center">
       <% if (user) { %>
+        <a class="au-link" href="/wishlist" style="color:#3a352e<%= active==='wishlist'?';font-weight:700':'' %>">Wishlist</a>
         <a class="au-link" href="/account" style="color:#3a352e"><%= user.first_name || 'Account' %></a>
         <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
-        <form action="/logout" method="post" style="margin:0"><button type="submit" style="background:none;border:none;cursor:pointer;font-size:13px;color:#3a352e;padding:0;letter-spacing:.03em">Logout</button></form>
+        <form action="/logout" method="post" style="margin:0"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" style="background:none;border:none;cursor:pointer;font-size:13px;color:#3a352e;padding:0;letter-spacing:.03em">Logout</button></form>
       <% } else { %>
         <a class="au-link" href="/login" style="color:#3a352e">Login</a>
       <% } %>
@@ -33,9 +34,10 @@
     <a class="au-link" href="/about">About</a>
     <a class="au-link" href="/cart">Bag (<%= cartCount %>)</a>
     <% if (user) { %>
+      <a class="au-link" href="/wishlist">Wishlist</a>
       <a class="au-link" href="/account"><%= user.first_name || 'My Account' %></a>
       <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
-      <form action="/logout" method="post" style="margin:0"><button type="submit" class="nav-mobile-logout">Logout</button></form>
+      <form action="/logout" method="post" style="margin:0"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="nav-mobile-logout">Logout</button></form>
     <% } else { %>
       <a class="au-link" href="/login">Login</a>
     <% } %>

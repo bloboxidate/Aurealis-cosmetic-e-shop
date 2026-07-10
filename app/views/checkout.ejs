@@ -13,6 +13,7 @@
   <%- include('partials/flash') %>
 
   <form action="/checkout" method="post">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
   <div class="au-pad grid-2" style="padding:56px 64px 100px;display:grid;grid-template-columns:1.5fr 1fr;gap:70px">
 
     <div>

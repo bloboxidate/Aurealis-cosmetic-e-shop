@@ -11,10 +11,12 @@ const catalog = require('../lib/catalog');
 const Cats = require('../lib/categories');
 const overlay = require('../lib/overlay');
 const content = require('../lib/content');
+const reviews = require('../lib/reviews');
 const ah = require('../lib/ah');
 const { requireAuth, requireAdmin, flash } = require('../middleware/auth');
+const { verifyCsrf } = require('../middleware/csrf');
 
-router.use(requireAuth, requireAdmin);
+router.use(requireAuth, requireAdmin, verifyCsrf);
 
 // Products come live from Sariee — never let a Sariee hiccup 500 the whole
 // admin panel. Log the real error (visible in Vercel's Runtime Logs) and
@@ -54,6 +56,16 @@ router.get('/products', ah(async (req, res) => {
   });
 }));
 
+// Persist a drag-reordered list of Sariee ids (AJAX). Must be registered
+// before /products/:id below — otherwise Express matches "order" as an :id
+// and this route is never reached (that was a pre-existing bug: the
+// drag-to-reorder feature silently fell through to the overlay-save route).
+router.post('/products/order', ah(async (req, res) => {
+  const ids = Array.isArray(req.body.ids) ? req.body.ids : [];
+  await overlay.setOrder(ids);
+  res.json({ ok: true });
+}));
+
 // Save one product's overlay (category/subcategory/flags).
 router.post('/products/:id', ah(async (req, res) => {
   await overlay.set(req.params.id, {
@@ -65,13 +77,6 @@ router.post('/products/:id', ah(async (req, res) => {
   });
   flash(req, 'success', 'Product updated.');
   res.redirect('/admin/products');
-}));
-
-// Persist a drag-reordered list of Sariee ids (AJAX).
-router.post('/products/order', ah(async (req, res) => {
-  const ids = Array.isArray(req.body.ids) ? req.body.ids : [];
-  await overlay.setOrder(ids);
-  res.json({ ok: true });
 }));
 
 // ---- Taxonomy (categories / subcategories) ------------------------------
@@ -154,6 +159,29 @@ router.post('/content/:key', ah(async (req, res) => {
   await content.set(req.params.key, fields);
   flash(req, 'success', `${req.params.key[0].toUpperCase() + req.params.key.slice(1)} content saved.`);
   res.redirect('/admin/content');
+}));
+
+// ---- Review moderation ---------------------------------------------------
+// Reviews are user-generated content on a live site, gated behind approval
+// before they show publicly (lib/reviews.js).
+router.get('/reviews', ah(async (req, res) => {
+  res.render('admin/reviews', {
+    title: 'Reviews — Admin',
+    pending: await reviews.listPending(),
+    adminActive: 'reviews',
+  });
+}));
+
+router.post('/reviews/:id/approve', ah(async (req, res) => {
+  await reviews.approve(req.params.id);
+  flash(req, 'success', 'Review approved.');
+  res.redirect('/admin/reviews');
+}));
+
+router.post('/reviews/:id/reject', ah(async (req, res) => {
+  await reviews.reject(req.params.id);
+  flash(req, 'success', 'Review rejected.');
+  res.redirect('/admin/reviews');
 }));
 
 module.exports = router;

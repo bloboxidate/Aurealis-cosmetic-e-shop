@@ -147,7 +147,29 @@ router.get('/admin/endpoints', requireAdminJson, ah(async (req, res) => {
 
 // Generic passthrough: call any documented endpoint by id.
 // body: { params?, query?, body?, token? }  (token overrides SARIEE_COMPANY_TOKEN)
+//
+// Default-safe: read-only (GET) company endpoints are always reachable this
+// way, but mutating endpoints (POST/PUT/PATCH/DELETE) are blocked unless
+// their id is explicitly listed in SARIEE_ADMIN_PROXY_ALLOW (comma-separated
+// endpoint ids) — nothing in this app's own admin UI currently calls this
+// passthrough, so without an allow-list it would let any admin session run
+// any of the 425 documented company actions, including destructive ones.
+const allowedWriteIds = new Set(
+  (process.env.SARIEE_ADMIN_PROXY_ALLOW || '').split(',').map((s) => s.trim()).filter(Boolean)
+);
+
 router.post('/admin/call/:id', requireAdminJson, ah(async (req, res) => {
+  const endpoint = sariee.getEndpoint(req.params.id);
+  if (!endpoint) {
+    return res.status(404).json({ ok: false, message: 'Unknown endpoint id.' });
+  }
+  const method = (endpoint.method || 'GET').toUpperCase();
+  if (method !== 'GET' && !allowedWriteIds.has(req.params.id)) {
+    return res.status(403).json({
+      ok: false,
+      message: `This endpoint (${method}) is not allow-listed for the admin proxy. Add its id to SARIEE_ADMIN_PROXY_ALLOW to enable it.`,
+    });
+  }
   try {
     const { params, query, body, token } = req.body || {};
     ok(res, await sariee.admin.call(req.params.id, { params, query, body, token }));

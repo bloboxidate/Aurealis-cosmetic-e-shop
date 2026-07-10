@@ -17,6 +17,7 @@
       <div style="font-size:14px;color:#6b6357;text-align:center;margin-bottom:32px">Join Auréalis for early access &amp; rewards</div>
 
       <form action="/signup" method="post">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
           <div>
             <div style="font-size:12px;font-weight:700;margin-bottom:8px">First name</div>

@@ -33,6 +33,7 @@
 
     <% pages.forEach(function(pg){ var key = pg[0]; var c = content[key] || {}; %>
       <form method="post" action="/admin/content/<%= key %>" style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:24px;margin-bottom:22px">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div style="font-size:18px;font-weight:700;margin-bottom:4px"><%= pg[1] %></div>
         <% pg[2].forEach(function(f){ var name=f[0], label=f[1], type=f[2]; var val=(c[name]!==undefined?c[name]:''); %>
           <label style="<%= lbl %>"><%= label %></label>
