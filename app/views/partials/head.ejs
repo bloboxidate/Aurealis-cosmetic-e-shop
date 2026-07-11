@@ -131,6 +131,15 @@
     .grid-2,.grid-hero{grid-template-columns:1fr !important}
     .grid-4{grid-template-columns:1fr 1fr !important;gap:20px !important}
     .footer-grid{grid-template-columns:1fr 1fr !important;gap:28px !important;padding:44px 22px !important}
+    /* Category strip: horizontal scroll instead of cramming into fixed
+       columns — that's what forced names like "The Morning Ritual" onto
+       2-3 lines even after centering them. Fixed-width tiles in a
+       scrolling row give each name enough room to sit on one line. */
+    .cat-strip{display:flex !important;overflow-x:auto;gap:14px !important;padding:2px 2px 10px !important;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+    .cat-strip::-webkit-scrollbar{display:none}
+    .cat-tile{flex:0 0 180px;height:210px !important;scroll-snap-align:start}
+    .cat-chip-wrap{max-width:calc(100% - 10px) !important;padding:7px 14px !important}
+    .cat-chip{white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis;font-size:clamp(11px,3.4vw,14px) !important}
     .flash{padding-left:22px !important;padding-right:22px !important}
     /* admin: sidebar hidden, mobile top bar + dropdown menu shown instead */
     .admin-shell{flex-direction:column !important}
