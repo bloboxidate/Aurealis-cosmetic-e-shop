@@ -13,23 +13,23 @@
   <%- include('partials/header', { navActive: '' }) %>
 
   <!-- hero -->
-  <div class="au-pad" style="position:relative;padding:80px 64px 0;overflow:hidden">
-    <div class="grid-hero au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;position:relative;z-index:1">
-      <div>
-        <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:18px"><%= home.hero_eyebrow %></div>
-        <div class="serif" style="font-weight:500;font-size:clamp(42px,10vw,74px);line-height:1.05;margin-bottom:26px"><%= home.hero_title %></div>
-        <div style="font-size:clamp(15px,4vw,17px);line-height:1.6;color:#565149;max-width:420px;margin-bottom:36px"><%= home.hero_text %></div>
+  <section class="au-reveal" style="position:relative;min-height:clamp(520px,72vh,760px);display:flex;align-items:center;overflow:hidden;background:
+      radial-gradient(120% 120% at 20% 10%, rgba(165,209,228,.95), transparent 55%),
+      radial-gradient(120% 120% at 90% 30%, rgba(191,181,232,.9), transparent 55%),
+      radial-gradient(140% 120% at 50% 90%, rgba(165,191,151,.9), transparent 55%),
+      linear-gradient(160deg,#2c3e50,#34495e)">
+    <% if (home.hero_image) { %><img src="<%= home.hero_image %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% } %>
+    <!-- scrim: darkest on the left where the text sits, fading to clear on the right -->
+    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,22,28,.74) 0%,rgba(18,22,28,.5) 42%,rgba(18,22,28,.12) 74%,rgba(18,22,28,0) 100%)"></div>
+    <div class="au-pad" style="position:relative;z-index:1;width:100%;padding:96px 64px">
+      <div style="max-width:560px">
+        <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#f0b892;font-weight:700;margin-bottom:18px"><%= home.hero_eyebrow %></div>
+        <div class="serif" style="font-weight:500;font-size:clamp(42px,10vw,74px);line-height:1.05;margin-bottom:26px;color:#fff"><%= home.hero_title %></div>
+        <div style="font-size:clamp(15px,4vw,17px);line-height:1.6;color:rgba(244,241,234,.9);max-width:440px;margin-bottom:36px"><%= home.hero_text %></div>
         <a class="au-link btn-primary" href="/shop"><%= home.hero_cta %></a>
       </div>
-      <div style="position:relative;width:100%;height:clamp(240px,55vw,500px);border-radius:20px;overflow:hidden;background:
-          radial-gradient(120% 120% at 20% 10%, rgba(165,209,228,.95), transparent 55%),
-          radial-gradient(120% 120% at 90% 30%, rgba(191,181,232,.9), transparent 55%),
-          radial-gradient(140% 120% at 50% 90%, rgba(165,191,151,.9), transparent 55%),
-          linear-gradient(160deg,#2c3e50,#34495e)">
-        <% if (home.hero_image) { %><img src="<%= home.hero_image %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
-      </div>
     </div>
-  </div>
+  </section>
 
   <!-- category strip (dynamic from your storefront categories) -->
   <% var _cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
