@@ -38,8 +38,8 @@
     '  vec2 m=(u_m.xy-.5*R)/R.y;float md=length(p-m);float push=u_m.z*exp(-md*md*7.);',
     '  vec3 col=mix(vec3(.024,.036,.064),vec3(.075,.052,.14),smoothstep(-.5,.5,p.y));',
     // stars, thinning towards the horizon, each twinkling at its own rate
-    '  float sr=h21(floor(gl_FragCoord.xy/2.));',
-    '  col+=vec3(.9,.92,1.)*step(.9985,sr)*(.45+.55*sin(t*1.6+sr*80.))*smoothstep(-.05,.45,p.y)*.8;',
+    '  vec2 fc=gl_FragCoord.xy/3.;float sr=h21(floor(fc));float sd=length(fract(fc)-.5)*3.;',
+    '  col+=vec3(.9,.92,1.)*step(.9975,sr)*smoothstep(1.5,.2,sd)*(.45+.55*sin(t*1.6+sr*80.))*smoothstep(-.05,.45,p.y)*.85;',
     // three curtains of light
     '  for(int i=0;i<3;i++){float fi=float(i);',
     '    float x=p.x*1.15+fi*2.7;',

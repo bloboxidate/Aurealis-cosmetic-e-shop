@@ -26,6 +26,7 @@
     <!-- golden hour: a warm bloom behind the face, in the moodboard's light -->
     <div class="au-hero-sun" aria-hidden="true"></div>
     <div class="au-hero-glow" aria-hidden="true"></div>
+    <div class="au-hero-sparks" aria-hidden="true"></div>
     <div class="au-hero-veil" aria-hidden="true"></div>
     <div class="au-pad" style="position:relative;z-index:1;width:100%;padding:96px 64px">
       <div data-hero-copy style="max-width:560px">
@@ -100,6 +101,21 @@
       <div class="au-aurora-legend" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span class="au-aurora-bar"><b></b></span></div>
     </div>
   </section>
+
+  <!-- collections: a typographic index. Under a mouse, a product image floats beside the cursor for the row you point at. -->
+  <% var _cats = (typeof navCategories !== 'undefined' ? navCategories : []); var _prods = (typeof allProducts !== 'undefined' ? allProducts : []); %>
+  <% if (_cats.length) { %>
+  <section class="au-index au-pad" data-index aria-labelledby="au-index-h">
+    <div class="au-index-head" data-m="rise"><span id="au-index-h">The Collections</span><span>Auréalis</span></div>
+    <ul data-m-group>
+      <% _cats.forEach(function(c, i){ var _rep = _prods.find(function(p){ return p.image_url && (p.categories || []).some(function(pc){ return pc.category_slug === c.slug; }); }); %>
+        <li data-m-item><a class="au-link" href="/shop?category=<%= c.slug %>"<% if (_rep) { %> data-img="<%= _rep.image_url %>"<% } %>><span class="no"><%= (i + 1 < 10 ? '0' : '') + (i + 1) %></span><span class="nm serif"><%= c.name %></span><span class="ar" aria-hidden="true">→</span></a></li>
+      <% }); var _any = _prods.find(function(p){ return p.image_url; }); %>
+      <li data-m-item><a class="au-link" href="/shop"<% if (_any) { %> data-img="<%= _any.image_url %>"<% } %>><span class="no"><%= (_cats.length + 1 < 10 ? '0' : '') + (_cats.length + 1) %></span><span class="nm serif">Shop All</span><span class="ar" aria-hidden="true">→</span></a></li>
+    </ul>
+    <div class="au-index-peek" aria-hidden="true"></div>
+  </section>
+  <% } %>
 
   <!-- brand story -->
   <div data-horizon style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>

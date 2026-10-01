@@ -215,6 +215,7 @@
       var qk = function (el, prop, d, ease) { return el ? gsap.quickTo(el, prop, { duration: d, ease: ease || 'power3.out' }) : function () {}; };
       var imgX = qk(img, 'x', 1.8), imgY = qk(img, 'y', 1.8);          // photo drifts against the cursor
       var auX = qk(aurora, 'x', 2.2), auY = qk(aurora, 'y', 2.2);      // light moves further (deeper plane)
+      var spark = initSparks(hero);
       var cpX = qk(copy, 'x', 1.4);                                    // copy leans slightly with it (nearest plane)
       var glX = qk(glow, 'x', 0.9), glY = qk(glow, 'y', 0.9), glO = qk(glow, 'opacity', 0.9, 'power2.out');
       hero.addEventListener('pointermove', function (e) {
@@ -224,6 +225,7 @@
         auX(nx * 50);  auY(ny * 34);
         cpX(nx * 9);
         glX(e.clientX - r.left); glY(e.clientY - r.top); glO(0.42);
+        spark(e.clientX - r.left, e.clientY - r.top);
       });
       hero.addEventListener('pointerleave', function () {
         imgX(0); imgY(0); auX(0); auY(0); cpX(0); glO(0);
@@ -538,6 +540,114 @@
   }
 
   /* ------------------------------------------------------------------
+   * Pointer layer (fine pointers only): collections index peek, product-image spotlight,
+   * hero glitter trail, and the cursor ring.
+   * ------------------------------------------------------------------ */
+  var FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  function initIndex() {
+    var sec = $('[data-index]');
+    if (!sec || !FINE) return;
+    var rows = $$('a[data-img]', sec);
+    var peek = $('.au-index-peek', sec);
+    if (!rows.length || !peek) return;
+    var imgs = {};
+    var ric = window.requestIdleCallback || function (f) { return setTimeout(f, 600); };
+    ric(function () {   // images are only fetched at idle, and only for mouse users
+      rows.forEach(function (r) {
+        var src = r.getAttribute('data-img');
+        if (imgs[src]) return;
+        var im = new Image(); im.alt = ''; im.decoding = 'async'; im.src = src; peek.appendChild(im); imgs[src] = im;
+      });
+    });
+    var px = gsap.quickTo(peek, 'x', { duration: 0.7, ease: 'power3.out' });
+    var py = gsap.quickTo(peek, 'y', { duration: 0.7, ease: 'power3.out' });
+    function place(e, snap) {
+      var x = e.clientX + 40, y = e.clientY - peek.offsetHeight / 2;
+      if (x + peek.offsetWidth > window.innerWidth - 12) x = e.clientX - peek.offsetWidth - 40; // never off-screen on the right
+      if (snap) gsap.set(peek, { x: x, y: y }); else { px(x); py(y); }
+    }
+    rows.forEach(function (r) {
+      r.addEventListener('pointerenter', function (e) {
+        var src = r.getAttribute('data-img');
+        Object.keys(imgs).forEach(function (k) { imgs[k].classList.toggle('is-on', k === src); });
+        if (gsap.getProperty(peek, 'opacity') < 0.05) place(e, true);
+        gsap.to(peek, { autoAlpha: 1, scale: 1, rotate: 0, duration: 0.55, ease: 'expo.out', overwrite: 'auto' });
+      });
+      r.addEventListener('pointerleave', function () { gsap.to(peek, { autoAlpha: 0, scale: 0.86, duration: 0.45, ease: 'power2.out', overwrite: 'auto' }); });
+    });
+    sec.addEventListener('pointermove', function (e) { place(e, false); }, { passive: true });
+    gsap.set(peek, { scale: 0.86 });
+  }
+
+  function initSpotlight() {
+    if (!FINE) return;
+    var raf = 0, last = null, target = null;
+    document.addEventListener('pointermove', function (e) {
+      var t = e.target && e.target.closest ? e.target.closest('.product-card-media, .prod-strip-img') : null;
+      if (!t) return;
+      last = e; target = t;
+      if (raf) return;
+      raf = requestAnimationFrame(function () {
+        raf = 0;
+        var r = target.getBoundingClientRect();
+        target.style.setProperty('--mx', (last.clientX - r.left) + 'px');
+        target.style.setProperty('--my', (last.clientY - r.top) + 'px');
+      });
+    }, { passive: true });
+  }
+
+  // Glitter: a small pool of four-point stars that bloom and fade along the cursor's path over the hero.
+  function initSparks(hero) {
+    var box = $('.au-hero-sparks', hero);
+    if (!box || !FINE) return function () {};
+    var pool = [], n = 0, lx = -999, ly = -999;
+    for (var i = 0; i < 14; i++) { var s = document.createElement('i'); box.appendChild(s); pool.push(s); }
+    return function (x, y) {
+      var dx = x - lx, dy = y - ly;
+      if (dx * dx + dy * dy < 66 * 66) return;
+      lx = x; ly = y;
+      var el = pool[n++ % pool.length];
+      var size = gsap.utils.random(0.55, 1.35);
+      gsap.killTweensOf(el);
+      gsap.timeline()
+        .set(el, { x: x - 11 + gsap.utils.random(-14, 14), y: y - 11 + gsap.utils.random(-14, 14), scale: 0, rotate: gsap.utils.random(-25, 25), opacity: 1 })
+        .to(el, { scale: size, rotate: '+=40', duration: 0.38, ease: 'power3.out' })
+        .to(el, { scale: 0, opacity: 0, rotate: '+=30', duration: 0.95, ease: 'power2.in' }, 0.3);
+    };
+  }
+
+  function initCursor() {
+    var editorial = !/^\/(cart|checkout|account|login|signup|forgot|reset|order|wishlist)/.test(location.pathname);
+    if (!FINE || !editorial) return;
+    var el = document.createElement('div');
+    el.className = 'au-cursor'; el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = '<b><span></span></b>';
+    document.body.appendChild(el);
+    var label = el.querySelector('span');
+    var x = gsap.quickTo(el, 'x', { duration: 0.28, ease: 'power3.out' });
+    var y = gsap.quickTo(el, 'y', { duration: 0.28, ease: 'power3.out' });
+    var shown = false;
+    function setState(t) {
+      var lab = t && t.closest('[data-cursor]');
+      var card = t && t.closest('.product-card-media, .prod-strip-item, .pdp-main');
+      var link = t && t.closest('a, button, summary, label, select, .pdp-thumb');
+      var text = lab ? lab.getAttribute('data-cursor') : (card && !t.closest('.pdp-arrow, button') ? (card.closest('.pdp-main') ? 'Zoom' : 'View') : '');
+      label.textContent = text || '';
+      el.classList.toggle('is-label', !!text);
+      el.classList.toggle('is-link', !text && !!link);
+    }
+    document.addEventListener('pointermove', function (e) {
+      if (!shown) { shown = true; gsap.set(el, { x: e.clientX, y: e.clientY }); gsap.to(el, { opacity: 1, duration: 0.4 }); }
+      x(e.clientX); y(e.clientY);
+      setState(e.target);
+    }, { passive: true });
+    document.addEventListener('pointerdown', function () { el.classList.add('is-down'); });
+    document.addEventListener('pointerup', function () { el.classList.remove('is-down'); });
+    document.documentElement.addEventListener('pointerleave', function () { shown = false; gsap.to(el, { opacity: 0, duration: 0.3 }); });
+  }
+
+  /* ------------------------------------------------------------------
    * Product page: images wipe into each other, the main image zooms under a mouse, and the
    * Details / How to Use / Ingredients panels open on a soft height curve. Without this the
    * page works natively (<details>, instant image swap in app.js).
@@ -644,6 +754,16 @@
             autoAlpha: 1, y: 0, duration: DUR, ease: 'expo.out', stagger: 0.09, overwrite: true,
             onComplete: function () { batch.forEach(function (el) { release(el, 'data-m-item'); }); }
           });
+          // Product cards: the image frame is drawn open top-down while the photo settles inside it.
+          batch.forEach(function (el, i) {
+            var f = $('.product-card-media', el);
+            if (!f) return;
+            var im = $('img', f);
+            if (im) takeOver([im]);
+            gsap.to(f, { clipPath: 'inset(0% 0% 0% 0% round 16px)', duration: 1.4, ease: 'expo.inOut', delay: i * 0.09,
+              onComplete: function () { gsap.set(f, { clearProps: 'clipPath' }); } });
+            if (im) gsap.fromTo(im, { scale: 1.28 }, { scale: 1, duration: 2.1, ease: 'expo.out', delay: i * 0.09, onComplete: function () { release(im); } });
+          });
         }
       });
     });
@@ -744,6 +864,9 @@
     initScenes();
     performance.mark('au:scenes');
     initProduct();
+    initIndex();
+    initSpotlight();
+    initCursor();
     initReveals();
     ScrollTrigger.sort();
     performance.mark('au:reveals');
