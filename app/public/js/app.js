@@ -115,7 +115,9 @@
     toastTimer = setTimeout(function () { el.classList.remove('au-toast-show'); }, 2200);
   }
 
-  function addToCart(productId, btn, productName) {
+  // opts.body: a full urlencoded body (product page: size + qty); opts.source: the image that flies to the bag.
+  function addToCart(productId, btn, productName, opts) {
+    opts = opts || {};
     if (btn.disabled) return;
     btn.disabled = true;
     btn.classList.add('au-busy'); // the Sariee round trip takes ~1s: show that something is happening
@@ -125,13 +127,14 @@
     fetch('/cart/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
-      body: 'product_id=' + encodeURIComponent(productId) + '&qty=1',
+      body: opts.body || ('product_id=' + encodeURIComponent(productId) + '&qty=1'),
     }).then(function (r) { return r.json(); }).then(function (data) {
       btn.classList.remove('au-busy');
       updateCartBadge(data.count || 0, data.ok);
       if (data.ok) {
         pulse(btn);
         toast((productName ? productName + ' added' : 'Added') + ' to your bag');
+        if (opts.source && window.AuMotion && window.AuMotion.fly) window.AuMotion.fly(opts.source);
       } else {
         toast(data.message || 'Sorry, that item could not be added.', true);
       }
@@ -154,20 +157,94 @@
     });
   }
 
+  function cardImage(el) {
+    var c = el.closest('.product-card');
+    return c ? c.querySelector('.product-card-media img') : null;
+  }
+
+  // Product page: add without leaving the page. The product image flies to the bag; if anything about the request
+  // fails, the plain form post (which redirects to the bag) takes over, so the page never gets worse.
+  var addForm = document.getElementById('add-form');
+  if (addForm && window.fetch && window.FormData && window.URLSearchParams) {
+    addForm.addEventListener('submit', function (e) {
+      var main = addForm.querySelector('.btn-primary');
+      if (!main) return;
+      e.preventDefault();
+      if (main.disabled) return;
+      var pid = addForm.querySelector('[name="product_id"]');
+      var nameEl = document.querySelector('[role="heading"][aria-level="1"]');
+      addToCart(pid ? pid.value : '', main, nameEl ? nameEl.textContent.trim() : null, {
+        body: new URLSearchParams(new FormData(addForm)).toString(),
+        source: document.getElementById('pdp-main-img')
+      });
+    });
+  }
+
+  // Wishlist hearts: toggle in place (optimistic), with a small bloom. Signed-out visitors are sent to sign in.
+  var HEART_ON = '#c1602f', HEART_OFF = '#3a352e';
+  function setHeart(btn, on) {
+    var svg = btn.querySelector('svg');
+    if (svg) {
+      svg.setAttribute('fill', on ? HEART_ON : 'none');
+      svg.setAttribute('stroke', on ? HEART_ON : HEART_OFF);
+      var t = on ? 'Remove from wishlist' : 'Add to wishlist';
+      btn.setAttribute('aria-label', t); btn.setAttribute('title', t);
+    } else {
+      btn.textContent = on ? '♥ Saved to Wishlist' : '♡ Save to Wishlist';
+    }
+    btn.classList.remove('au-heart-pop'); void btn.offsetWidth; if (on) btn.classList.add('au-heart-pop');
+  }
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (!form || !form.getAttribute || form.getAttribute('action') !== '/wishlist/toggle' || !window.fetch) return;
+    var btn = form.querySelector('button');
+    if (!btn) return;
+    e.preventDefault();
+    if (btn.getAttribute('data-busy')) return;
+    btn.setAttribute('data-busy', '1');
+    var svg = btn.querySelector('svg');
+    var was = svg ? svg.getAttribute('fill') !== 'none' : /Saved/.test(btn.textContent);
+    setHeart(btn, !was);
+    fetch('/wishlist/toggle', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+      body: new URLSearchParams(new FormData(form)).toString()
+    }).then(function (r) {
+      if (r.redirected && /\/login/.test(r.url)) { window.location.href = r.url; throw 'login'; }
+      return r.json();
+    }).then(function (d) {
+      btn.removeAttribute('data-busy');
+      if (!d || !d.ok) throw new Error('wishlist');
+      setHeart(btn, !!d.wishlisted);
+      toast(d.wishlisted ? 'Saved to your wishlist' : 'Removed from your wishlist');
+      var card = form.closest('.product-card');
+      if (card && !d.wishlisted && window.location.pathname === '/wishlist') { // on the wishlist page, an unsaved item leaves
+        card.style.transition = 'opacity .5s ease, transform .6s cubic-bezier(.16,1,.3,1)';
+        card.style.opacity = '0'; card.style.transform = 'scale(.96)';
+        setTimeout(function () { if (card.parentNode) card.parentNode.removeChild(card); }, 600);
+      }
+    }).catch(function (err) {
+      if (err === 'login') return;
+      btn.removeAttribute('data-busy');
+      setHeart(btn, was);
+      toast('Something went wrong. Please try again.', true);
+    });
+  });
+
   document.addEventListener('click', function (e) {
     var quick = e.target.closest('.product-card-quick-add');
     if (quick) {
       e.preventDefault();
       e.stopPropagation();
       var quickName = quick.closest('.product-card');
-      addToCart(quick.dataset.productId, quick, quickName && quickName.querySelector('[data-product-name]') ? quickName.querySelector('[data-product-name]').textContent : null);
+      addToCart(quick.dataset.productId, quick, quickName && quickName.querySelector('[data-product-name]') ? quickName.querySelector('[data-product-name]').textContent : null, { source: cardImage(quick) });
       return;
     }
     var add = e.target.closest('.product-card-add');
     if (add) {
       e.preventDefault();
       var addName = add.closest('.product-card');
-      addToCart(add.dataset.productId, add, addName && addName.querySelector('[data-product-name]') ? addName.querySelector('[data-product-name]').textContent : null);
+      addToCart(add.dataset.productId, add, addName && addName.querySelector('[data-product-name]') ? addName.querySelector('[data-product-name]').textContent : null, { source: cardImage(add) });
     }
   });
 

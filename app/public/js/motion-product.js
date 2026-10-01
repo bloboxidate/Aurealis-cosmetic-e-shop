@@ -36,7 +36,8 @@
     (ghost.decode ? ghost.decode() : Promise.resolve()).then(run, run);
     return true;
   }
-  window.AuMotion = { gallerySwap: gallerySwap };
+  window.AuMotion = window.AuMotion || {};
+  window.AuMotion.gallerySwap = gallerySwap;
 
   function initProduct() {
     var frame = $('.pdp-main');

@@ -6,13 +6,21 @@
     radial-gradient(700px circle at 20% 15%, rgba(165,209,228,.5), transparent 60%),
     radial-gradient(650px circle at 85% 80%, rgba(191,181,232,.5), transparent 58%)">
 <main id="main">
-  <div style="padding:32px 64px"><a href="/" style="display:flex;align-items:center;width:fit-content"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:56px;width:auto;display:block"></a></div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px">
-    <div role="heading" aria-level="1" class="serif" style="font-size:clamp(32px,8vw,56px);margin-bottom:12px"><%= heading %></div>
-    <div style="font-size:16px;color:#6b6357;max-width:420px;margin-bottom:28px"><%= message %></div>
-    <a class="au-link btn-primary" href="/">Back to Home</a>
-  </div>
+  <section class="au-banner au-banner-full" data-banner data-progress="0.5">
+    <div class="au-aurora-stage" data-banner-stage>
+      <canvas class="au-aurora-canvas" aria-hidden="true"></canvas>
+      <a class="au-banner-logo" href="/" aria-label="Auréalis home"><img src="/assets/aurealis-logo-black.webp" alt="" ></a>
+      <div class="au-aurora-copy au-pad au-banner-copy">
+        <div class="au-aurora-eyebrow" data-banner-rise>Auréalis</div>
+        <h1 class="serif au-banner-title" data-banner-title><%= heading %></h1>
+        <p class="au-banner-text" data-banner-rise><%= message %></p>
+        <a class="au-link btn-primary" data-banner-rise href="/">Back to Home</a>
+      </div>
+    </div>
+  </section>
 </main>
 </div>
+<script defer src="/js/aurora.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
+<script defer src="/js/motion-banner.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
 </body>
 </html>

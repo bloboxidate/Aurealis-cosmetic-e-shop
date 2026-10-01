@@ -456,3 +456,37 @@ main { display: block; }
 /* au-lite: skip the costly frosted blur */
 .au-lite .au-header::before { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(255, 249, 243, .97); }
 .au-lite .pdp-bar { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgba(255, 249, 243, .98); }
+
+/* ---------- Aurora banner (error pages, order confirmation) ---------- */
+.au-banner .au-aurora-stage { min-height: 56vh; min-height: 56svh; padding: 40px 0 110px; }
+.au-banner-full .au-aurora-stage { min-height: 100vh; min-height: 100svh; padding: 0; }
+.au-banner-copy { padding-top: 90px; padding-bottom: 60px; }
+.au-banner-title { font-weight: 400; font-size: clamp(40px, 8vw, 112px); line-height: 1.02; letter-spacing: -.01em; margin: 0 0 .3em; max-width: 12em; color: #fff9f3; }
+.au-banner-text { font-size: 16px; line-height: 1.7; color: rgba(255, 249, 243, .84); max-width: 480px; margin: 0 0 30px; }
+.au-banner-text b { color: #fff9f3; }
+.au-banner-logo { position: absolute; left: 64px; top: 32px; z-index: 2; display: block; }
+.au-banner-logo img { height: 56px; width: auto; display: block; filter: brightness(0) invert(1); }
+@media (max-width: 820px) { .au-banner-logo { left: 22px; top: 22px; } }
+.au-motion:not(.au-fail) [data-banner-title], .au-motion:not(.au-fail) [data-banner-rise] { opacity: 0; }
+
+/* ---------- Bag fly-in, magnetic buttons, wishlist bloom ---------- */
+.au-fly { position: fixed; z-index: 450; border-radius: 16px; background: #fff center / cover no-repeat; box-shadow: 0 14px 34px rgba(58, 53, 46, .3); pointer-events: none; will-change: transform, opacity; }
+.btn-primary, .btn-outline { translate: var(--tx, 0px) var(--ty, 0px); }
+@keyframes au-heart-pop { 0% { transform: scale(1); } 30% { transform: scale(1.28); } 100% { transform: scale(1); } }
+.au-heart-pop svg { animation: au-heart-pop .7s var(--ease-lux); }
+button.au-heart-pop:not(.product-card-wishlist) { animation: au-heart-pop .7s var(--ease-lux); }
+.product-card-wishlist { position: relative; }
+.product-card-wishlist.au-heart-pop::after { content: ''; position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  border: 1.5px solid rgba(193, 96, 47, .7); animation: au-heart-ring .8s var(--ease-lux) forwards; }
+@keyframes au-heart-ring { from { transform: scale(.9); opacity: 1; } to { transform: scale(2.1); opacity: 0; } }
+
+/* ---------- Page transition: the new page is drawn up over the old one ---------- */
+@keyframes au-vt-wipe-in { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes au-vt-recede { to { opacity: .55; transform: translateY(-2.5vh) scale(.985); } }
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: au-vt-recede .8s var(--ease-inout) both; }
+  ::view-transition-new(root) { animation: au-vt-wipe-in .8s var(--ease-inout) both; }
+}
+.au-banner-logo { top: -24px; left: 56px; }
+.au-banner-logo img { height: 150px; margin: 0; }
+@media (max-width: 820px) { .au-banner-logo { left: 14px; top: -18px; } .au-banner-logo img { height: 120px; } }

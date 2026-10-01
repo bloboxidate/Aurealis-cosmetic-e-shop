@@ -15,18 +15,25 @@ router.get('/wishlist', requireAuth, ah(async (req, res) => {
 }));
 
 // Toggle add/remove, then bounce back to wherever the request came from.
+// Signed-in toggles from the storefront's hearts are done in place (fetch) and answered with JSON; a plain
+// form post (no JS) still redirects back as before. Signed-out requests are redirected to /login by requireAuth.
 router.post('/wishlist/toggle', requireAuth, ah(async (req, res) => {
   const productId = req.body.product_id;
   const back = req.body.next || req.get('Referer') || '/wishlist';
-  if (!productId) return res.redirect(back);
+  const wantsJson = req.xhr || (req.headers.accept || '').includes('application/json');
+  if (!productId) return wantsJson ? res.status(400).json({ ok: false }) : res.redirect(back);
 
+  let nowSaved;
   if (await wishlist.has(req.session.userId, productId)) {
     await wishlist.remove(req.session.userId, productId);
-    flash(req, 'success', 'Removed from wishlist.');
+    nowSaved = false;
+    if (!wantsJson) flash(req, 'success', 'Removed from wishlist.');
   } else {
     await wishlist.add(req.session.userId, productId);
-    flash(req, 'success', 'Added to wishlist.');
+    nowSaved = true;
+    if (!wantsJson) flash(req, 'success', 'Added to wishlist.');
   }
+  if (wantsJson) return res.json({ ok: true, wishlisted: nowSaved });
   res.redirect(back);
 }));
 

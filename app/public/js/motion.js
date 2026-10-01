@@ -305,6 +305,54 @@
   }
 
   /* ------------------------------------------------------------------
+   * Bag fly-in: the product image arcs up to the bag icon, which gives a small beat.
+   * Magnetic buttons: primary/outline buttons lean a few pixels towards the cursor (mouse only).
+   * ------------------------------------------------------------------ */
+  function fly(srcEl) {
+    var bag = $('.au-header a[href="/cart"]');
+    if (!bag || !srcEl) return false;
+    C_showHeader(); // bring the header back if it had slid away
+    var a = srcEl.getBoundingClientRect(), b = bag.getBoundingClientRect();
+    if (!a.width || !a.height) return false;
+    var size = Math.min(a.width, a.height, 150);
+    var img = srcEl.tagName === 'IMG' ? srcEl : $('img', srcEl);
+    var el = document.createElement('div');
+    el.className = 'au-fly'; el.setAttribute('aria-hidden', 'true');
+    el.style.cssText = 'left:' + (a.left + a.width / 2 - size / 2) + 'px;top:' + (a.top + a.height / 2 - size / 2) + 'px;width:' + size + 'px;height:' + size + 'px';
+    if (img) el.style.backgroundImage = 'url("' + (img.currentSrc || img.src) + '")';
+    document.body.appendChild(el);
+    var dx = (b.left + b.width / 2) - (a.left + a.width / 2), dy = (b.top + b.height / 2) - (a.top + a.height / 2);
+    var d = 0.95;
+    // x and y on different eases bend the path into an arc: it lifts first, then sweeps across.
+    gsap.to(el, { x: dx, duration: d, ease: 'power2.in' });
+    gsap.to(el, { y: dy, duration: d, ease: 'power3.out' });
+    gsap.to(el, { scale: 0.16, rotate: dx > 0 ? 14 : -14, duration: d, ease: 'power2.inOut' });
+    gsap.to(el, { opacity: 0, duration: 0.25, delay: d - 0.22, onComplete: function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+      var icon = bag.firstElementChild;
+      if (icon) gsap.fromTo(icon, { scale: 1 }, { scale: 1.3, duration: 0.2, ease: 'power2.out', yoyo: true, repeat: 1, transformOrigin: '50% 60%' });
+    } });
+    return true;
+  }
+  window.AuMotion = window.AuMotion || {};
+  window.AuMotion.fly = fly;
+
+  function initMagnet() {
+    if (!FINE) return;
+    var clamp = gsap.utils.clamp;
+    $$('.btn-primary, .btn-outline').forEach(function (el) {
+      if (el.closest('.pdp-bar')) return;
+      el.style.setProperty('--tx', '0px'); el.style.setProperty('--ty', '0px');
+      el.addEventListener('pointermove', function (e) {
+        var r = el.getBoundingClientRect();
+        var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+        gsap.to(el, { '--tx': clamp(-9, 9, dx * 0.2) + 'px', '--ty': clamp(-7, 7, dy * 0.3) + 'px', duration: 0.5, ease: 'power3.out', overwrite: 'auto' });
+      });
+      el.addEventListener('pointerleave', function () { gsap.to(el, { '--tx': '0px', '--ty': '0px', duration: 0.9, ease: 'expo.out', overwrite: 'auto' }); });
+    });
+  }
+
+  /* ------------------------------------------------------------------
    * Page modules (motion-home.js, motion-about.js, motion-product.js) load only where they are used and
    * register their setup here. Everything runs at DOMContentLoaded — after every deferred script has executed —
    * in priority order. Order matters: pins and scenes must be created in DOM order (hero pin, scenes, footer)
@@ -328,7 +376,7 @@
       initBackdrop();
       initHeader();
       performance.mark('au:smooth');
-      queue.push({ p: 30, fn: footerScene }, { p: 50, fn: initSpotlight }, { p: 55, fn: initCursor }, { p: 90, fn: initReveals });
+      queue.push({ p: 30, fn: footerScene }, { p: 50, fn: initSpotlight }, { p: 55, fn: initCursor }, { p: 56, fn: initMagnet }, { p: 90, fn: initReveals });
       queue.map(function (q, i) { q.i = i; return q; })
         .sort(function (a, b) { return a.p - b.p || a.i - b.i; })
         .forEach(function (q) { q.fn(); });
