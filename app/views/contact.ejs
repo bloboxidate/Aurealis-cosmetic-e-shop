@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head') %></head>
+<body>
+<%
+  const card = 'background:rgba(255,255,255,.65);border-radius:20px;padding:32px 28px;text-align:center';
+  const label = 'font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:10px';
+  const telHref = (page.phone || '').replace(/[^\d+]/g, '');
+  const hasAny = page.email || page.phone || page.hours || page.address;
+%>
+<div style="background-color:#fff9f3;background-repeat:repeat-y;background-size:100% 950px;background-image:
+    radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.6), transparent 60%),
+    radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.55), transparent 58%),
+    radial-gradient(750px circle at 30% 55%, rgba(165,191,151,.55), transparent 60%),
+    radial-gradient(700px circle at 88% 62%, rgba(247,213,149,.6), transparent 58%)">
+
+  <%- include('partials/header', { navActive: 'contact' }) %>
+
+  <div class="au-pad" style="padding:90px 64px 40px;text-align:center">
+    <div class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
+    <% if (page.intro) { %><div style="font-size:16px;color:#6b6357;max-width:620px;margin:18px auto 0;line-height:1.6"><%= page.intro %></div><% } %>
+  </div>
+
+  <div class="au-pad" style="padding:0 64px 60px">
+    <% if (hasAny) { %>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;max-width:960px;margin:0 auto">
+        <% if (page.email) { %>
+          <div style="<%= card %>">
+            <div style="<%= label %>">Email</div>
+            <a class="au-link" href="mailto:<%= page.email %>" style="font-size:18px;color:#3a352e;word-break:break-word"><%= page.email %></a>
+          </div>
+        <% } %>
+        <% if (page.phone) { %>
+          <div style="<%= card %>">
+            <div style="<%= label %>">Phone</div>
+            <a class="au-link" href="tel:<%= telHref %>" style="font-size:18px;color:#3a352e"><%= page.phone %></a>
+          </div>
+        <% } %>
+        <% if (page.hours) { %>
+          <div style="<%= card %>">
+            <div style="<%= label %>">Hours</div>
+            <div style="font-size:16px;line-height:1.6;color:#3a352e;white-space:pre-line"><%= page.hours %></div>
+          </div>
+        <% } %>
+        <% if (page.address) { %>
+          <div style="<%= card %>">
+            <div style="<%= label %>">Address</div>
+            <div style="font-size:16px;line-height:1.6;color:#3a352e;white-space:pre-line"><%= page.address %></div>
+          </div>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div style="text-align:center;color:#6b6357;font-size:15px">Contact details are coming soon.</div>
+    <% } %>
+  </div>
+
+  <% if (page.extra) { %>
+    <div class="au-pad" style="padding:0 64px 60px">
+      <div class="rich" style="max-width:760px;margin:0 auto"><%- richText(page.extra) %></div>
+    </div>
+  <% } %>
+
+  <div style="padding:20px 0 110px"></div>
+  <%- include('partials/footer') %>
+</div>
+</body>
+</html>

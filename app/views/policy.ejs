@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head><%- include('partials/head') %></head>
+<body>
+<div style="background-color:#fff9f3;background-repeat:repeat-y;background-size:100% 950px;background-image:
+    radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.6), transparent 60%),
+    radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.55), transparent 58%),
+    radial-gradient(750px circle at 30% 55%, rgba(165,191,151,.55), transparent 60%),
+    radial-gradient(700px circle at 88% 62%, rgba(247,213,149,.6), transparent 58%)">
+
+  <%- include('partials/header', { navActive: typeof navActive !== 'undefined' ? navActive : '' }) %>
+
+  <div class="au-pad" style="padding:90px 64px 40px;text-align:center">
+    <div class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
+    <% if (page.intro) { %><div style="font-size:16px;color:#6b6357;max-width:620px;margin:18px auto 0;line-height:1.6"><%= page.intro %></div><% } %>
+  </div>
+
+  <div class="au-pad" style="padding:0 64px 110px">
+    <div class="rich" style="max-width:760px;margin:0 auto;background:rgba(255,255,255,.6);border-radius:20px;padding:44px 48px"><%- richText(page.body) %></div>
+  </div>
+
+  <%- include('partials/footer') %>
+</div>
+</body>
+</html>

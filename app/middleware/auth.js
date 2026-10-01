@@ -3,6 +3,7 @@ const cart = require('../lib/scart');       // Sariee-backed cart
 const Cats = require('../lib/catalog');      // Sariee-backed categories
 const content = require('../lib/content');   // editable site content
 const { money, price } = require('../lib/format');
+const richtext = require('../lib/richtext');
 
 // Populate res.locals used by every view: current user, cart count, flash messages.
 // The user/categories/footer lookups are independent of each other, so they
@@ -25,6 +26,7 @@ async function locals(req, res, next) {
     res.locals.cartCount = cartCount;
     res.locals.money = money;
     res.locals.price = price;
+    res.locals.richText = richtext.render;
     res.locals.flash = req.session.flash || null;
     res.locals.currentPath = req.path;
     delete req.session.flash;

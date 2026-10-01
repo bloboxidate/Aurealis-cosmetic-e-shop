@@ -18,6 +18,21 @@
     ['shop', 'Shop page', [
       ['title','Heading (when no category selected)','text'],['intro','Intro line','textarea'],
     ]],
+    ['shipping', 'Shipping Policy page', [
+      ['title','Page title','text'],['intro','Intro line (under the title)','text'],
+      ['body','Policy text','policy'],
+    ]],
+    ['refund', 'Refund Policy page', [
+      ['title','Page title','text'],['intro','Intro line (under the title)','text'],
+      ['body','Policy text','policy'],
+    ]],
+    ['contact', 'Contact Us page', [
+      ['title','Page title','text'],['intro','Intro text','textarea'],
+      ['email','Email shown on the page (blank = use the footer email)','text'],
+      ['phone','Phone number shown on the page (blank = use the footer phone)','text'],
+      ['hours','Opening hours (optional)','textarea'],['address','Address (optional)','textarea'],
+      ['extra','Extra text below the details (optional)','policy'],
+    ]],
     ['footer', 'Footer & contact', [
       ['tagline','Tagline','textarea'],['email','Contact email','text'],['phone','Phone','text'],
       ['instagram','Instagram URL','text'],['tiktok','TikTok URL','text'],['copyright','Copyright line','text'],
@@ -28,16 +43,22 @@
   <%- include('../partials/admin-nav', { adminActive }) %>
   <div class="admin-main" style="flex:1;padding:40px 48px;max-width:720px">
     <div class="serif" style="font-size:36px;margin-bottom:8px">Page Content</div>
-    <div style="font-size:14px;color:#8a8175;margin-bottom:24px">Edit the copy shown across your storefront. Changes go live immediately.</div>
+    <div style="font-size:14px;color:#8a8175;margin-bottom:16px">Edit the copy shown across your storefront. Changes go live immediately.</div>
+    <div style="font-size:13px;margin-bottom:24px;line-height:2">Jump to:
+      <% pages.forEach(function(pg){ %><a href="#page-<%= pg[0] %>" style="margin-right:12px;color:#c1602f"><%= pg[1] %></a><% }); %>
+    </div>
     <%- include('../partials/flash') %>
 
     <% pages.forEach(function(pg){ var key = pg[0]; var c = content[key] || {}; %>
-      <form method="post" action="/admin/content/<%= key %>" style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:24px;margin-bottom:22px">
+      <form id="page-<%= key %>" method="post" action="/admin/content/<%= key %>" style="scroll-margin-top:20px;background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:24px;margin-bottom:22px">
         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <div style="font-size:18px;font-weight:700;margin-bottom:4px"><%= pg[1] %></div>
         <% pg[2].forEach(function(f){ var name=f[0], label=f[1], type=f[2]; var val=(c[name]!==undefined?c[name]:''); %>
           <label style="<%= lbl %>"><%= label %></label>
-          <% if (type === 'textarea') { %>
+          <% if (type === 'policy') { %>
+            <textarea name="<%= name %>" rows="16" style="<%= inp %>;resize:vertical;line-height:1.5;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px"><%= val %></textarea>
+            <div style="font-size:12px;color:#8a8175;margin-top:6px;line-height:1.6">Formatting: blank line = new paragraph · <code>## Heading</code> · <code>- bullet</code> (one per line) · <code>**bold**</code> · <code>*italic*</code> · <code>[link text](https://…)</code> or <code>[Contact](/contact)</code></div>
+          <% } else if (type === 'textarea') { %>
             <textarea name="<%= name %>" rows="4" style="<%= inp %>;resize:vertical"><%= val %></textarea>
           <% } else { %>
             <input name="<%= name %>" value="<%= val %>" style="<%= inp %>">

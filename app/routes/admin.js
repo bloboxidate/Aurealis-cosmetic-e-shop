@@ -164,7 +164,7 @@ router.post('/subcategories/:id/delete', ah(async (req, res) => {
 }));
 
 // ---- Editable content ---------------------------------------------------
-const CONTENT_PAGES = ['home', 'about', 'shop', 'footer'];
+const CONTENT_PAGES = ['home', 'about', 'shop', 'shipping', 'refund', 'contact', 'footer'];
 
 router.get('/content', ah(async (req, res) => {
   res.render('admin/content', {
@@ -176,7 +176,7 @@ router.get('/content', ah(async (req, res) => {
 
 router.post('/content/:key', ah(async (req, res) => {
   if (!CONTENT_PAGES.includes(req.params.key)) return res.redirect('/admin/content');
-  const { _page, ...fields } = req.body; // strip any control field
+  const { _page, _csrf, ...fields } = req.body; // strip control fields
   await content.set(req.params.key, fields);
   flash(req, 'success', `${req.params.key[0].toUpperCase() + req.params.key.slice(1)} content saved.`);
   res.redirect('/admin/content');

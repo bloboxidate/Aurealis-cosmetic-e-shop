@@ -38,9 +38,11 @@ record **and** a customer `access_token` (a Sanctum token) you can use as
 `Authorization: Bearer <access_token>` for customer-scoped calls (profile, orders).
 
 ### Store/company auth
-For `/api/company/*` endpoints, supply a company bearer token. In the reference integration
-this was either a static `SARIEE_API_BEARER_TOKEN` env var, or an auto-login flow
-(company email/password → token, cached, re-login on 401).
+For `/api/company/*` endpoints, supply a company bearer token **and omit `x-domain`** (§3).
+Either a static `SARIEE_API_BEARER_TOKEN` env var, or an auto-login flow ✅ verified:
+`POST /api/company/auth/login` with `{ email, password }` → `data.access_token` (+
+`data.token.expires_at`); cache it in memory and re-login on 401 / 403 "UnAuthenticated".
+`app/lib/sariee/client.js` implements this (`SARIEE_LOGIN_EMAIL` / `SARIEE_LOGIN_PASSWORD`).
 
 ### Guest checkout
 The whole cart→checkout flow below works **without any login** — carts are keyed by a
@@ -51,13 +53,19 @@ account/order-history features.
 
 ## 3. Endpoint reference (verified examples)
 
-All requests include these headers (omitted below for brevity):
+All **storefront** (`/api/frontend/*`) requests include these headers (omitted below for brevity):
 ```
 x-domain: aurealis.sariee.shop
 x-locale: en
 Content-Type: application/json
 Accept: application/json
 ```
+
+> **⚠️ Company/admin calls are the opposite:** requests to `/api/company/*` must
+> **omit `x-domain`**. Sending it makes Sariee apply the *customer* auth guard,
+> which rejects a valid company bearer token with `403 "UnAuthenticated"`.
+> (This is how `app/lib/sariee/client.js` behaves: `x-domain` is added for every
+> scope except `company`.)
 
 ### 3.1 Register — ✅ verified
 ```
@@ -93,6 +101,12 @@ GET /api/frontend/products/list-all?is_single=1&per_page=5
 ```
 > Sariee identifies a purchasable variant by its **barcode id** (`barcodes[].id`),
 > NOT the product id. You add items to the cart by barcode id.
+>
+> **Pagination:** the response carries `_meta.pagination.last_page`; walk every
+> page (the app uses `per_page=200`) or large catalogs get silently truncated.
+>
+> **No server-side search:** `list-all` **ignores** `name`/`search` query params
+> (✅ verified against the live API). Filter locally over the fetched list.
 
 ### 3.4 Cart init — ✅ verified
 ```
@@ -108,6 +122,13 @@ POST /api/frontend/cart/add-update   (header: X-Cart-Token: <token>)
 → 200 { "message": "Item Added To Cart",
         "data": { "id": "<same-cart-id>", "calculations": { "count_items": 1 } } }
 ```
+> **`add-update` SETS the quantity — it does not increment.** To "add 2 more",
+> read the current line quantity and send `current + 2`. The response contains
+> the authoritative cart (`items[]`, `calculations`); keep it rather than
+> re-reading.
+>
+> **Remove a line:** `POST /api/frontend/cart/remove` with `{ "cart_item_id": "<items[].id>" }`
+> — keyed by the cart *line* id, not the barcode id.
 
 ### 3.6 Set shipping city — ⚠️ from-code
 ```
@@ -168,14 +189,31 @@ POST /api/frontend/checkout/checkout-action   (header: X-Cart-Token: <token>)
 If you send the wrong shape you get the misleading crash
 `500 "Undefined array key \"details\""` — it is a payload-shape problem, not a server bug.
 
-### 3.10 Fetch an order — ⚠️ from-code (endpoints tried in order)
+### 3.10 Fetch an order — ✅ verified in production
 ```
-GET /api/frontend/single-order?order_id=<ref>
-GET /api/frontend/single-order?id=<ref>
-GET /api/frontend/order-tracking?order_id=<ref>
-GET /api/company/builder/profile/orders        (needs company bearer)
-GET /api/frontend/profile/orders               (needs customer bearer / session)
+GET /api/frontend/single-order?order_id=<order_id>
+→ data: { invoice_number, status_name, final_amount, total_amount, shipping_fees,
+          items: [ { product_name, product_image, current_quantity, total } ],
+          customer_address, ... }
 ```
+> **Use `single-order`.** `GET /api/frontend/order-tracking` returns only
+> tracking *pixels*, **not** order data. `app/lib/orders.js` stores each
+> `order_id` returned by checkout locally and calls `single-order` for the
+> account page. There is also `GET /api/company/builder/profile/orders`
+> (company bearer) — ⚠️ from-code, not used by the app.
+
+### 3.11 Cancel an order — ❌ does not exist
+None of the 425 documented endpoints can cancel or void an order. Cancellation
+has to be handled manually in Sariee's dashboard; the app records the customer's
+request and emails the store (`STORE_OPS_EMAIL`) instead.
+
+### 3.12 Geography (countries → states → cities) — ✅ verified
+```
+GET /api/frontend/helper/countries
+GET /api/frontend/helper/state?country_id=<id>
+GET /api/frontend/helper/cities?state_id=<id>      ← by STATE, not country
+```
+`checkout-action` needs a **city** id (see §6.4). Cache these (the app caches 1 h).
 
 ---
 
@@ -247,7 +285,36 @@ state; the `city_id` you send at checkout is a **city**, not a state.
 
 ### 6.5 Real orders
 `checkout-action` creates a **real order** every time it returns 200. Guard test runs and
-clean up test orders.
+clean up test orders. (Sariee also has no delete/cancel-order endpoint — see §3.11 — so a
+test order can't be removed through the API at all.)
+
+### 6.6 Company-portal calls: omit `x-domain`
+See the note at the top of §3. Symptom of getting it wrong: `403 "UnAuthenticated"` on
+a perfectly valid company token.
+
+### 6.7 Cart-bundle regressions (history — all fixed on 2026-07)
+Sariee had three backend bugs, all rooted in an unfinished "cart bundles" feature (a
+missing `cart_bundle_selections` table and an undefined `CartItem::isBundle()` method).
+Our request format was verified correct throughout; the fixes were on their side:
+
+| # | Symptom | Call |
+|---|---------|------|
+| 1 | `500` | `cart/add-update` on a line that already exists |
+| 2 | `406` SQL error | `cart/init` on a **non-empty** cart |
+| 3 | `500` `isBundle()` undefined | `checkout/checkout-action` |
+
+(1) and (2) were fixed together, (3) separately — confirmed by a direct API call that
+created a real order. If any of these symptoms come back it is the same feature
+regressing: contact Sariee, don't change the payload. The app is defensive about it:
+`app/lib/scart.js` keeps the authoritative cart from each mutation response in the
+session (instead of re-reading via `cart/init`) and recalculates locally if an update
+call fails. The full debugging trail is in `sariee cart bug.postman_collection.json`.
+
+### 6.8 Customer accounts are local in this app
+The Auréalis site does **not** use Sariee's customer register/login (§3.1–3.2): accounts,
+passwords and order history live in the app's own database, and orders are linked by
+storing the Sariee `order_id`. Those endpoints are documented here for other
+integrations.
 
 ---
 
@@ -313,4 +380,10 @@ Sariee's raw error text to end users.
 ---
 
 *Compiled 2026-07-09 from live testing against `aurealis.sariee.shop` and a working
-Next.js reference integration.*
+Next.js reference integration. §3.10–3.12 and §6.5–6.8 were added later from the
+Express integration in `app/lib/sariee/` and its production use.*
+
+Related files in this folder: `Sariee API Documentation.postman_collection.json` (the
+official docs, source of `app/lib/sariee/endpoints.json`), `sariee postman.json` (our
+verified request set), `sariee cart bug.postman_collection.json` (the bug-report trail
+for §6.7).

@@ -169,4 +169,25 @@ router.get('/about', ah(async (req, res) => {
   res.render('about', { title: 'About — Auréalis', about: await content.get('about') });
 }));
 
+// Policy pages — copy is edited in /admin/content (keys: shipping, refund).
+function policyPage(key, path) {
+  router.get(path, ah(async (req, res) => {
+    const page = await content.get(key);
+    res.render('policy', { title: `${page.title} — Auréalis`, page, navActive: key });
+  }));
+}
+policyPage('shipping', '/shipping-policy');
+policyPage('refund', '/refund-policy');
+
+// Contact — email/phone fall back to the footer's, so they're entered once.
+router.get('/contact', ah(async (req, res) => {
+  const [page, footer] = await Promise.all([content.get('contact'), content.get('footer')]);
+  const contact = {
+    ...page,
+    email: (page.email || footer.email || '').trim(),
+    phone: (page.phone || footer.phone || '').trim(),
+  };
+  res.render('contact', { title: `${page.title} — Auréalis`, page: contact, navActive: 'contact' });
+}));
+
 module.exports = router;
