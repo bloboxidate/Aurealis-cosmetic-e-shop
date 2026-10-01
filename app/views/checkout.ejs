@@ -19,7 +19,7 @@
     <div>
       <div style="margin-bottom:40px">
         <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Contact</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="co-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <input class="field" type="email" name="email" required placeholder="Email address" value="<%= values.email || '' %>">
           <input class="field" type="tel" name="mobile" required placeholder="Mobile number" value="<%= values.mobile || '' %>">
         </div>
@@ -27,11 +27,11 @@
 
       <div style="margin-bottom:40px">
         <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Shipping Address</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="co-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
           <input class="field" type="text" name="first_name" required placeholder="First name" value="<%= values.first_name || '' %>">
           <input class="field" type="text" name="last_name" required placeholder="Last name" value="<%= values.last_name || '' %>">
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="co-row" style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
           <input class="field" type="text" name="street" required placeholder="Street" value="<%= values.street || '' %>">
           <input class="field" type="text" name="building" required placeholder="Building" value="<%= values.building || '' %>">
         </div>
@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <div style="background:rgba(255,255,255,.7);backdrop-filter:blur(3px);border-radius:20px;padding:36px;position:sticky;top:24px;height:fit-content">
+    <div style="background:rgba(255,255,255,.7);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);border-radius:20px;padding:36px;position:sticky;top:24px;height:fit-content">
       <div style="font-size:18px;font-weight:700;margin-bottom:24px">Order Summary</div>
       <% items.forEach(function(it){ %>
       <div style="display:flex;gap:14px;margin-bottom:16px">

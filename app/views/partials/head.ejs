@@ -156,6 +156,10 @@
     .admin-main{padding:22px 16px !important}
     .prow{flex-wrap:wrap}
     .prow form{width:100%;justify-content:flex-start}
+    .adm-stats{grid-template-columns:1fr 1fr !important}
+    .adm-links{grid-template-columns:1fr !important}
+    /* iOS Safari zooms the page when a focused field has text under 16px */
+    input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=file]):not([type=range]),select,textarea{font-size:16px !important}
   }
   @media(max-width:520px){
     /* Stay 2-column rather than fully stacking — brand spans the full row
@@ -164,11 +168,14 @@
     .footer-grid{grid-template-columns:1fr 1fr !important}
     .footer-brand{grid-column:1/-1}
     .btn-primary{padding:15px 26px}
+    .co-row{grid-template-columns:1fr !important}
+    .adm-stats{grid-template-columns:1fr !important}
   }
   /* Scroll-reveal: fade + rise into place the first time a section enters the
      viewport (see app.js). Respects reduced-motion preferences. */
   .au-reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
   .au-reveal.au-in{opacity:1;transform:translateY(0)}
+
   @media (prefers-reduced-motion: reduce){
     .au-reveal{opacity:1;transform:none;transition:none}
     *{scroll-behavior:auto !important;animation-duration:.001ms !important;transition-duration:.001ms !important}
@@ -180,6 +187,7 @@
   .au-loader img{width:56px;height:56px;animation:au-spin 1s linear infinite}
   .au-loader-hide{opacity:0;pointer-events:none}
 </style>
+<noscript><style>.au-reveal{opacity:1 !important;transform:none !important}</style></noscript>
 <script>
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
 </script>
