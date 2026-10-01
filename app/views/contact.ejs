@@ -4,7 +4,7 @@
 <body>
 <%
   const card = 'background:rgba(255,255,255,.65);border-radius:20px;padding:32px 28px;text-align:center';
-  const label = 'font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:10px';
+  const label = 'font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#a8501f;font-weight:700;margin-bottom:10px';
   const telHref = (page.phone || '').replace(/[^\d+]/g, '');
   const hasAny = page.email || page.phone || page.hours || page.address;
 %>
@@ -15,6 +15,8 @@
     radial-gradient(700px circle at 88% 62%, rgba(247,213,149,.6), transparent 58%)">
 
   <%- include('partials/header', { navActive: 'contact' }) %>
+
+  <main id="main">
 
   <div class="au-pad" style="padding:90px 64px 40px;text-align:center">
     <div role="heading" aria-level="1" class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
@@ -61,6 +63,7 @@
   <% } %>
 
   <div style="padding:20px 0 110px"></div>
+  </main>
   <%- include('partials/footer') %>
 </div>
 </body>

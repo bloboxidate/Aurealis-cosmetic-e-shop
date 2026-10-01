@@ -88,7 +88,7 @@
   ].join('\n');
 
   var root = document.documentElement;
-  var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || document.documentElement.classList.contains('au-lite');
 
   function create(opts) {
     var canvas = opts && opts.canvas, stage = opts && opts.stage, host = (opts && opts.host) || (stage && stage.parentNode);

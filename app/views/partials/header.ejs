@@ -4,12 +4,13 @@
      adds html.au-intro to show it and motion.js lifts it. It no longer waits for
      window.load — it never blocks on images, and is forced away if JS fails. -->
 <div id="au-loader" class="au-loader" aria-hidden="true"><div class="au-loader-panel"></div><img src="/assets/aurealis-logo-black.webp" alt=""><span class="au-loader-line"></span></div>
+<a class="au-skip" href="#main">Skip to content</a>
 <div class="au-header" role="banner" style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:16px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
 
   <!-- Left: hamburger nav (all viewports) -->
   <div style="display:flex;align-items:center;z-index:2">
     <input type="checkbox" id="nav-toggle" class="nav-check" aria-label="Menu">
-    <label for="nav-toggle" class="nav-burger" aria-label="Menu">
+    <label for="nav-toggle" class="nav-burger">
       <span></span><span></span><span></span>
     </label>
     <div class="nav-mobile" role="navigation" aria-label="Primary">
@@ -35,21 +36,21 @@
     <% if (user) { %>
       <div class="account-menu" style="position:relative;display:flex;align-items:center">
         <input type="checkbox" id="account-toggle" class="nav-check" aria-label="Account menu">
-        <label for="account-toggle" aria-label="Account" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
+        <label for="account-toggle" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
         </label>
         <div class="account-dropdown">
           <div style="padding:14px 18px 10px;font-weight:700;font-size:14px;border-bottom:1px solid rgba(58,53,46,.08)"><%= user.first_name || 'Account' %></div>
           <a class="au-link" href="/account">Order History</a>
           <a class="au-link" href="/wishlist">Wishlist</a>
-          <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#c1602f;font-weight:700">Admin</a><% } %>
+          <% if (user.is_admin) { %><a class="au-link" href="/admin" style="color:#a8501f;font-weight:700">Admin</a><% } %>
           <form action="/logout" method="post" style="margin:0"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="account-dropdown-logout">Logout</button></form>
         </div>
       </div>
     <% } else { %>
       <div class="account-menu" style="position:relative;display:flex;align-items:center">
         <input type="checkbox" id="account-toggle" class="nav-check" aria-label="Account menu">
-        <label for="account-toggle" aria-label="Account" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
+        <label for="account-toggle" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
         </label>
         <div class="account-dropdown">

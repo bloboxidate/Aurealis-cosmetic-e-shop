@@ -340,7 +340,7 @@
       tl.fromTo(words, { yPercent: 118 }, Object.assign({ immediateRender: false }, IN), cue[i][0]);
       if (cue[i][1] != null) tl.to(words, OUT, cue[i][1]);
     });
-    if (link) { takeOver([link]); tl.fromTo(link, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.07 }, 0.86); }
+    if (link) { takeOver([link]); tl.fromTo(link, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.07 }, 0.86); }
     if (bar) tl.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
     if (tl.duration() < 1) tl.to({}, { duration: 1 - tl.duration() });
 

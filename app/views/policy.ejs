@@ -10,6 +10,8 @@
 
   <%- include('partials/header', { navActive: typeof navActive !== 'undefined' ? navActive : '' }) %>
 
+  <main id="main">
+
   <div class="au-pad" style="padding:90px 64px 40px;text-align:center">
     <div role="heading" aria-level="1" class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
     <% if (page.intro) { %><div class="rich-center"><%- richText(page.intro) %></div><% } %>
@@ -19,6 +21,7 @@
     <div class="rich" style="max-width:760px;margin:0 auto;background:rgba(255,255,255,.6);border-radius:20px;padding:44px 48px"><%- richText(page.body) %></div>
   </div>
 
+  </main>
   <%- include('partials/footer') %>
 </div>
 </body>

@@ -5,6 +5,7 @@
 <div style="background-color:#fff9f3;min-height:100vh;background-repeat:repeat-y;background-size:100% 950px;background-image:
     radial-gradient(700px circle at 8% 8%, rgba(165,209,228,.4), transparent 60%),
     radial-gradient(650px circle at 92% 20%, rgba(191,181,232,.35), transparent 58%)">
+<main id="main">
 
   <div class="au-header" style="display:flex;align-items:center;justify-content:space-between;padding:20px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
     <a href="/" style="display:flex;align-items:center"><img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:56px;width:auto;display:block"></a>
@@ -18,7 +19,7 @@
 
     <div>
       <div style="margin-bottom:40px">
-        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Contact</div>
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#a8501f;font-weight:700;margin-bottom:12px">Contact</div>
         <div class="co-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <input class="field" type="email" name="email" required placeholder="Email address" value="<%= values.email || '' %>">
           <input class="field" type="tel" name="mobile" required placeholder="Mobile number" value="<%= values.mobile || '' %>">
@@ -26,7 +27,7 @@
       </div>
 
       <div style="margin-bottom:40px">
-        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Shipping Address</div>
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#a8501f;font-weight:700;margin-bottom:12px">Shipping Address</div>
         <div class="co-row" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
           <input class="field" type="text" name="first_name" required placeholder="First name" value="<%= values.first_name || '' %>">
           <input class="field" type="text" name="last_name" required placeholder="Last name" value="<%= values.last_name || '' %>">
@@ -48,7 +49,7 @@
       </div>
 
       <div>
-        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:12px">Payment</div>
+        <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#a8501f;font-weight:700;margin-bottom:12px">Payment</div>
         <label style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:10px;font-size:14px;background:#fff;border:1.5px solid #3a352e">
           <span><input type="radio" name="payment_id" value="<%= codPaymentId %>" checked style="margin-right:10px"><%= codName %></span>
           <span style="color:#6b6357">Pay on delivery</span>
@@ -87,6 +88,7 @@
   </div>
   </form>
 
+</main>
 </div>
 <script src="/js/app.js"></script>
 </body>

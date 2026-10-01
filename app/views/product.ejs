@@ -10,9 +10,11 @@
 
   <%- include('partials/header', { navActive: product.category }) %>
 
-  <div class="au-pad" style="padding:36px 64px 0;font-size:13px;color:#8a8175">
-    <a class="au-link" href="/" style="color:#8a8175">Home</a> /
-    <a class="au-link" href="/shop?category=<%= product.category %>" style="color:#8a8175;text-transform:capitalize"><%= product.category %></a> /
+  <main id="main">
+
+  <div class="au-pad" style="padding:36px 64px 0;font-size:13px;color:#6b6357">
+    <a class="au-link" href="/" style="color:#6b6357">Home</a> /
+    <a class="au-link" href="/shop?category=<%= product.category %>" style="color:#6b6357;text-transform:capitalize"><%= product.category %></a> /
     <%= product.name %>
   </div>
 
@@ -50,7 +52,7 @@
 
     <!-- details -->
     <div class="pdp-info" data-m-group>
-      <div data-m-item style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:14px"><%= product.subtitle %></div>
+      <div data-m-item style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#a8501f;font-weight:700;margin-bottom:14px"><%= product.subtitle %></div>
       <div data-m-item role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,44px);margin-bottom:12px"><%= product.name %></div>
       <div data-m-item style="font-size:20px;color:#3a352e;margin-bottom:20px"><%= money(product.price_cents) %></div>
       <div data-m-item style="font-size:15px;line-height:1.7;color:#5a5148;margin-bottom:32px;max-width:460px"><%= product.description %></div>
@@ -142,11 +144,11 @@
           </div>
           <textarea name="body" class="field" rows="3" required placeholder="Share your experience…" style="width:100%;margin-bottom:14px;resize:vertical"></textarea>
           <button type="submit" class="btn-primary">Submit review</button>
-          <div style="font-size:12px;color:#8a8175;margin-top:10px">Reviews are checked before appearing publicly.</div>
+          <div style="font-size:12px;color:#6b6357;margin-top:10px">Reviews are checked before appearing publicly.</div>
         </form>
       </div>
     <% } else if (typeof user === 'undefined' || !user) { %>
-      <div style="font-size:13px;color:#6b6357;margin-top:12px"><a class="au-link" href="/login?next=/product/<%= product.slug %>" style="color:#c1602f;font-weight:700">Sign in</a> to write a review.</div>
+      <div style="font-size:13px;color:#6b6357;margin-top:12px"><a class="au-link" href="/login?next=/product/<%= product.slug %>" style="color:#a8501f;font-weight:700">Sign in</a> to write a review.</div>
     <% } %>
   </div>
 
@@ -167,6 +169,7 @@
     <button type="submit" form="add-form" class="btn-primary" tabindex="-1">Add to Bag</button>
   </div>
 
+  </main>
   <%- include('partials/footer') %>
 </div>
 <script defer src="/js/motion-product.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>

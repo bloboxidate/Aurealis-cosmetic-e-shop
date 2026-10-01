@@ -11,8 +11,10 @@
 
   <%- include('partials/header', { navActive: category || 'shop' }) %>
 
+  <main id="main">
+
   <div class="au-pad" style="padding:44px 64px 0">
-    <div data-m="rise" style="font-size:13px;color:#8a8175;margin-bottom:18px"><a class="au-link" href="/" style="color:#8a8175">Home</a> / <%= heading %></div>
+    <div data-m="rise" style="font-size:13px;color:#6b6357;margin-bottom:18px"><a class="au-link" href="/" style="color:#6b6357">Home</a> / <%= heading %></div>
     <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-bottom:36px">
       <div>
         <div data-m="lines" role="heading" aria-level="1" class="serif" style="font-size:clamp(34px,8vw,64px);line-height:1.05;margin-bottom:10px"><%= heading %></div>
@@ -23,7 +25,7 @@
         <% if (activeSub && activeSub !== 'all') { %><input type="hidden" name="sub" value="<%= activeSub %>"><% } %>
         <input type="text" name="q" value="<%= typeof q !== 'undefined' ? q : '' %>" placeholder="Search products…" style="flex:1 1 160px;min-width:0;border:1px solid rgba(58,53,46,.25);background:#fff9f3;padding:10px 14px;border-radius:100px;font-size:13px;color:#3a352e">
         <span style="color:#6b6357">Sort by</span>
-        <select name="sort" onchange="this.form.submit()" style="border:1px solid rgba(58,53,46,.25);background:#fff9f3;padding:10px 14px;border-radius:100px;font-size:13px;color:#3a352e">
+        <select name="sort" aria-label="Sort products" onchange="this.form.submit()" style="border:1px solid rgba(58,53,46,.25);background:#fff9f3;padding:10px 14px;border-radius:100px;font-size:13px;color:#3a352e">
           <option value="featured" <%= sort==='featured'?'selected':'' %>>Featured</option>
           <option value="price-asc" <%= sort==='price-asc'?'selected':'' %>>Price: Low to High</option>
           <option value="price-desc" <%= sort==='price-desc'?'selected':'' %>>Price: High to Low</option>
@@ -46,9 +48,9 @@
   <!-- product grid -->
   <div class="au-pad" style="padding:0 64px 90px">
     <% if (typeof catalogError !== 'undefined' && catalogError) { %>
-      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px">We're having trouble loading products right now. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">Try again</a></div>
+      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px">We're having trouble loading products right now. <a class="au-link" href="/shop" style="color:#a8501f;font-weight:700">Try again</a></div>
     <% } else if (products.length === 0) { %>
-      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px"><%= (typeof q !== 'undefined' && q) ? 'No products match “' + q + '”.' : 'No products found.' %> <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">View all</a></div>
+      <div style="padding:60px 0;text-align:center;color:#6b6357;font-size:16px"><%= (typeof q !== 'undefined' && q) ? 'No products match “' + q + '”.' : 'No products found.' %> <a class="au-link" href="/shop" style="color:#a8501f;font-weight:700">View all</a></div>
     <% } else { %>
     <div class="grid-4" data-m-group style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% products.forEach(function(p){ %>
@@ -66,6 +68,7 @@
     <% } %>
   </div>
 
+  </main>
   <%- include('partials/footer') %>
 </div>
 <script src="/js/app.js"></script>

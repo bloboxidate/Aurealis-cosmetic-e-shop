@@ -197,6 +197,7 @@
    * account, auth) where it adds nothing.
    * ------------------------------------------------------------------ */
   var lenis = null;
+  var C_showHeader = function () {}; // set by initHeader; lets other modules reveal the header (e.g. the bag fly-in)
   function initSmoothScroll() {
     var finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     var editorial = /^\/($|shop|product\/|about)/.test(location.pathname);
@@ -216,9 +217,12 @@
     if (!header) return;
     var toggle = $('#nav-toggle');
     var acct = $('#account-toggle');
+    var nav = $('.nav-mobile', header);
     var hidden = false;
+    var closing = false;
     function menuOpen() { return (toggle && toggle.checked) || (acct && acct.checked); }
     function show() { if (hidden) { hidden = false; header.classList.remove('is-hidden'); } }
+    C_showHeader = show;
     ScrollTrigger.create({
       start: 0, end: 'max',
       onUpdate: function (self) {
@@ -230,17 +234,69 @@
       }
     });
     header.addEventListener('focusin', show);
-    if (toggle) toggle.addEventListener('change', function () {
-      if (toggle.checked) { show(); if (acct) acct.checked = false; if (lenis) lenis.stop(); }
-      else if (lenis) lenis.start();
+
+    // While the full-screen menu is open the page behind it is inert: Tab can't wander into it, and
+    // screen readers don't read it. Everything else in the header (logo, bag, account, the menu itself) stays live.
+    function setInert(on) {
+      $$('main, .au-footer').forEach(function (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); });
+    }
+    function focusables() {
+      return $$('a[href], button, input:not([type="hidden"]), summary', header).filter(function (el) {
+        return !el.disabled && el.getClientRects().length > 0 || el === toggle || el === acct;
+      });
+    }
+    function openedMenu() {
+      if (acct) acct.checked = false;
+      show(); setInert(true);
+      if (lenis) lenis.stop();
+      var first = nav && $('a', nav);
+      if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 350);
+    }
+    function finishClose() {
+      toggle.checked = false; closing = false;
+      header.classList.remove('is-menu-closing');
+      setInert(false);
+      if (lenis) lenis.start();
+    }
+    // Close = the same sheet drawn back up (CSS keyframes), then the checkbox — the source of truth — is released.
+    function closeMenu(returnFocus) {
+      if (!toggle || !toggle.checked || closing) return;
+      if (returnFocus) toggle.focus();
+      if (!root.classList.contains('au-motion') || !nav) { finishClose(); return; }
+      closing = true;
+      header.classList.add('is-menu-closing');
+      var done = false;
+      function end() { if (done) return; done = true; finishClose(); }
+      nav.addEventListener('animationend', function onEnd(e) { if (e.target === nav) { nav.removeEventListener('animationend', onEnd); end(); } });
+      setTimeout(end, 900); // never leave it stuck if animationend doesn't fire
+    }
+    if (toggle) {
+      toggle.addEventListener('click', function (e) {
+        if (closing) { e.preventDefault(); return; }
+        if (!toggle.checked) { e.preventDefault(); toggle.checked = true; closeMenu(false); } // animate the close instead of snapping
+      });
+      toggle.addEventListener('change', function () { if (toggle.checked) openedMenu(); });
+    }
+    if (acct) acct.addEventListener('change', function () { if (acct.checked && toggle && toggle.checked) closeMenu(false); });
+    // Click anywhere outside the account dropdown closes it.
+    document.addEventListener('click', function (e) {
+      if (acct && acct.checked && !e.target.closest('.account-menu')) acct.checked = false;
     });
     document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      if (toggle && toggle.checked) { toggle.checked = false; if (lenis) lenis.start(); var l = $('label[for="nav-toggle"]'); if (l) l.focus(); }
-      if (acct && acct.checked) acct.checked = false;
+      if (e.key === 'Escape') {
+        if (toggle && toggle.checked) closeMenu(true);
+        if (acct && acct.checked) { acct.checked = false; acct.focus(); }
+        return;
+      }
+      if (e.key === 'Tab' && toggle && toggle.checked) { // keep focus inside the header while the menu is open
+        var f = focusables(); if (!f.length) return;
+        var firstEl = f[0], lastEl = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); }
+        else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); }
+      }
     });
     // A back/forward restore must never show the menu open.
-    window.addEventListener('pageshow', function () { if (toggle && toggle.checked) { toggle.checked = false; if (lenis) lenis.start(); } });
+    window.addEventListener('pageshow', function () { if (toggle && toggle.checked) { toggle.checked = false; setInert(false); if (lenis) lenis.start(); } });
   }
 
   // Page progress -> CSS variable that drifts the two aurora backdrop layers (see motion.css).
@@ -260,6 +316,7 @@
     gsap: gsap, ScrollTrigger: ScrollTrigger, SplitText: SplitText, $: $, $$: $$, delay: delay,
     takeOver: takeOver, release: release, PINNED: PINNED, FLOW: FLOW, mm: mm, FINE: FINE, root: root,
     lenis: function () { return lenis; },
+    showHeader: function () { C_showHeader(); },
     queue: function (priority, fn) { queue.push({ p: priority, fn: fn }); }
   };
 

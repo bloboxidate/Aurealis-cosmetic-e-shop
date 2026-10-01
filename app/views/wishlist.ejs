@@ -9,12 +9,14 @@
 
   <%- include('partials/header', { navActive: '' }) %>
 
+  <main id="main">
+
   <div class="au-pad" style="padding:56px 64px 100px">
     <div role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:40px">My Wishlist</div>
 
     <% if (products.length === 0) { %>
       <div style="background:rgba(255,255,255,.6);border-radius:16px;padding:36px;text-align:center;color:#6b6357">
-        Nothing saved yet. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">Browse products →</a>
+        Nothing saved yet. <a class="au-link" href="/shop" style="color:#a8501f;font-weight:700">Browse products →</a>
       </div>
     <% } else { %>
       <div class="grid-4" data-m-group style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
@@ -24,7 +26,7 @@
             <form action="/wishlist/toggle" method="post" style="margin-top:10px">
               <input type="hidden" name="product_id" value="<%= p.id %>">
               <input type="hidden" name="next" value="/wishlist">
-              <button type="submit" class="au-link" style="background:none;border:none;cursor:pointer;font-size:13px;color:#8a8175;padding:0">Remove</button>
+              <button type="submit" class="au-link" style="background:none;border:none;cursor:pointer;font-size:13px;color:#6b6357;padding:0">Remove</button>
             </form>
           </div>
         <% }); %>
@@ -32,6 +34,7 @@
     <% } %>
   </div>
 
+  </main>
   <%- include('partials/footer') %>
 </div>
 <script src="/js/app.js"></script>
