@@ -3,6 +3,7 @@
 // over the defaults below, so pages render sensible copy before anything is
 // edited and only overridden fields change.
 const db = require('../db/database');
+const ttl = require('./ttl'); // short in-memory read cache; writes below bust it
 
 // Default copy — mirrors what the templates historically hard-coded, so the
 // storefront looks identical until an admin edits it.
@@ -90,4 +91,4 @@ async function set(key, patch = {}) {
   return value;
 }
 
-module.exports = { get, getMany, set, defaults, DEFAULTS };
+module.exports = ttl.wrap({ get, getMany, set, defaults, DEFAULTS }, 'content', ['get'], ['set']);

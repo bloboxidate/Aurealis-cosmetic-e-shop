@@ -3,6 +3,7 @@
 // (local category/subcategory, display order, featured/bestseller, hidden)
 // without changing anything in Sariee.
 const db = require('../db/database');
+const ttl = require('./ttl'); // short in-memory read cache; writes below bust it
 
 const FIELDS = ['category_slug', 'subcategory_slug', 'sort_order', 'is_featured', 'is_bestseller', 'is_hidden'];
 
@@ -108,8 +109,9 @@ async function setCategories(sarieeId, assignments = []) {
   });
 }
 
-module.exports = {
+module.exports = ttl.wrap({
   map, get, set, setOrder,
   renameCategory, clearCategory, renameSubcategory, clearSubcategory,
   categoriesMap, getCategories, setCategories,
-};
+}, 'overlay', ['map', 'categoriesMap'],
+['set', 'setOrder', 'renameCategory', 'clearCategory', 'renameSubcategory', 'clearSubcategory', 'setCategories']);

@@ -2,6 +2,7 @@
 // slug strings; these tables provide the canonical, editable list and drive the
 // storefront nav + admin dropdowns.
 const db = require('../db/database');
+const ttl = require('./ttl'); // short in-memory read cache; writes below bust it
 
 function slugify(s) {
   return (s || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -93,9 +94,10 @@ async function deleteSubcategory(id) {
   return { ok: true };
 }
 
-module.exports = {
+module.exports = ttl.wrap({
   slugify, listCategories, listSubcategories, subcategoriesForSlug,
   getCategory, getCategoryBySlug, getSubcategory, countProductsInCategory,
   createCategory, updateCategory, updateCategoryImage, deleteCategory,
   createSubcategory, updateSubcategory, deleteSubcategory,
-};
+}, 'cats', ['listCategories', 'listSubcategories', 'subcategoriesForSlug', 'getCategoryBySlug'],
+['createCategory', 'updateCategory', 'updateCategoryImage', 'deleteCategory', 'createSubcategory', 'updateSubcategory', 'deleteSubcategory']);
