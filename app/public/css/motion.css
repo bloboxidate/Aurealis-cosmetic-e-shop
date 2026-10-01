@@ -284,6 +284,8 @@ body::after {
   background: rgba(255, 249, 243, .8); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
   border-bottom: 1px solid rgba(58, 53, 46, .08); transition: opacity .5s ease; }
 .au-header.is-stuck::before { opacity: 1; }
+/* No motion script driving .is-stuck (reduced motion, no JS, or failure): keep the frosted layer on, so the dark logo stays legible over dark sections. */
+html:not(.au-motion) .au-header::before, html.au-fail .au-header::before { opacity: 1; }
 .au-header.is-hidden { transform: translateY(-100%); }
 .au-header .au-logo { z-index: 3; }
 .au-header > div:last-of-type { z-index: 3 !important; }
