@@ -16,7 +16,7 @@
     <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-bottom:36px">
       <div>
         <div class="serif" style="font-size:clamp(30px,7vw,48px);margin-bottom:8px"><%= heading %></div>
-        <div style="font-size:15px;color:#6b6357"><%= (typeof intro !== 'undefined' && intro) ? intro : count + ' products formulated for radiance, hydration and balance.' %></div>
+        <% if (typeof intro !== 'undefined' && intro) { %><div class="rich" style="color:#6b6357"><%- richText(intro) %></div><% } else { %><div style="font-size:15px;color:#6b6357"><%= count %> products formulated for radiance, hydration and balance.</div><% } %>
       </div>
       <form method="get" action="/shop" style="display:flex;align-items:center;gap:14px;font-size:13px">
         <% if (category) { %><input type="hidden" name="category" value="<%= category %>"><% } %>
@@ -52,7 +52,7 @@
     <% } else { %>
     <div class="grid-4 au-reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% products.forEach(function(p){ %>
-        <%- include('partials/product-card', { p, cardH: 270, cardShowSub: true }) %>
+        <%- include('partials/product-card', { p, cardShowSub: true }) %>
       <% }); %>
     </div>
     <% if (totalPages > 1) { %>

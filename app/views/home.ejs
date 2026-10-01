@@ -31,21 +31,30 @@
     </div>
   </section>
 
-  <!-- category strip (dynamic from your storefront categories) -->
-  <% var _cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
-  <% if (_cats.length) { %>
-    <% var _grads = ['#a5bf97','#f7d595','#a5d1e4','#bfb5e8','#f8ae7f']; %>
-    <div class="au-pad au-reveal" style="padding:70px 64px 0">
-    <div class="cat-strip" style="display:grid;grid-template-columns:repeat(<%= Math.min(_cats.length, 3) %>,1fr);gap:0;border-radius:20px;overflow:hidden">
-      <% _cats.slice(0,6).forEach(function(c, i){ %>
-        <a href="/shop?category=<%= c.slug %>" class="cat-tile" style="position:relative;height:clamp(200px,45vw,340px);overflow:hidden;<%= c.image_url ? '' : 'background:'+_grads[i % _grads.length]+';' %>display:block">
-          <% if (c.image_url) { %><img src="<%= c.image_url %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0"><% } %>
-          <div class="cat-chip-wrap" style="position:absolute;left:50%;bottom:20px;transform:translateX(-50%);background:rgba(255,249,243,.9);padding:8px 18px;border-radius:20px;max-width:calc(100% - 24px);box-sizing:border-box">
-            <div class="cat-chip" style="font-size:15px;font-weight:700;color:#3a352e;text-align:center;white-space:normal;overflow-wrap:break-word"><%= c.name %></div>
-          </div>
-        </a>
-      <% }); %>
-    </div>
+  <!-- rotating product strip: every product, looping continuously. The track is
+       rendered twice so the -50% translate loops seamlessly; the copy is
+       aria-hidden. Pauses on hover/focus; with reduced motion it becomes a
+       plain horizontally-scrollable row. -->
+  <% var _strip = (typeof allProducts !== 'undefined' ? allProducts : []).filter(function(p){ return p.image_url; }); %>
+  <% if (_strip.length) { %>
+    <% var _loops = _strip.length < 6 ? Math.ceil(6 / _strip.length) : 1; %>
+    <% var _dur = Math.max(30, _strip.length * _loops * 4); %>
+    <div class="au-reveal" style="padding:clamp(40px,7vw,70px) 0 0">
+      <div class="prod-strip" aria-label="All products">
+        <div class="prod-strip-track" style="animation-duration:<%= _dur %>s">
+          <% for (var _copy = 0; _copy < 2; _copy++) { %>
+            <div class="prod-strip-set" <%- _copy ? 'aria-hidden="true"' : '' %>>
+              <% for (var _r = 0; _r < _loops; _r++) { _strip.forEach(function(p){ %>
+                <a class="prod-strip-item au-link" href="/product/<%= p.slug %>" <%- _copy ? 'tabindex="-1"' : '' %>>
+                  <div class="prod-strip-img" style="background:<%= p.color || '#f1ece5' %>"><img src="<%= p.image_url %>" alt="<%= _copy ? '' : p.name %>" loading="lazy"></div>
+                  <div class="prod-strip-name"><%= p.name %></div>
+                  <div class="prod-strip-price"><%= price(p.price_cents) %></div>
+                </a>
+              <% }); } %>
+            </div>
+          <% } %>
+        </div>
+      </div>
     </div>
   <% } %>
 
@@ -58,7 +67,7 @@
     </div>
     <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% bestsellers.forEach(function(p){ %>
-        <%- include('partials/product-card', { p, cardH: 270 }) %>
+        <%- include('partials/product-card', { p }) %>
       <% }); %>
     </div>
   </div>
@@ -67,10 +76,12 @@
   <!-- brand story -->
   <div style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
   <div class="au-pad grid-2 au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
-    <div style="width:100%;height:clamp(220px,50vw,420px);border-radius:20px;overflow:hidden;background:
+    <div style="position:relative;width:100%;aspect-ratio:4/3;max-height:480px;border-radius:20px;overflow:hidden;background:
         radial-gradient(120% 120% at 30% 20%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(120% 120% at 80% 80%, rgba(247,213,149,.9), transparent 55%),
-        linear-gradient(160deg,#3f6f86,#4c6b45)"></div>
+        linear-gradient(160deg,#3f6f86,#4c6b45)">
+      <% if (about && about.image) { %><img src="<%= about.image %>" alt="Our story" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% } %>
+    </div>
     <div>
       <div class="serif" style="font-size:clamp(22px,5vw,30px);line-height:1.4;margin-bottom:24px">"The aurora taught us that light is never one color. Every formula moves through sage, azure and lavender the way the sky does."</div>
       <a class="au-link" href="/about" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#c1602f;font-weight:700">Our Story →</a>

@@ -20,7 +20,7 @@
       <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
         <% products.forEach(function(p){ %>
           <div>
-            <%- include('partials/product-card', { p, cardH: 230 }) %>
+            <%- include('partials/product-card', { p }) %>
             <form action="/wishlist/toggle" method="post" style="margin-top:10px">
               <input type="hidden" name="product_id" value="<%= p.id %>">
               <input type="hidden" name="next" value="/wishlist">

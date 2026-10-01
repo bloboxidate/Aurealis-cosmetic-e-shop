@@ -18,7 +18,7 @@
 
   <div class="au-pad" style="padding:90px 64px 40px;text-align:center">
     <div class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
-    <% if (page.intro) { %><div style="font-size:16px;color:#6b6357;max-width:620px;margin:18px auto 0;line-height:1.6"><%= page.intro %></div><% } %>
+    <% if (page.intro) { %><div class="rich-center"><%- richText(page.intro) %></div><% } %>
   </div>
 
   <div class="au-pad" style="padding:0 64px 60px">

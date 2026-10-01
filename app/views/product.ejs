@@ -28,13 +28,13 @@
             <div class="pdp-thumbs">
               <% gallery.forEach(function(img, i){ %>
                 <div class="pdp-thumb<%= i===0 ? ' pdp-thumb-active' : '' %>" data-full="<%= img.url %>" data-index="<%= i %>" style="background:<%= product.color || '#f1ece5' %>">
-                  <img src="<%= img.url %>" alt="" style="width:100%;height:100%;object-fit:contain;display:block">
+                  <img src="<%= img.url %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
                 </div>
               <% }); %>
             </div>
           <% } %>
           <div id="pdp-main" class="pdp-main" style="background:<%= product.color %>">
-            <img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:contain;display:block">
+            <img id="pdp-main-img" src="<%= gallery[0].url %>" alt="<%= product.name %>" style="width:100%;height:100%;object-fit:cover;display:block">
             <% if (gallery.length > 1) { %>
               <button type="button" class="pdp-arrow pdp-arrow-prev" id="pdp-prev" aria-label="Previous image">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -163,7 +163,7 @@
     <div class="serif" style="font-size:32px;margin-bottom:32px">You may also like</div>
     <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% related.forEach(function(p){ %>
-        <%- include('partials/product-card', { p, cardH: 230 }) %>
+        <%- include('partials/product-card', { p }) %>
       <% }); %>
     </div>
   </div>

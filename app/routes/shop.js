@@ -24,14 +24,18 @@ router.get('/', ah(async (req, res) => {
   // Degrade gracefully if Sariee is unreachable — show the page without cards
   // rather than a 500, but log so the failure is diagnosable. Independent of
   // the content lookup, so both run in parallel.
-  const [bestsellers, home] = await Promise.all([
+  const [bestsellers, allProducts, home, about] = await Promise.all([
     Products.bestsellers(4).catch((err) => {
       console.error('[shop] home bestsellers failed:', err.message); return [];
     }),
+    Products.all().catch((err) => {
+      console.error('[shop] home product strip failed:', err.message); return [];
+    }),
     content.get('home'),
+    content.get('about'),
   ]);
   await markWishlisted(req, bestsellers);
-  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, home });
+  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, allProducts, home, about });
 }));
 
 // Shop / catalog, filtered by ?category=<slug> and ?sub=<slug>
