@@ -326,6 +326,68 @@
     });
   }
 
+  function withAurora(fn) {
+    if (window.AuAurora) fn(window.AuAurora);
+    else document.addEventListener('DOMContentLoaded', function () { if (window.AuAurora) fn(window.AuAurora); });
+  }
+
+  /* The Northern Light: a tall section whose stage sticks (CSS) while scroll plays three statements over a
+     live aurora. Progress drives both the words and the shader's palette; the cursor bends the light. The
+     stage also opens from a rounded card to full-bleed as the chapter arrives. */
+  function auroraScene(sec) {
+    var stage = $('[data-aurora="stage"]', sec);
+    var canvas = $('canvas', sec);
+    var lines = $$('[data-aurora="line"]', sec);
+    var link = $('[data-aurora="link"]', sec);
+    var bar = $('.au-aurora-bar b', sec);
+    if (!stage || lines.length < 3) { $$('[data-aurora]', sec).forEach(function (el) { el.removeAttribute('data-aurora'); }); return; }
+
+    var gl = null;
+    if (canvas) withAurora(function (A) {
+      gl = A.create({ canvas: canvas, stage: stage, host: sec });
+      if (gl && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        stage.addEventListener('pointermove', function (e) {
+          var r = stage.getBoundingClientRect();
+          gl.setPointer((e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+        });
+        stage.addEventListener('pointerleave', function () { gl.setPointer(null); });
+      }
+    });
+
+    // Words rise out of masks. Words (not lines) so a resize can't re-wrap into a stale timeline.
+    var sets = lines.map(function (el) {
+      gsap.set(el, { opacity: 1 });
+      if (!SplitText) return [el];
+      return SplitText.create(el, { type: 'words', mask: 'words', wordsClass: 'au-word' }).words;
+    });
+
+    var tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: sec, start: 'top top', end: 'bottom bottom', scrub: true, invalidateOnRefresh: true,
+        onUpdate: function (self) { if (gl) gl.setProgress(self.progress); }
+      }
+    });
+    var IN = { yPercent: 0, ease: 'power3.out', duration: 0.09, stagger: { amount: 0.05 } };
+    var OUT = { yPercent: -118, ease: 'power2.in', duration: 0.06, stagger: { amount: 0.03 } };
+    var cue = [[0.03, 0.3], [0.37, 0.64], [0.71, null]];
+    sets.forEach(function (words, i) {
+      // Explicit start state: a staggered fromTo in a timeline only renders its first target up front.
+      gsap.set(words, { yPercent: 118 });
+      tl.fromTo(words, { yPercent: 118 }, Object.assign({ immediateRender: false }, IN), cue[i][0]);
+      if (cue[i][1] != null) tl.to(words, OUT, cue[i][1]);
+    });
+    if (link) { takeOver([link]); tl.fromTo(link, { autoAlpha: 0, y: 14 }, { autoAlpha: 1, y: 0, duration: 0.07 }, 0.86); }
+    if (bar) tl.fromTo(bar, { scaleX: 0 }, { scaleX: 1, duration: 1 }, 0);
+    if (tl.duration() < 1) tl.to({}, { duration: 1 - tl.duration() });
+
+    // The stage opens from a rounded card to full-bleed while the section arrives.
+    gsap.fromTo(stage, { clipPath: 'inset(9% 4% 9% 4% round 36px)' }, {
+      clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none', immediateRender: true,
+      scrollTrigger: { trigger: sec, start: 'top 92%', end: 'top top', scrub: true }
+    });
+  }
+
   function storyScene(sec) {
     var frame = $('[data-story="image"]', sec);
     var img = frame && $('img', frame);
@@ -453,7 +515,9 @@
     var strip = $('[data-strip]');
     var horizon = $('[data-horizon]');
     var story = $('[data-story="section"]');
+    var aurora = $('[data-aurora="section"]');
     if (strip) stripScene(strip);
+    if (aurora) auroraScene(aurora);
     if (horizon) gsap.fromTo(horizon, { scaleX: 0, transformOrigin: '0% 50%' }, { scaleX: 1, ease: 'none',
       scrollTrigger: { trigger: horizon, start: 'top 100%', end: 'top 60%', scrub: true } });
     if (story) storyScene(story);
@@ -542,11 +606,52 @@
     if (root.classList.contains('au-intro')) lenis.stop(); // released by finishCurtain() / initHero()
   }
 
+  /* Header: frosted once scrolled, hides when you scroll down, returns the moment you scroll up (or tab into it).
+     Never hides while a menu is open. The menu itself is CSS; here we only keep scrolling and keys in step. */
+  function initHeader() {
+    var header = $('.au-header');
+    if (!header) return;
+    var toggle = $('#nav-toggle');
+    var acct = $('#account-toggle');
+    var hidden = false;
+    function menuOpen() { return (toggle && toggle.checked) || (acct && acct.checked); }
+    function show() { if (hidden) { hidden = false; header.classList.remove('is-hidden'); } }
+    ScrollTrigger.create({
+      start: 0, end: 'max',
+      onUpdate: function (self) {
+        var y = self.scroll();
+        header.classList.toggle('is-stuck', y > 60);
+        if (menuOpen() || y < 260) { show(); return; }
+        if (self.direction === 1 && !hidden && self.getVelocity() > 80) { hidden = true; header.classList.add('is-hidden'); }
+        else if (self.direction === -1) show();
+      }
+    });
+    header.addEventListener('focusin', show);
+    if (toggle) toggle.addEventListener('change', function () {
+      if (toggle.checked) { show(); if (acct) acct.checked = false; if (lenis) lenis.stop(); }
+      else if (lenis) lenis.start();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      if (toggle && toggle.checked) { toggle.checked = false; if (lenis) lenis.start(); var l = $('label[for="nav-toggle"]'); if (l) l.focus(); }
+      if (acct && acct.checked) acct.checked = false;
+    });
+    // A back/forward restore must never show the menu open.
+    window.addEventListener('pageshow', function () { if (toggle && toggle.checked) { toggle.checked = false; if (lenis) lenis.start(); } });
+  }
+
+  // Page progress -> CSS variable that drifts the two aurora backdrop layers (see motion.css).
+  function initBackdrop() {
+    ScrollTrigger.create({ start: 0, end: 'max', onUpdate: function (self) { root.style.setProperty('--au-p', self.progress.toFixed(4)); } });
+  }
+
   /* ------------------------------------------------------------------ */
   try {
     ScrollTrigger.config({ ignoreMobileResize: true });
     performance.mark('au:start');
     initSmoothScroll();
+    initBackdrop();
+    initHeader();
     performance.mark('au:smooth');
     initHero();
     performance.mark('au:hero');

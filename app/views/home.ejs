@@ -13,7 +13,7 @@
   <%- include('partials/header', { navActive: '' }) %>
 
   <!-- hero -->
-  <section class="au-hero" style="position:relative;min-height:clamp(520px,72vh,760px);display:flex;align-items:center;overflow:hidden;background:
+  <section class="au-hero" style="position:relative;min-height:clamp(560px,calc(100svh - 70px),900px);display:flex;align-items:center;overflow:hidden;background:
       radial-gradient(120% 120% at 20% 10%, rgba(165,209,228,.95), transparent 55%),
       radial-gradient(120% 120% at 90% 30%, rgba(191,181,232,.9), transparent 55%),
       radial-gradient(140% 120% at 50% 90%, rgba(165,191,151,.9), transparent 55%),
@@ -22,7 +22,9 @@
     <!-- Atmosphere (decorative, motion-only; see motion.css/motion.js): slow drifting light in the brand palette over the photo -->
     <div class="au-hero-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <!-- scrim: darkest on the left where the text sits, fading to clear on the right -->
-    <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,22,28,.74) 0%,rgba(18,22,28,.5) 42%,rgba(18,22,28,.12) 74%,rgba(18,22,28,0) 100%)"></div>
+    <div class="au-hero-grade" style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(38,20,10,.66) 0%,rgba(46,26,14,.4) 42%,rgba(60,34,18,.08) 74%,rgba(60,34,18,0) 100%)"></div>
+    <!-- golden hour: a warm bloom behind the face, in the moodboard's light -->
+    <div class="au-hero-sun" aria-hidden="true"></div>
     <div class="au-hero-glow" aria-hidden="true"></div>
     <div class="au-hero-veil" aria-hidden="true"></div>
     <div class="au-pad" style="position:relative;z-index:1;width:100%;padding:96px 64px">
@@ -78,6 +80,27 @@
   </div>
   <% } %>
 
+  <!-- the northern light: a dark, scroll-driven chapter. Three statements play over a live aurora
+       (js/aurora.js, raw WebGL) as the page scrolls. Without motion/WebGL it is a plain dark section
+       with the same three lines stacked over a CSS gradient. -->
+  <section class="au-aurora" data-aurora="section" aria-labelledby="au-aurora-h">
+    <div class="au-aurora-stage" data-aurora="stage">
+      <canvas class="au-aurora-canvas" aria-hidden="true"></canvas>
+      <div class="au-aurora-copy au-pad">
+        <div class="au-aurora-eyebrow">The Northern Light</div>
+        <div class="au-aurora-lines">
+          <h2 id="au-aurora-h" class="serif au-aurora-line" data-aurora="line">Light is <em>never</em> one color.</h2>
+          <p class="serif au-aurora-line" data-aurora="line"><em>Neither</em> is skin.</p>
+          <div class="au-aurora-line au-aurora-last" data-aurora="line">
+            <p class="serif">Auréalis is made to let it <em>move.</em></p>
+            <a class="au-link au-ulink au-aurora-link" data-aurora="link" href="/shop">Discover the collection →</a>
+          </div>
+        </div>
+      </div>
+      <div class="au-aurora-legend" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span class="au-aurora-bar"><b></b></span></div>
+    </div>
+  </section>
+
   <!-- brand story -->
   <div data-horizon style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
   <div data-story="section" class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
@@ -95,6 +118,7 @@
 
   <%- include('partials/footer') %>
 </div>
+<script defer src="/js/aurora.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
 <script defer src="/js/relight.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
 <script src="/js/app.js"></script>
 </body>

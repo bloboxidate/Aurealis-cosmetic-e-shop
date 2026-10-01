@@ -59,6 +59,14 @@
 .au-motion .au-line-mask { padding: .14em 0; margin: -.14em 0; }
 .au-motion .au-word { will-change: transform; }
 
+/* Golden-hour grade: a warm bloom behind the face and a soft cool rim at the very bottom, so the photo reads
+   luminous (moodboard) instead of grey. Static CSS, no motion needed. */
+.au-hero-sun { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light;
+  background:
+    radial-gradient(58% 90% at 86% 22%, rgba(255, 214, 150, .85), rgba(255, 214, 150, 0) 62%),
+    radial-gradient(40% 60% at 70% 100%, rgba(248, 174, 127, .55), rgba(248, 174, 127, 0) 70%); }
+@media (max-width: 820px) { .au-hero-sun { background: radial-gradient(90% 60% at 70% 20%, rgba(255, 214, 150, .8), rgba(255, 214, 150, 0) 65%); } }
+
 /* Atmosphere layers — decorative, only exist while motion is active. */
 .au-hero-aurora, .au-hero-glow, .au-hero-veil, .au-hero-cue { display: none; pointer-events: none; }
 .au-motion:not(.au-fail) .au-hero-aurora {
@@ -72,7 +80,7 @@
 .au-hero-aurora i:nth-child(1) { width: 60%; height: 80%; left: 48%; top: -10%; background: radial-gradient(closest-side, rgba(247, 213, 149, .85), rgba(247, 213, 149, 0)); }
 .au-hero-aurora i:nth-child(2) { width: 60%; height: 72%; left: 8%;  top: 30%;  background: radial-gradient(closest-side, rgba(191, 181, 232, .75), rgba(191, 181, 232, 0)); }
 .au-hero-aurora i:nth-child(3) { width: 56%; height: 62%; left: 52%; top: 46%;  background: radial-gradient(closest-side, rgba(248, 174, 127, .7),  rgba(248, 174, 127, 0)); }
-.au-motion:not(.au-fail) .au-hero-veil { display: block; position: absolute; inset: 0; background: #12161c; opacity: 1; }
+.au-motion:not(.au-fail) .au-hero-veil { display: block; position: absolute; inset: 0; background: #1f120a; opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
   .au-motion:not(.au-fail) .au-hero-glow {
     display: block; position: absolute; left: 0; top: 0; width: 680px; height: 680px; margin: -340px 0 0 -340px;
@@ -201,3 +209,129 @@ html.lenis, html.lenis body { height: auto; }
 /* Failure toast (e.g. out of stock): same toast, warmer icon. */
 .au-toast-err svg { color: #f8ae7f; }
 
+
+/* ---------- Aurora backdrop ---------- */
+/* Replaces the per-page tiled gradient (which repeated every 950px and left a hard seam).
+   Two fixed layers of the brand palette; motion.js feeds --au-p (0..1 page progress) and the layers
+   drift against each other as you scroll, so the page's light slowly changes colour as you read. */
+html { background: #fff9f3; }
+body > div[style*="background-size:100% 950px"] { background: none !important; }
+body::before, body::after {
+  content: ''; position: fixed; left: 0; right: 0; top: -24vh; bottom: -24vh; z-index: -1; pointer-events: none;
+}
+body::before {
+  background:
+    radial-gradient(46vw 46vh at 6% 22%, rgba(165, 209, 228, .62), transparent 100%),
+    radial-gradient(44vw 44vh at 94% 30%, rgba(191, 181, 232, .55), transparent 100%),
+    radial-gradient(52vw 48vh at 24% 78%, rgba(165, 191, 151, .5), transparent 100%);
+  transform: translate3d(0, calc((var(--au-p, 0) - .5) * -16vh), 0);
+}
+body::after {
+  background:
+    radial-gradient(50vw 46vh at 90% 70%, rgba(247, 213, 149, .6), transparent 100%),
+    radial-gradient(46vw 46vh at 12% 94%, rgba(248, 174, 127, .5), transparent 100%),
+    radial-gradient(40vw 40vh at 62% 12%, rgba(165, 209, 228, .4), transparent 100%);
+  transform: translate3d(0, calc((var(--au-p, 0) - .5) * 20vh), 0);
+}
+
+/* ---------- The Northern Light (home chapter; aurora.js draws the canvas) ---------- */
+.au-aurora { position: relative; background: #0a1018; color: #fff9f3; }
+.au-aurora-stage {
+  position: relative; overflow: hidden; min-height: 100svh; display: flex; align-items: center;
+  background:
+    radial-gradient(60% 70% at 78% 38%, rgba(191, 181, 232, .34), transparent 70%),
+    radial-gradient(70% 60% at 20% 90%, rgba(165, 209, 228, .30), transparent 70%),
+    radial-gradient(50% 50% at 50% 100%, rgba(165, 191, 151, .28), transparent 70%),
+    linear-gradient(180deg, #0a1018, #17122b);
+}
+.au-aurora-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; visibility: hidden; opacity: 0; transition: opacity 1.4s ease; }
+.au-aurora-canvas.is-on { opacity: 1; }
+.au-aurora-stage::after { content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: linear-gradient(90deg, rgba(8, 11, 20, .62) 0%, rgba(8, 11, 20, .3) 45%, rgba(8, 11, 20, 0) 75%); }
+.au-aurora-copy { position: relative; z-index: 1; width: 100%; padding: 120px 64px; }
+.au-aurora-eyebrow { font-size: 13px; letter-spacing: .18em; text-transform: uppercase; color: #f0b892; font-weight: 700; margin-bottom: 30px; }
+.au-aurora-line { margin: 0 0 .5em; font-weight: 400; font-size: clamp(40px, 8.2vw, 124px); line-height: 1.02; letter-spacing: -.01em; max-width: 11em; }
+.au-aurora-line em { font-style: italic; color: #f7d595; }
+.au-aurora-last p { margin: 0 0 .55em; }
+.au-aurora-link { display: inline-block; font-family: 'Manrope', sans-serif; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: #fff9f3; line-height: 1.4; }
+.au-aurora-legend { z-index: 1; position: absolute; left: 64px; right: 64px; bottom: 36px; display: flex; align-items: center; gap: 10px; }
+.au-aurora-legend i { width: 8px; height: 8px; border-radius: 50%; display: block; opacity: .85; }
+.au-aurora-legend i:nth-child(1) { background: #a5d1e4; } .au-aurora-legend i:nth-child(2) { background: #a5bf97; }
+.au-aurora-legend i:nth-child(3) { background: #bfb5e8; } .au-aurora-legend i:nth-child(4) { background: #f7d595; }
+.au-aurora-legend i:nth-child(5) { background: #f8ae7f; }
+.au-aurora-bar { flex: 1; height: 1px; background: rgba(255, 249, 243, .18); margin-left: 14px; position: relative; overflow: hidden; display: none; }
+.au-aurora-bar b { position: absolute; inset: 0; background: #f0b892; transform-origin: left; transform: scaleX(0); display: block; }
+@media (max-width: 820px) {
+  .au-aurora-copy { padding: 96px 22px; } .au-aurora-legend { left: 22px; right: 22px; bottom: 26px; }
+  .au-aurora-line { font-size: clamp(40px, 12.5vw, 76px); }
+}
+/* With motion: the section is tall and the stage sticks, so scrolling "plays" the chapter. Plain sticky
+   (no JS pin), so touch devices get the same chapter without pin jank. */
+.au-motion:not(.au-fail) .au-aurora { height: 330vh; height: 330svh; }
+.au-motion:not(.au-fail) .au-aurora-stage { position: sticky; top: 0; height: 100vh; height: 100svh; }
+.au-motion:not(.au-fail) .au-aurora-lines { position: relative; height: clamp(300px, 52vh, 540px); }
+.au-motion:not(.au-fail) .au-aurora-line { position: absolute; left: 0; top: 50%; transform: translateY(-50%); margin: 0; width: 100%; opacity: 0; }
+.au-motion:not(.au-fail) .au-aurora-bar { display: block; }
+.au-aurora .au-line-mask { padding: .1em 0 .16em; margin: -.1em 0 -.16em; }
+.au-aurora .au-word { will-change: transform; }
+@media (max-width: 820px) { .au-motion:not(.au-fail) .au-aurora { height: 300vh; height: 300svh; } }
+
+/* ---------- Header: sticky, compact once scrolled, hides on the way down ---------- */
+/* Sticky (not fixed) so it keeps its place in the flow and nothing has to be offset. The frosted
+   background lives on ::before: backdrop-filter on the header itself would make it the containing block
+   for the fixed menu overlay and trap the overlay inside the header's box. */
+.au-header { position: sticky !important; top: 0; transition: transform .7s var(--ease-lux), padding .6s var(--ease-lux); }
+.au-header::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; pointer-events: none;
+  background: rgba(255, 249, 243, .8); -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid rgba(58, 53, 46, .08); transition: opacity .5s ease; }
+.au-header.is-stuck::before { opacity: 1; }
+.au-header.is-hidden { transform: translateY(-100%); }
+.au-header .au-logo { z-index: 3; }
+.au-header > div:last-of-type { z-index: 3 !important; }
+.au-logo img { transition: height .6s var(--ease-lux); }
+@media (min-width: 821px) {
+  .au-header.is-stuck { padding-top: 6px !important; padding-bottom: 6px !important; }
+  .au-header.is-stuck .au-logo img { height: 92px !important; }
+}
+
+/* ---------- Menu: full-screen overlay (CSS-only, so it works without JS) ---------- */
+html:has(#nav-toggle:checked) { overflow: hidden; }
+.nav-burger { position: relative; z-index: 3; }
+.nav-mobile {
+  position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 1; height: 100vh; height: 100dvh; overflow-y: auto;
+  padding: 130px 64px 56px; border: 0; box-shadow: none; justify-content: center; counter-reset: au-nav;
+  background:
+    radial-gradient(50vw 50vh at 8% 12%, rgba(165, 209, 228, .55), transparent 100%),
+    radial-gradient(46vw 46vh at 96% 30%, rgba(191, 181, 232, .5), transparent 100%),
+    radial-gradient(52vw 50vh at 78% 96%, rgba(247, 213, 149, .55), transparent 100%),
+    radial-gradient(44vw 44vh at 6% 92%, rgba(248, 174, 127, .42), transparent 100%),
+    #fff9f3;
+}
+.nav-mobile a, .nav-mobile-logout {
+  width: auto; align-self: flex-start; border: 0 !important; padding: .04em 0; font-family: 'Cormorant Garamond', serif; font-weight: 400;
+  font-size: clamp(40px, 7.4vw, 96px); line-height: 1.08; letter-spacing: -.01em; color: #3a352e;
+  transition: color .5s var(--ease-lux), padding-left .6s var(--ease-lux);
+}
+.nav-mobile a::before { counter-increment: au-nav; content: counter(au-nav, decimal-leading-zero); font-family: 'Manrope', sans-serif;
+  font-size: 12px; font-weight: 700; letter-spacing: .16em; color: #c1602f; margin-right: 1.6em; vertical-align: top; position: relative; top: .9em; }
+.nav-mobile a[style*="font-weight:700"] { font-weight: 400 !important; font-style: italic; }
+@media (hover: hover) and (pointer: fine) {
+  .nav-mobile a.au-link:hover { opacity: 1; font-style: italic; color: #c1602f; padding-left: .25em; }
+}
+.nav-mobile-foot { margin-top: 44px; max-width: 320px; font-size: 14px; line-height: 1.6; color: #6b6357; }
+@media (max-width: 820px) {
+  .nav-mobile { padding: 120px 22px 40px; }
+  .nav-mobile a::before { margin-right: 1em; }
+}
+/* The open: the sheet is drawn down from the top edge, then the links rise into it in turn. */
+@keyframes au-menu-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0% 0); } }
+@keyframes au-menu-link { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: none; } }
+.nav-check:checked ~ .nav-mobile { animation: au-menu-in .85s var(--ease-inout) both; }
+.nav-check:checked ~ .nav-mobile a, .nav-check:checked ~ .nav-mobile .nav-mobile-foot { animation: au-menu-link 1s var(--ease-lux) both; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(1) { animation-delay: .3s; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(2) { animation-delay: .37s; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(3) { animation-delay: .44s; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(4) { animation-delay: .51s; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(5) { animation-delay: .58s; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(6) { animation-delay: .65s; }
+.nav-check:checked ~ .nav-mobile a:nth-of-type(n+7) { animation-delay: .72s; }
+.nav-check:checked ~ .nav-mobile .nav-mobile-foot { animation-delay: .8s; }
