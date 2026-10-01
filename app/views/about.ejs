@@ -11,13 +11,13 @@
 
   <%- include('partials/header', { navActive: 'about' }) %>
 
-  <div class="au-pad" style="padding:100px 64px 80px;text-align:center">
-    <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:22px"><%= about.eyebrow %></div>
-    <div class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= about.title %></div>
+  <div class="au-pad" data-about="head" style="padding:100px 64px 80px;text-align:center">
+    <div data-m="rise" style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:22px"><%= about.eyebrow %></div>
+    <div data-m="lines" role="heading" aria-level="1" class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= about.title %></div>
   </div>
 
-  <div class="au-pad grid-2 au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;padding:0 64px 100px">
-    <div class="img-frame" style="width:100%;aspect-ratio:4/5;max-height:560px;border-radius:20px;overflow:hidden;background:
+  <div class="au-pad grid-2" data-about="row" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:60px;padding:0 64px 100px">
+    <div class="img-frame" data-m="wipe" data-about="image" data-scrub-img style="width:100%;aspect-ratio:4/5;max-height:560px;border-radius:20px;overflow:hidden;background:
         radial-gradient(120% 120% at 25% 15%, rgba(165,209,228,.95), transparent 55%),
         radial-gradient(120% 120% at 85% 40%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(140% 120% at 50% 95%, rgba(165,191,151,.9), transparent 55%),
@@ -25,23 +25,23 @@
       <% if (about.image) { %><img src="<%= about.image %>" alt="" style="width:100%;height:100%;object-fit:cover;display:block"><% } %>
     </div>
     <div>
-      <div class="rich"><%- richText(about.body) %></div>
+      <div class="rich" data-about="body"><%- richText(about.body) %></div>
     </div>
   </div>
 
-  <div style="background:rgba(255,255,255,.45);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px">
-    <div class="grid-2 au-reveal" style="display:grid;grid-template-columns:repeat(3,1fr);gap:44px;max-width:1100px;margin:0 auto">
-      <div style="text-align:center">
+  <div data-about="values" style="background:rgba(255,255,255,.45);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px">
+    <div class="grid-2" data-m-group style="display:grid;grid-template-columns:repeat(3,1fr);gap:44px;max-width:1100px;margin:0 auto">
+      <div data-m-item style="text-align:center">
         <div style="width:56px;height:56px;border-radius:50%;background:#a5d1e4;margin:0 auto 20px"></div>
         <div class="serif" style="font-size:24px;margin-bottom:10px">Radiance</div>
         <div style="font-size:14px;line-height:1.6;color:#5a5148">Formulas designed to bring out the light already in your skin, not mask it.</div>
       </div>
-      <div style="text-align:center">
+      <div data-m-item style="text-align:center">
         <div style="width:56px;height:56px;border-radius:50%;background:#a5bf97;margin:0 auto 20px"></div>
         <div class="serif" style="font-size:24px;margin-bottom:10px">Purity</div>
         <div style="font-size:14px;line-height:1.6;color:#5a5148">Clean, considered ingredients — nothing in a formula that isn't earning its place.</div>
       </div>
-      <div style="text-align:center">
+      <div data-m-item style="text-align:center">
         <div style="width:56px;height:56px;border-radius:50%;background:#bfb5e8;margin:0 auto 20px"></div>
         <div class="serif" style="font-size:24px;margin-bottom:10px">Natural Beauty</div>
         <div style="font-size:14px;line-height:1.6;color:#5a5148">Beauty that moves with you, the way light moves across the aurora sky.</div>
@@ -49,20 +49,22 @@
     </div>
   </div>
 
-  <div class="au-pad au-reveal" style="padding:90px 64px;text-align:center">
+  <div class="au-pad" style="padding:90px 64px;text-align:center">
+    <div data-m="rise">
     <div class="serif" style="font-size:32px;margin-bottom:12px">Our Palette</div>
     <div style="font-size:14px;color:#6b6357;margin-bottom:48px">Soft, luminous, nature-rooted — drawn straight from the northern sky.</div>
-    <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap">
+    </div>
+    <div data-m-group data-about="swatches" style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap">
       <% [['#fff9f3','Petal Veil','border:1px solid rgba(58,53,46,.15)'],['#f7d595','Honey Dune',''],['#a5d1e4','Azure Mist',''],['#a5bf97','Sage Harmony',''],['#bfb5e8','Lavender Haze',''],['#f8ae7f','Apricot Glow','']].forEach(function(c){ %>
-        <div style="width:150px">
+        <div data-m-item style="width:150px"><div data-sw>
           <div style="height:110px;border-radius:14px;background:<%= c[0] %>;margin-bottom:10px;<%= c[2] %>"></div>
           <div style="font-size:13px;font-weight:700"><%= c[1] %></div>
-        </div>
+        </div></div>
       <% }); %>
     </div>
   </div>
 
-  <div style="text-align:center;padding:0 64px 100px">
+  <div data-m="rise" style="text-align:center;padding:0 64px 100px">
     <a class="au-link btn-primary" href="/shop" style="padding:18px 44px">Shop Auréalis</a>
   </div>
 

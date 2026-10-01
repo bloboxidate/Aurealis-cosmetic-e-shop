@@ -11,7 +11,7 @@
   <%- include('partials/header', { navActive: typeof navActive !== 'undefined' ? navActive : '' }) %>
 
   <div class="au-pad" style="padding:90px 64px 40px;text-align:center">
-    <div class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
+    <div role="heading" aria-level="1" class="serif" style="font-size:clamp(32px,8vw,56px);line-height:1.15;max-width:900px;margin:0 auto"><%= page.title %></div>
     <% if (page.intro) { %><div class="rich-center"><%- richText(page.intro) %></div><% } %>
   </div>
 

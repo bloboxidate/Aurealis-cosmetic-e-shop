@@ -5,7 +5,7 @@ const geo = require('../lib/geo');
 const sariee = require('../lib/sariee');
 const orders = require('../lib/orders');
 const ah = require('../lib/ah');
-const { flash } = require('../middleware/auth');
+const { flash, flashNow } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
 const { checkoutLimiter } = require('../middleware/rate-limit');
 // Applied directly on the POST /checkout route below, not router.use() —
@@ -71,7 +71,7 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
   const missing = required.filter((k) => !(f[k] || '').trim());
 
   const rerender = async (msg, status = 400) => {
-    flash(req, 'error', msg);
+    flashNow(res, 'error', msg); // shown by this render (flash() would only appear on the next page)
     const [g, cod] = await Promise.all([geo.cityGroups(), codMethod(req)]);
     return res.status(status).render('checkout', {
       title: 'Checkout — Auréalis', ...t,

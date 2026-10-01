@@ -34,8 +34,13 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https://va.vercel-scripts.com'],
+      // fonts.googleapis.com serves the Cormorant Garamond / Manrope stylesheet
+      // (views/partials/head.ejs); without it the CSP blocks that <link> and the
+      // site silently renders in fallback fonts. The font files themselves come
+      // from fonts.gstatic.com, already covered by helmet's default font-src (https:).
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      // 'inline-speculation-rules' allows the inline <script type="speculationrules"> in head.ejs (hover-prefetch of safe pages).
+      scriptSrc: ["'self'", "'unsafe-inline'", "'inline-speculation-rules'", 'https://va.vercel-scripts.com'],
       // Several views use inline onchange/onsubmit handlers (e.g. shop.ejs's
       // sort <select>, admin delete-confirm dialogs) — script-src-attr is a
       // separate CSP directive from script-src and defaults to 'none',
@@ -43,6 +48,12 @@ app.use(helmet({
       scriptSrcAttr: ["'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'", 'https://vitals.vercel-insights.com'],
+      // helmet's default adds `upgrade-insecure-requests`. On the https production site that's harmless, but
+      // opened over plain HTTP from another device (http://192.168.x.x:3000 on a phone) the browser rewrites
+      // every same-origin /js, /css and /assets request to https:// — which a dev server can't answer — so
+      // scripts, styles and the logo all fail and the page loads static. `localhost` is exempt, which is why
+      // it only ever showed up on a phone. Production keeps it.
+      upgradeInsecureRequests: isProd ? [] : null,
     },
   },
 }));
@@ -57,7 +68,12 @@ app.set('views', path.join(__dirname, 'views'));
 // "forever" — a week's staleness for a logo/favicon update is fine; a day for
 // app.js, which changes more often during active development.
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '7d' }));
-app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: '1d' }));
+app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: isProd ? '1d' : 0 }));
+app.use('/css', express.static(path.join(__dirname, 'public', 'css'), { maxAge: isProd ? '1d' : 0 }));
+// Cache-bust query for the motion CSS/JS (head.ejs). Bump ASSET_V (or the '1'
+// below) whenever those files change in production; in dev it changes on
+// every restart so a 1-day maxAge never serves stale files.
+app.locals.assetV = process.env.ASSET_V || (isProd ? '1' : String(Date.now()));
 
 // The site has no locale-prefixed routing (English is the only, unprefixed
 // content) — /en and any /en/* path just redirect to the same path without

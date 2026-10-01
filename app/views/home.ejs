@@ -13,22 +13,27 @@
   <%- include('partials/header', { navActive: '' }) %>
 
   <!-- hero -->
-  <section class="au-reveal" style="position:relative;min-height:clamp(520px,72vh,760px);display:flex;align-items:center;overflow:hidden;background:
+  <section class="au-hero" style="position:relative;min-height:clamp(520px,72vh,760px);display:flex;align-items:center;overflow:hidden;background:
       radial-gradient(120% 120% at 20% 10%, rgba(165,209,228,.95), transparent 55%),
       radial-gradient(120% 120% at 90% 30%, rgba(191,181,232,.9), transparent 55%),
       radial-gradient(140% 120% at 50% 90%, rgba(165,191,151,.9), transparent 55%),
       linear-gradient(160deg,#2c3e50,#34495e)">
-    <% if (home.hero_image) { %><img src="<%= home.hero_image %>" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% } %>
+    <% if (home.hero_image) { %><img class="au-hero-img" src="<%= home.hero_image %>" alt="" fetchpriority="high" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% } %>
+    <!-- Atmosphere (decorative, motion-only; see motion.css/motion.js): slow drifting light in the brand palette over the photo -->
+    <div class="au-hero-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <!-- scrim: darkest on the left where the text sits, fading to clear on the right -->
     <div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,22,28,.74) 0%,rgba(18,22,28,.5) 42%,rgba(18,22,28,.12) 74%,rgba(18,22,28,0) 100%)"></div>
+    <div class="au-hero-glow" aria-hidden="true"></div>
+    <div class="au-hero-veil" aria-hidden="true"></div>
     <div class="au-pad" style="position:relative;z-index:1;width:100%;padding:96px 64px">
-      <div style="max-width:560px">
-        <div style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#f0b892;font-weight:700;margin-bottom:18px"><%= home.hero_eyebrow %></div>
-        <div class="serif" style="font-weight:500;font-size:clamp(42px,10vw,74px);line-height:1.05;margin-bottom:26px;color:#fff"><%= home.hero_title %></div>
-        <div style="font-size:clamp(15px,4vw,17px);line-height:1.6;color:rgba(244,241,234,.9);max-width:440px;margin-bottom:36px"><%= home.hero_text %></div>
-        <a class="au-link btn-primary" href="/shop"><%= home.hero_cta %></a>
+      <div data-hero-copy style="max-width:560px">
+        <div data-hero="eyebrow" style="font-size:13px;letter-spacing:.15em;text-transform:uppercase;color:#f0b892;font-weight:700;margin-bottom:18px"><%= home.hero_eyebrow %></div>
+        <div data-hero="title" role="heading" aria-level="1" class="serif" style="font-weight:500;font-size:clamp(42px,10vw,74px);line-height:1.05;margin-bottom:26px;color:#fff"><%= home.hero_title %></div>
+        <div data-hero="text" style="font-size:clamp(15px,4vw,17px);line-height:1.6;color:rgba(244,241,234,.9);max-width:440px;margin-bottom:36px"><%= home.hero_text %></div>
+        <a data-hero="cta" class="au-link btn-primary" href="/shop"><%= home.hero_cta %></a>
       </div>
     </div>
+    <div class="au-hero-cue" aria-hidden="true"><span></span></div>
   </section>
 
   <!-- rotating product strip: every product, looping continuously. The track is
@@ -39,7 +44,7 @@
   <% if (_strip.length) { %>
     <% var _loops = _strip.length < 6 ? Math.ceil(6 / _strip.length) : 1; %>
     <% var _dur = Math.max(30, _strip.length * _loops * 4); %>
-    <div class="au-reveal" style="padding:clamp(40px,7vw,70px) 0 0">
+    <div data-strip style="padding:clamp(40px,7vw,70px) 0 0">
       <div class="prod-strip" aria-label="All products">
         <div class="prod-strip-track" style="animation-duration:<%= _dur %>s">
           <% for (var _copy = 0; _copy < 2; _copy++) { %>
@@ -60,12 +65,12 @@
 
   <!-- bestsellers -->
   <% if (bestsellers.length) { %>
-  <div class="au-pad au-reveal" style="padding:clamp(48px,9vw,80px) 64px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
+  <div class="au-pad" style="padding:clamp(48px,9vw,80px) 64px">
+    <div data-m="rise" style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
       <div class="serif" style="font-size:clamp(28px,6vw,36px)">Bestsellers</div>
-      <a class="au-link" href="/shop" style="font-size:13px;letter-spacing:.05em;color:#c1602f;text-transform:uppercase;font-weight:700">View all</a>
+      <a class="au-link au-ulink" href="/shop" style="font-size:13px;letter-spacing:.05em;color:#c1602f;text-transform:uppercase;font-weight:700">View all</a>
     </div>
-    <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+    <div class="grid-4" data-m-group style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
       <% bestsellers.forEach(function(p){ %>
         <%- include('partials/product-card', { p }) %>
       <% }); %>
@@ -74,22 +79,23 @@
   <% } %>
 
   <!-- brand story -->
-  <div style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
-  <div class="au-pad grid-2 au-reveal" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
-    <div style="position:relative;width:100%;aspect-ratio:4/3;max-height:480px;border-radius:20px;overflow:hidden;background:
+  <div data-horizon style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
+  <div data-story="section" class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
+    <div data-story="image" style="position:relative;width:100%;aspect-ratio:4/3;max-height:480px;border-radius:20px;overflow:hidden;background:
         radial-gradient(120% 120% at 30% 20%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(120% 120% at 80% 80%, rgba(247,213,149,.9), transparent 55%),
         linear-gradient(160deg,#3f6f86,#4c6b45)">
       <% if (about && about.image) { %><img src="<%= about.image %>" alt="Our story" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% } %>
     </div>
     <div>
-      <div class="serif" style="font-size:clamp(22px,5vw,30px);line-height:1.4;margin-bottom:24px">"The aurora taught us that light is never one color. Every formula moves through sage, azure and lavender the way the sky does."</div>
-      <a class="au-link" href="/about" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#c1602f;font-weight:700">Our Story →</a>
+      <div data-story="quote" class="serif" style="font-size:clamp(22px,5vw,30px);line-height:1.4;margin-bottom:24px">"The aurora taught us that light is never one color. Every formula moves through sage, azure and lavender the way the sky does."</div>
+      <a data-story="link" class="au-link au-ulink" href="/about" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#c1602f;font-weight:700">Our Story →</a>
     </div>
   </div>
 
   <%- include('partials/footer') %>
 </div>
+<script defer src="/js/relight.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
 <script src="/js/app.js"></script>
 </body>
 </html>

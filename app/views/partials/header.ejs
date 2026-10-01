@@ -1,26 +1,18 @@
 <% const active = typeof navActive !== 'undefined' ? navActive : ''; %>
 <% const cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
-<!-- Page-load spinner (the favicon mark, spinning) — removed once the page,
-     including its images, has fully loaded. Never blocks a no-JS visitor. -->
-<noscript><style>#au-loader{display:none}</style></noscript>
-<div id="au-loader" class="au-loader"><img src="/assets/favicon-192.png" alt=""></div>
-<script>
-window.addEventListener('load', function () {
-  var l = document.getElementById('au-loader');
-  if (!l) return;
-  l.classList.add('au-loader-hide');
-  setTimeout(function () { l.remove(); }, 400);
-});
-</script>
-<div class="au-header" style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:16px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
+<!-- First-visit curtain (home only, once per session). Hidden by default; head.ejs
+     adds html.au-intro to show it and motion.js lifts it. It no longer waits for
+     window.load — it never blocks on images, and is forced away if JS fails. -->
+<div id="au-loader" class="au-loader" aria-hidden="true"><div class="au-loader-panel"></div><img src="/assets/aurealis-logo-black.webp" alt=""><span class="au-loader-line"></span></div>
+<div class="au-header" role="banner" style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:16px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
 
   <!-- Left: hamburger nav (all viewports) -->
   <div style="display:flex;align-items:center;z-index:2">
-    <input type="checkbox" id="nav-toggle" class="nav-check">
+    <input type="checkbox" id="nav-toggle" class="nav-check" aria-label="Menu">
     <label for="nav-toggle" class="nav-burger" aria-label="Menu">
       <span></span><span></span><span></span>
     </label>
-    <div class="nav-mobile">
+    <div class="nav-mobile" role="navigation" aria-label="Primary">
       <% cats.forEach(function(c){ %><a class="au-link" href="/shop?category=<%= c.slug %>" style="<%= active===c.slug?'font-weight:700':'' %>"><%= c.name %></a><% }); %>
       <a class="au-link" href="/shop" style="<%= active==='shop'?'font-weight:700':'' %>">Shop All</a>
       <a class="au-link" href="/about" style="<%= active==='about'?'font-weight:700':'' %>">About</a>
@@ -28,7 +20,7 @@ window.addEventListener('load', function () {
   </div>
 
   <!-- Center: logo -->
-  <a href="/" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center">
+  <a class="au-logo" href="/" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center">
     <img src="/assets/aurealis-logo-black.webp" alt="Auréalis" style="height:clamp(84px,15.75vw,140px);width:auto;display:block">
   </a>
 
@@ -41,7 +33,7 @@ window.addEventListener('load', function () {
 
     <% if (user) { %>
       <div class="account-menu" style="position:relative;display:flex;align-items:center">
-        <input type="checkbox" id="account-toggle" class="nav-check">
+        <input type="checkbox" id="account-toggle" class="nav-check" aria-label="Account menu">
         <label for="account-toggle" aria-label="Account" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
         </label>
@@ -55,7 +47,7 @@ window.addEventListener('load', function () {
       </div>
     <% } else { %>
       <div class="account-menu" style="position:relative;display:flex;align-items:center">
-        <input type="checkbox" id="account-toggle" class="nav-check">
+        <input type="checkbox" id="account-toggle" class="nav-check" aria-label="Account menu">
         <label for="account-toggle" aria-label="Account" style="color:#3a352e;cursor:pointer;display:flex;align-items:center">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/></svg>
         </label>

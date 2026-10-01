@@ -25,11 +25,12 @@ router.get('/cart', ah(async (req, res) => {
 router.post('/cart/add', ah(async (req, res) => {
   const { product_id, size, qty } = req.body;
   const ok = await cart.addItem(req, product_id, size, qty);
+  const failMsg = req.addFailReason === 'stock' ? 'Sorry, that item is out of stock right now.' : 'Sorry, that item could not be added.';
   if (wantsJson(req)) {
-    return res.json({ ok, count: await cart.getCount(req) });
+    return res.json({ ok, count: await cart.getCount(req), message: ok ? undefined : failMsg });
   }
   if (ok) flash(req, 'success', 'Added to your bag.');
-  else flash(req, 'error', 'Sorry, that item could not be added.');
+  else flash(req, 'error', failMsg);
   res.redirect('/cart');
 }));
 

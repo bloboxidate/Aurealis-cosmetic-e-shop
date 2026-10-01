@@ -10,14 +10,14 @@
   <%- include('partials/header', { navActive: '' }) %>
 
   <div class="au-pad" style="padding:56px 64px 100px">
-    <div class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:40px">My Wishlist</div>
+    <div role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:40px">My Wishlist</div>
 
     <% if (products.length === 0) { %>
       <div style="background:rgba(255,255,255,.6);border-radius:16px;padding:36px;text-align:center;color:#6b6357">
         Nothing saved yet. <a class="au-link" href="/shop" style="color:#c1602f;font-weight:700">Browse products →</a>
       </div>
     <% } else { %>
-      <div class="grid-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
+      <div class="grid-4" data-m-group style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
         <% products.forEach(function(p){ %>
           <div>
             <%- include('partials/product-card', { p }) %>

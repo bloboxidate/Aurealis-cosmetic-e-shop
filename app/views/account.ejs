@@ -10,7 +10,7 @@
   <%- include('partials/header', { navActive: '' }) %>
 
   <div class="au-pad" style="padding:56px 64px 100px;max-width:900px">
-    <div class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:6px">Hello, <%= user.first_name || 'there' %></div>
+    <div role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:6px">Hello, <%= user.first_name || 'there' %></div>
     <div style="font-size:14px;color:#6b6357;margin-bottom:40px"><%= user.email %></div>
 
     <div style="font-size:20px;font-weight:700;margin-bottom:20px">Order History</div>

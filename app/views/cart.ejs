@@ -11,11 +11,11 @@
 
   <div class="au-pad grid-2" style="padding:56px 64px 100px;display:grid;grid-template-columns:1.6fr 1fr;gap:70px;align-items:flex-start">
     <div>
-      <div class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:36px">Your Bag</div>
+      <div role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,42px);margin-bottom:36px">Your Bag</div>
 
       <% if (items.length === 0) { %>
         <div style="padding:40px 0;color:#6b6357;font-size:16px">Your bag is empty.</div>
-        <a class="au-link" href="/shop" style="display:inline-block;margin-top:8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#c1602f;font-weight:700">← Continue Shopping</a>
+        <a class="au-link au-ulink" href="/shop" style="display:inline-block;margin-top:8px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#c1602f;font-weight:700">← Continue Shopping</a>
       <% } else { %>
         <% items.forEach(function(it){ %>
           <div style="display:flex;gap:24px;padding:28px 0;border-top:1px solid rgba(58,53,46,.15)">
@@ -40,7 +40,7 @@
           </div>
         <% }); %>
         <div style="border-top:1px solid rgba(58,53,46,.15)"></div>
-        <a class="au-link" href="/shop" style="display:inline-block;margin-top:28px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#c1602f;font-weight:700">← Continue Shopping</a>
+        <a class="au-link au-ulink" href="/shop" style="display:inline-block;margin-top:28px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:#c1602f;font-weight:700">← Continue Shopping</a>
       <% } %>
     </div>
 
@@ -58,7 +58,7 @@
         <span>Shipping</span><span>Free</span>
       </div>
       <form action="/cart/promo" method="post" style="display:flex;gap:10px;margin:20px 0">
-        <input type="text" name="code" value="<%= promoCode %>" placeholder="Promo code" style="flex:1;padding:12px 14px;border-radius:100px;border:1px solid rgba(58,53,46,.3);font-size:13px;background:#fff9f3">
+        <input type="text" name="code" value="<%= promoCode %>" placeholder="Promo code" style="flex:1 1 0;width:0;min-width:0;padding:12px 14px;border-radius:100px;border:1px solid rgba(58,53,46,.3);font-size:13px;background:#fff9f3">
         <button type="submit" class="au-link" style="padding:12px 20px;border-radius:100px;border:1px solid #3a352e;font-size:13px;color:#3a352e;background:none;cursor:pointer">Apply</button>
       </form>
       <% if (promoError) { %><div style="font-size:12px;color:#8a3d16;margin:-8px 0 12px"><%= promoError %></div><% } %>

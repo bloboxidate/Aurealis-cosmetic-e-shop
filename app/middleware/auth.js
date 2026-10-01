@@ -40,6 +40,13 @@ function flash(req, type, message) {
   req.session.flash = { type, message };
 }
 
+// For a message shown by a res.render() in the SAME request (no redirect). res.locals.flash was captured
+// by the locals middleware before the handler ran, so flash() would only surface on the NEXT page the
+// customer visits and the current render would show nothing.
+function flashNow(res, type, message) {
+  res.locals.flash = { type, message };
+}
+
 function requireAuth(req, res, next) {
   if (!req.session.userId) {
     flash(req, 'error', 'Please sign in to continue.');
@@ -64,4 +71,4 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { locals, flash, requireAuth, requireAdmin };
+module.exports = { locals, flash, flashNow, requireAuth, requireAdmin };

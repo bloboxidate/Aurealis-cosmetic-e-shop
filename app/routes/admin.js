@@ -19,6 +19,9 @@ const { requireAuth, requireAdmin, flash } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
 
 router.use(requireAuth, requireAdmin, verifyCsrf);
+// Admin shares partials/head.ejs with the storefront; keep the storefront
+// motion system (GSAP/Lenis, page transitions) out of it.
+router.use((req, res, next) => { res.locals.noMotion = true; next(); });
 
 // Products come live from Sariee — never let a Sariee hiccup 500 the whole
 // admin panel. Log the real error (visible in Vercel's Runtime Logs) and

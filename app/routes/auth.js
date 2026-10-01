@@ -7,7 +7,7 @@ const Orders = require('../lib/orders');
 const cancellations = require('../lib/cancellations');
 const ah = require('../lib/ah');
 const mailer = require('../lib/mailer');
-const { flash, requireAuth } = require('../middleware/auth');
+const { flash, requireAuth, flashNow } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
 const { authLimiter } = require('../middleware/rate-limit');
 const { emailRe } = require('../lib/validators');
@@ -57,7 +57,7 @@ router.post('/login', verifyCsrf, authLimiter, ah(async (req, res) => {
   const next = req.body.next || '';
   const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
   if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-    flash(req, 'error', 'Incorrect email or password.');
+    flashNow(res, 'error', 'Incorrect email or password.');
     return res.status(401).render('login', {
       title: 'Sign in — Auréalis', next, values: { email },
     });
@@ -78,7 +78,7 @@ router.post('/signup', verifyCsrf, authLimiter, ah(async (req, res) => {
   const values = { first_name: first, last_name: last, email };
 
   const fail = (msg) => {
-    flash(req, 'error', msg);
+    flashNow(res, 'error', msg);
     res.status(400).render('signup', { title: 'Create account — Auréalis', values });
   };
 
@@ -128,7 +128,7 @@ router.post('/forgot-password', verifyCsrf, authLimiter, ah(async (req, res) => 
     }).catch(() => {});
   }
 
-  flash(req, 'success', genericMsg);
+  flashNow(res, 'success', genericMsg);
   res.render('forgot-password', { title: 'Forgot password — Auréalis', submitted: true });
 }));
 
@@ -161,7 +161,7 @@ router.post('/reset-password/:token', verifyCsrf, authLimiter, ah(async (req, re
 
   const password = req.body.password || '';
   if (password.length < 6) {
-    flash(req, 'error', 'Password must be at least 6 characters.');
+    flashNow(res, 'error', 'Password must be at least 6 characters.');
     return res.status(400).render('reset-password', { title: 'Reset password — Auréalis', token: req.params.token });
   }
 

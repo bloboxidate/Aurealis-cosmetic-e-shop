@@ -153,6 +153,9 @@ async function addItem(req, productId, size, qty) {
     cacheCart(req, r.data && r.data.data);
     return true;
   } catch (err) {
+    // Sariee says "Insufficient stock available" for a sold-out item. Keep the raw text away from customers
+    // (CLAUDE.md) but record the *reason* so the route can say "out of stock" instead of a vague failure.
+    if (/insufficient stock|out of stock/i.test(String(err && err.message))) req.addFailReason = 'stock';
     return false; // surfaced as a flash by the route
   }
 }

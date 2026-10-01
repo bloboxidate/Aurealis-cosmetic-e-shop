@@ -34,13 +34,14 @@
       setTimeout(function () {
         mainImg.src = thumb.dataset.full;
         mainImg.style.opacity = '1';
-      }, 120);
+      }, 220);
       thumbs.forEach(function (t) { t.classList.remove('pdp-thumb-active'); });
       thumb.classList.add('pdp-thumb-active');
     }
 
     thumbs.forEach(function (thumb, i) {
       thumb.addEventListener('click', function () { showImage(i); });
+      new Image().src = thumb.dataset.full; // warm the cache so the swap is instant
     });
     var prevBtn = document.getElementById('pdp-prev');
     var nextBtn = document.getElementById('pdp-next');
@@ -84,10 +85,11 @@
   }
 
   var toastTimer = null;
-  function toast(message) {
+  function toast(message, isError) {
     var el = document.getElementById('au-toast');
     if (!el) return;
     el.querySelector('.au-toast-text').textContent = message;
+    el.classList.toggle('au-toast-err', !!isError);
     el.classList.add('au-toast-show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { el.classList.remove('au-toast-show'); }, 2200);
@@ -96,6 +98,7 @@
   function addToCart(productId, btn, productName) {
     if (btn.disabled) return;
     btn.disabled = true;
+    btn.classList.add('au-busy'); // the Sariee round trip takes ~1s: show that something is happening
     var isQuick = btn.classList.contains('product-card-quick-add');
     var label = isQuick ? null : btn.textContent;
 
@@ -104,10 +107,13 @@
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
       body: 'product_id=' + encodeURIComponent(productId) + '&qty=1',
     }).then(function (r) { return r.json(); }).then(function (data) {
+      btn.classList.remove('au-busy');
       updateCartBadge(data.count || 0, data.ok);
       if (data.ok) {
         pulse(btn);
         toast((productName ? productName + ' added' : 'Added') + ' to your bag');
+      } else {
+        toast(data.message || 'Sorry, that item could not be added.', true);
       }
       if (isQuick) {
         if (data.ok) {
@@ -121,8 +127,10 @@
         setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 1300);
       }
     }).catch(function () {
+      btn.classList.remove('au-busy');
       if (!isQuick) btn.textContent = label;
       btn.disabled = false;
+      toast('Something went wrong. Please try again.', true);
     });
   }
 
@@ -146,8 +154,13 @@
   // --- Scroll-reveal: fade+rise sections into place the first time they
   // enter the viewport. No-op (content already visible) if the browser
   // lacks IntersectionObserver, or the user prefers reduced motion.
+  // When the motion system is active (html.au-motion, see motion.js) it owns
+  // reveals, so this legacy fade stays out of its way.
   var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if ('IntersectionObserver' in window && !reduceMotion) {
+  var motionOwnsReveals = document.documentElement.classList.contains('au-motion');
+  if (motionOwnsReveals) {
+    /* handled by motion.js */
+  } else if ('IntersectionObserver' in window && !reduceMotion) {
     var revealObserver = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
         if (entry.isIntersecting) {
