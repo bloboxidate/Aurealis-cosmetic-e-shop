@@ -27,14 +27,20 @@
     var current = thumbs.findIndex(function (t) { return t.classList.contains('pdp-thumb-active'); });
     if (current < 0) current = 0;
 
-    function showImage(index) {
+    function showImage(index, dir) {
+      var before = current;
       current = (index + thumbs.length) % thumbs.length; // wrap around both ends
       var thumb = thumbs[current];
-      mainImg.style.opacity = '0';
-      setTimeout(function () {
-        mainImg.src = thumb.dataset.full;
-        mainImg.style.opacity = '1';
-      }, 220);
+      // With the motion system, images wipe into each other (motion.js); otherwise a plain cross-fade.
+      var wiped = window.AuMotion && window.AuMotion.gallerySwap && current !== before &&
+        window.AuMotion.gallerySwap(mainImg, thumb.dataset.full, dir || (current > before ? 1 : -1));
+      if (!wiped) {
+        mainImg.style.opacity = '0';
+        setTimeout(function () {
+          mainImg.src = thumb.dataset.full;
+          mainImg.style.opacity = '1';
+        }, 220);
+      }
       thumbs.forEach(function (t) { t.classList.remove('pdp-thumb-active'); });
       thumb.classList.add('pdp-thumb-active');
     }
@@ -45,8 +51,22 @@
     });
     var prevBtn = document.getElementById('pdp-prev');
     var nextBtn = document.getElementById('pdp-next');
-    if (prevBtn) prevBtn.addEventListener('click', function () { showImage(current - 1); });
-    if (nextBtn) nextBtn.addEventListener('click', function () { showImage(current + 1); });
+    if (prevBtn) prevBtn.addEventListener('click', function () { showImage(current - 1, -1); });
+    if (nextBtn) nextBtn.addEventListener('click', function () { showImage(current + 1, 1); });
+  }
+
+  // --- Product page (phones): the sticky Add to Bag bar shows once the main button has scrolled away ---
+  var bar = document.getElementById('pdp-bar');
+  var mainAdd = document.querySelector('#add-form .btn-primary');
+  if (bar && mainAdd) {
+    var barTick = false;
+    var barCheck = function () {
+      barTick = false;
+      var r = mainAdd.getBoundingClientRect();
+      bar.classList.toggle('is-on', r.bottom < 0); // the main button has scrolled off the top
+    };
+    window.addEventListener('scroll', function () { if (!barTick) { barTick = true; requestAnimationFrame(barCheck); } }, { passive: true });
+    barCheck();
   }
 
   // --- Product page: quantity stepper ---

@@ -335,3 +335,51 @@ html:has(#nav-toggle:checked) { overflow: hidden; }
 .nav-check:checked ~ .nav-mobile a:nth-of-type(6) { animation-delay: .65s; }
 .nav-check:checked ~ .nav-mobile a:nth-of-type(n+7) { animation-delay: .72s; }
 .nav-check:checked ~ .nav-mobile .nav-mobile-foot { animation-delay: .8s; }
+
+/* ---------- Footer: a midnight sheet with the brand's light, and an oversized wordmark ---------- */
+.au-footer { position: relative; overflow: hidden; background: linear-gradient(180deg, #0c1220, #15112a); color: #f4f1ea; border-radius: 36px 36px 0 0; margin-top: 40px; }
+.au-footer-aurora { position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(46% 60% at 10% 100%, rgba(165, 209, 228, .26), transparent 100%),
+    radial-gradient(40% 56% at 56% 108%, rgba(165, 191, 151, .22), transparent 100%),
+    radial-gradient(44% 60% at 96% 90%, rgba(191, 181, 232, .3), transparent 100%),
+    radial-gradient(30% 40% at 78% 0%, rgba(248, 174, 127, .12), transparent 100%); }
+.au-footer-base { position: relative; z-index: 1; padding: 0 64px 28px; }
+.au-footer-mark {
+  width: 100%; aspect-ratio: 1078 / 234; margin: 24px 0 30px;
+  background: linear-gradient(100deg, #a5d1e4, #a5bf97 22%, #bfb5e8 48%, #f7d595 74%, #f8ae7f);
+  background-size: 220% 100%; background-position: 0% 50%;
+  -webkit-mask: url(/assets/aurealis-logo-black.webp) 50% 50.1% / 111.3% auto no-repeat;
+          mask: url(/assets/aurealis-logo-black.webp) 50% 50.1% / 111.3% auto no-repeat;
+}
+.au-footer-line { display: flex; justify-content: space-between; gap: 20px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: rgba(244, 241, 234, .6); padding-top: 18px; border-top: 1px solid rgba(244, 241, 234, .14); }
+.au-footer .au-link { color: inherit; }
+@media (max-width: 820px) { .au-footer-base { padding: 0 22px 24px; } .au-footer { border-radius: 24px 24px 0 0; } }
+.au-motion:not(.au-fail) .au-footer-mark { clip-path: inset(100% 0 0 0); }
+
+/* ---------- Product page ---------- */
+.pdp-gallery-col { align-self: start; min-width: 0; }
+@media (min-width: 821px) { .pdp-gallery-col { position: sticky; top: 96px; } }
+.pdp-main img { will-change: transform; }
+@media (hover: hover) and (pointer: fine) { .au-motion .pdp-main { cursor: zoom-in; } }
+.pdp-acc { border-bottom: 1px solid rgba(58, 53, 46, .12); }
+.pdp-acc summary { list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 0; cursor: pointer;
+  font-family: 'Cormorant Garamond', serif; font-size: 26px; line-height: 1.1; }
+.pdp-acc summary::-webkit-details-marker { display: none; }
+.pdp-acc summary i { position: relative; width: 14px; height: 14px; flex: none; }
+.pdp-acc summary i::before, .pdp-acc summary i::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; margin-top: -.75px; background: #3a352e; transition: transform .6s var(--ease-lux); }
+.pdp-acc summary i::after { transform: rotate(90deg); }
+.pdp-acc[open]:not(.is-closing) summary i::after { transform: rotate(0deg); }
+.pdp-acc-body { overflow: hidden; }
+.pdp-acc-body > div { padding: 0 0 24px; font-size: 14px; line-height: 1.75; color: #5a5148; max-width: 460px; }
+.pdp-acc summary:hover span { font-style: italic; }
+/* Phones: once the main Add to Bag scrolls away, the bag follows you. */
+.pdp-bar { display: none; }
+@media (max-width: 820px) {
+  .pdp-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 12px 22px calc(12px + env(safe-area-inset-bottom)); background: rgba(255, 249, 243, .88); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(58, 53, 46, .1); transform: translateY(110%); transition: transform .7s var(--ease-lux); }
+  .pdp-bar.is-on { transform: none; }
+  .pdp-bar-name { font-size: 14px; font-weight: 700; } .pdp-bar-price { font-size: 13px; color: #6b6357; }
+  .pdp-bar .btn-primary { padding: 14px 26px; }
+}

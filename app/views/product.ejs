@@ -18,7 +18,7 @@
 
   <div class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:70px;padding:32px 64px 90px">
     <!-- gallery -->
-    <div>
+    <div class="pdp-gallery-col">
       <% const gallery = (typeof images !== 'undefined' ? images : []); %>
       <% if (gallery.length === 0) { %>
         <div style="width:100%;height:520px;border-radius:20px;overflow:hidden;background:<%= product.color %>"></div>
@@ -49,13 +49,13 @@
     </div>
 
     <!-- details -->
-    <div data-m="rise">
-      <div style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:14px"><%= product.subtitle %></div>
-      <div role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,44px);margin-bottom:12px"><%= product.name %></div>
-      <div style="font-size:20px;color:#3a352e;margin-bottom:20px"><%= money(product.price_cents) %></div>
-      <div style="font-size:15px;line-height:1.7;color:#5a5148;margin-bottom:32px;max-width:460px"><%= product.description %></div>
+    <div class="pdp-info" data-m-group>
+      <div data-m-item style="font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#c1602f;font-weight:700;margin-bottom:14px"><%= product.subtitle %></div>
+      <div data-m-item role="heading" aria-level="1" class="serif" style="font-size:clamp(28px,6.5vw,44px);margin-bottom:12px"><%= product.name %></div>
+      <div data-m-item style="font-size:20px;color:#3a352e;margin-bottom:20px"><%= money(product.price_cents) %></div>
+      <div data-m-item style="font-size:15px;line-height:1.7;color:#5a5148;margin-bottom:32px;max-width:460px"><%= product.description %></div>
 
-      <form action="/cart/add" method="post" id="add-form">
+      <form data-m-item action="/cart/add" method="post" id="add-form">
         <input type="hidden" name="product_id" value="<%= product.id %>">
         <input type="hidden" name="size" id="size-input" value="<%= product.sizes[0] || '' %>">
 
@@ -82,33 +82,26 @@
         </div>
       </form>
 
-      <form action="/wishlist/toggle" method="post" style="margin-top:-20px;margin-bottom:32px">
+      <form data-m-item action="/wishlist/toggle" method="post" style="margin-top:-20px;margin-bottom:32px">
         <input type="hidden" name="product_id" value="<%= product.id %>">
         <input type="hidden" name="next" value="/product/<%= product.slug %>">
         <button type="submit" class="au-link" style="background:none;border:none;cursor:pointer;font-size:13px;color:#6b6357;padding:0"><%= typeof wishlisted !== 'undefined' && wishlisted ? '♥ Saved to Wishlist' : '♡ Save to Wishlist' %></button>
       </form>
 
-      <div style="display:flex;gap:24px;padding:20px 0;border-top:1px solid rgba(58,53,46,.12);border-bottom:1px solid rgba(58,53,46,.12);margin-bottom:32px;font-size:12px;color:#6b6357;letter-spacing:.03em;text-transform:uppercase;flex-wrap:wrap">
+      <% if (product.badges && product.badges.length) { %>
+      <div data-m-item style="display:flex;gap:24px;padding:20px 0;border-top:1px solid rgba(58,53,46,.12);border-bottom:1px solid rgba(58,53,46,.12);margin-bottom:0;font-size:12px;color:#6b6357;letter-spacing:.03em;text-transform:uppercase;flex-wrap:wrap">
         <% product.badges.forEach(function(b){ %><div><%= b %></div><% }); %>
       </div>
+      <% } %>
 
       <% if (product.details) { %>
-      <div style="margin-bottom:20px">
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Details</div>
-        <div style="font-size:14px;line-height:1.7;color:#5a5148"><%= product.details %></div>
-      </div>
+      <details class="pdp-acc" data-m-item open><summary><span>Details</span><i aria-hidden="true"></i></summary><div class="pdp-acc-body"><div><%= product.details %></div></div></details>
       <% } %>
       <% if (product.how_to_use) { %>
-      <div style="margin-bottom:20px">
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px">How to Use</div>
-        <div style="font-size:14px;line-height:1.7;color:#5a5148"><%= product.how_to_use %></div>
-      </div>
+      <details class="pdp-acc" data-m-item><summary><span>How to Use</span><i aria-hidden="true"></i></summary><div class="pdp-acc-body"><div><%= product.how_to_use %></div></div></details>
       <% } %>
       <% if (product.ingredients) { %>
-      <div>
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px">Ingredients</div>
-        <div style="font-size:14px;line-height:1.7;color:#5a5148"><%= product.ingredients %></div>
-      </div>
+      <details class="pdp-acc" data-m-item><summary><span>Ingredients</span><i aria-hidden="true"></i></summary><div class="pdp-acc-body"><div><%= product.ingredients %></div></div></details>
       <% } %>
     </div>
   </div>
@@ -168,6 +161,11 @@
     </div>
   </div>
   <% } %>
+
+  <div class="pdp-bar" id="pdp-bar" aria-hidden="true">
+    <div class="pdp-bar-info"><div class="pdp-bar-name"><%= product.name %></div><div class="pdp-bar-price"><%= money(product.price_cents) %></div></div>
+    <button type="submit" form="add-form" class="btn-primary" tabindex="-1">Add to Bag</button>
+  </div>
 
   <%- include('partials/footer') %>
 </div>
