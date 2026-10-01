@@ -14,6 +14,20 @@ async function forProduct(sarieeProductId) {
   );
 }
 
+// The latest approved reviews across the store, for the home page. Only moderated (is_approved) reviews, never
+// filtered by rating (no cherry-picking), and only the reviewer's first name is ever exposed.
+async function latestApproved(limit = 6) {
+  const rows = await db.all(
+    `SELECT r.id, r.rating, r.body, r.created_at, r.sariee_product_id, u.first_name
+     FROM reviews r JOIN users u ON u.id = r.user_id
+     WHERE r.is_approved = 1
+     ORDER BY r.created_at DESC
+     LIMIT ?`,
+    [limit]
+  );
+  return rows.filter((r) => (r.body || '').trim().length >= 12);
+}
+
 // Pure aggregate over an already-fetched review list — lets callers that
 // already have the rows (e.g. the product page, which renders them too)
 // avoid a second query just for the count/average.
@@ -60,4 +74,4 @@ async function reject(id) {
   await db.run('DELETE FROM reviews WHERE id = ?', [id]);
 }
 
-module.exports = { forProduct, summary, summarize, hasReviewed, create, listPending, approve, reject };
+module.exports = { latestApproved, forProduct, summary, summarize, hasReviewed, create, listPending, approve, reject };

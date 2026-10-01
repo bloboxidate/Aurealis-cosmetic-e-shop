@@ -1,0 +1,20 @@
+<%
+  var _vs = (typeof voices !== 'undefined' ? voices : []);
+  var _pmap = {};
+  (typeof allProducts !== 'undefined' ? allProducts : []).forEach(function(p){ _pmap[String(p.id)] = p; });
+%>
+<% if (_vs.length) { %>
+<section class="au-voices au-pad" aria-labelledby="au-voices-h">
+  <div class="au-ritual-eyebrow" data-m="rise">In Their Words</div>
+  <h2 id="au-voices-h" class="serif au-voices-title" data-m="lines">What our customers say.</h2>
+  <div class="au-voices-grid" data-m-group>
+    <% _vs.slice(0, 3).forEach(function(r){ var _p = _pmap[String(r.sariee_product_id)]; %>
+      <figure class="au-voice" data-m-item>
+        <div class="au-voice-stars" role="img" aria-label="<%= r.rating %> out of 5 stars"><%= '★'.repeat(r.rating) %><span><%= '★'.repeat(5 - r.rating) %></span></div>
+        <blockquote class="serif"><%= r.body %></blockquote>
+        <figcaption><%= r.first_name || 'A customer' %><% if (_p) { %> · <a class="au-link au-ulink" href="/product/<%= encodeURIComponent(_p.slug) %>"><%= _p.name %></a><% } %></figcaption>
+      </figure>
+    <% }); %>
+  </div>
+</section>
+<% } %>

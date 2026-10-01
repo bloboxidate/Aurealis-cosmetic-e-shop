@@ -1,0 +1,24 @@
+<%
+  // "Your Ritual": pick products in the order you'd use them, see the running total, add them all in one go.
+  // Bundles (Ritual / Duo / Set / Kit) are left out - they already are a ritual.
+  var _rp = (typeof allProducts !== 'undefined' ? allProducts : []).filter(function(p){ return p.image_url && !/\b(ritual|duo|set|bundle|kit)\b/i.test(p.name || ''); }).slice(0, 6);
+%>
+<% if (_rp.length >= 2) { %>
+<section class="au-ritual au-pad" data-ritual aria-labelledby="au-ritual-h">
+  <div class="au-ritual-eyebrow" data-m="rise">Your Ritual</div>
+  <h2 id="au-ritual-h" class="serif au-ritual-title" data-m="lines">Choose your steps. We will keep the order.</h2>
+  <div class="au-ritual-grid" data-m-group>
+    <% _rp.forEach(function(p){ %>
+      <button type="button" class="au-ritual-tile" data-m-item data-id="<%= p.id %>" data-cents="<%= p.price_cents %>" data-size="<%= (p.sizes && p.sizes[0]) || '' %>" aria-pressed="false">
+        <span class="au-ritual-img" style="background:<%= p.color || '#f1ece5' %>"><img src="<%= p.image_url %>" alt="" loading="lazy"><i class="au-ritual-step" aria-hidden="true"></i></span>
+        <span class="au-ritual-name"><%= p.name %></span>
+        <span class="au-ritual-price"><%= price(p.price_cents) %></span>
+      </button>
+    <% }); %>
+  </div>
+  <div class="au-ritual-bar">
+    <div class="au-ritual-sum" aria-live="polite"><span data-ritual-count>Pick two or more</span><b data-ritual-total></b></div>
+    <button type="button" class="btn-primary" data-ritual-add disabled>Add to Bag</button>
+  </div>
+</section>
+<% } %>

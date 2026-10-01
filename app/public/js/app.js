@@ -116,6 +116,8 @@
   }
 
   // opts.body: a full urlencoded body (product page: size + qty); opts.source: the image that flies to the bag.
+  window.AuApp = { toast: toast, updateCartBadge: updateCartBadge };
+
   function addToCart(productId, btn, productName, opts) {
     opts = opts || {};
     if (btn.disabled) return;
@@ -135,6 +137,7 @@
         pulse(btn);
         toast((productName ? productName + ' added' : 'Added') + ' to your bag');
         if (opts.source && window.AuMotion && window.AuMotion.fly) window.AuMotion.fly(opts.source);
+        if (window.AuSound) window.AuSound.chime();
       } else {
         toast(data.message || 'Sorry, that item could not be added.', true);
       }

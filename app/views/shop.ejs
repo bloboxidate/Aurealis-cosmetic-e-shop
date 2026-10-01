@@ -34,7 +34,9 @@
       </form>
     </div>
 
-    <!-- filter chips -->
+  <% var _si = (typeof searchIndex !== 'undefined' ? searchIndex : []).filter(function(p){ return p.name; }).map(function(p){ return { n: p.name, s: p.slug, i: p.image_url || '', p: price(p.price_cents), t: p.subtitle || '' }; }); %>
+  <script type="application/json" id="au-search-data"><%- JSON.stringify(_si).replace(/</g, '\\u003c') %></script>
+  <!-- filter chips -->
     <% const chipColors = ['rgba(165,209,228,.5)','rgba(165,191,151,.5)','rgba(191,181,232,.5)','rgba(247,213,149,.6)','rgba(248,174,127,.5)']; %>
     <% function chipUrl(sub){ const p=[]; if(category)p.push('category='+category); if(sub&&sub!=='all')p.push('sub='+sub); if(sort&&sort!=='featured')p.push('sort='+sort); if(typeof q!=='undefined'&&q)p.push('q='+encodeURIComponent(q)); return '/shop'+(p.length?'?'+p.join('&'):''); } %>
     <div data-m="rise" style="display:flex;gap:12px;margin-bottom:44px;flex-wrap:wrap">
@@ -71,6 +73,7 @@
   </main>
   <%- include('partials/footer') %>
 </div>
+<script defer src="/js/search.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
 <script src="/js/app.js"></script>
 </body>
 </html>

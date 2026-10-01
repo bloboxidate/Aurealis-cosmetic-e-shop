@@ -24,7 +24,7 @@ router.get('/', ah(async (req, res) => {
   // Degrade gracefully if Sariee is unreachable — show the page without cards
   // rather than a 500, but log so the failure is diagnosable. Independent of
   // the content lookup, so both run in parallel.
-  const [bestsellers, allProducts, home, about] = await Promise.all([
+  const [bestsellers, allProducts, home, about, voices] = await Promise.all([
     Products.bestsellers(4).catch((err) => {
       console.error('[shop] home bestsellers failed:', err.message); return [];
     }),
@@ -33,9 +33,10 @@ router.get('/', ah(async (req, res) => {
     }),
     content.get('home'),
     content.get('about'),
+    reviews.latestApproved(6).catch(() => []), // real, moderated reviews only; none = the section is simply absent
   ]);
   await markWishlisted(req, bestsellers);
-  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, allProducts, home, about });
+  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, allProducts, home, about, voices });
 }));
 
 // Shop / catalog, filtered by ?category=<slug> and ?sub=<slug>
@@ -50,7 +51,7 @@ router.get('/shop', ah(async (req, res) => {
   // run in parallel rather than one after another.
   const sub = req.query.sub || 'all';
   let catalogError = false;
-  const [products, base, subcats, shopContent] = await Promise.all([
+  const [products, base, subcats, shopContent, searchIndex] = await Promise.all([
     Products.all({ category, subcategory: sub }).catch((err) => {
       console.error('[shop] shop listing failed:', err.message); catalogError = true; return [];
     }),
@@ -59,6 +60,7 @@ router.get('/shop', ah(async (req, res) => {
       : Promise.resolve(null), // filled in below once we know `products`
     category ? Cats.subcategoriesForSlug(category) : Cats.listSubcategories(),
     content.get('shop'),
+    Products.all().catch(() => []), // whole (cached) catalog, for search-as-you-type
   ]);
   const baseList = base !== null ? base : products;
 
@@ -100,6 +102,7 @@ router.get('/shop', ah(async (req, res) => {
     page,
     totalPages,
     q,
+    searchIndex,
   });
 }));
 
