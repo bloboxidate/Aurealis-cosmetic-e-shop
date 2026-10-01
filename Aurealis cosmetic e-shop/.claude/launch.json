@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "aurealis",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start", "--prefix", "C:/Users/Hosam/Desktop/Aurealis cosmetic e-shop/app"],
+      "port": 3000
+    }
+  ]
+}

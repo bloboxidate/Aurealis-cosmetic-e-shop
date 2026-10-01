@@ -68,6 +68,8 @@ app.set('views', path.join(__dirname, 'views'));
 // "forever" — a week's staleness for a logo/favicon update is fine; a day for
 // app.js, which changes more often during active development.
 app.use('/assets', express.static(path.join(__dirname, 'public', 'assets'), { maxAge: '7d' }));
+// Rendered media (hero loop): versioned filenames.
+app.use('/media', express.static(path.join(__dirname, 'public', 'media'), { maxAge: isProd ? '30d' : 0 }));
 // Hashed filenames, so these can be cached for a year without a version query.
 app.use('/fonts', express.static(path.join(__dirname, 'public', 'fonts'), { maxAge: '365d', immutable: true }));
 app.use('/js', express.static(path.join(__dirname, 'public', 'js'), { maxAge: isProd ? '1d' : 0 }));

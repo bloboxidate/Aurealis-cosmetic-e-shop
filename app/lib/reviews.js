@@ -3,6 +3,7 @@
 // behind admin moderation (is_approved) before showing to other shoppers —
 // the submitter still sees their own pending review immediately.
 const db = require('../db/database');
+const ttl = require('./ttl'); // short stale-while-revalidate read cache; writes below bust it
 
 async function forProduct(sarieeProductId) {
   return db.all(
@@ -74,4 +75,5 @@ async function reject(id) {
   await db.run('DELETE FROM reviews WHERE id = ?', [id]);
 }
 
-module.exports = { latestApproved, forProduct, summary, summarize, hasReviewed, create, listPending, approve, reject };
+module.exports = ttl.wrap({ latestApproved, forProduct, summary, summarize, hasReviewed, create, listPending, approve, reject },
+  'reviews', ['latestApproved', 'forProduct', 'summary'], ['create', 'approve', 'reject']);

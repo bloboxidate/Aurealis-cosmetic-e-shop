@@ -21,22 +21,36 @@ const inflight = new Map(); // key -> in-progress promise, so concurrent callers
                              // triggering their own (a real issue once callers
                              // started running in parallel via Promise.all).
 
+// Stale-while-revalidate: fresh for TTL_MS; after that the last good list is still served instantly (up to STALE_MS)
+// while ONE background fetch refreshes it, so the first visitor after an idle minute doesn't wait on the Sariee API.
+// A failed refresh keeps serving the last good list. Prices/stock shown can therefore lag by about a minute plus one
+// request; the cart and checkout always go to Sariee for the real numbers.
+const STALE_MS = Number(process.env.CATALOG_STALE_MS || 5 * 60 * 1000);
+
 async function cached(key, fn) {
   const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < TTL_MS) return hit.value;
-  if (inflight.has(key)) return inflight.get(key);
-  const promise = fn()
-    .then((value) => {
-      cache.set(key, { at: Date.now(), value });
-      inflight.delete(key);
-      return value;
-    })
-    .catch((err) => {
-      inflight.delete(key);
-      throw err;
-    });
-  inflight.set(key, promise);
-  return promise;
+  const age = hit ? Date.now() - hit.at : Infinity;
+  if (hit && age < TTL_MS) return hit.value;
+  const refresh = () => {
+    if (inflight.has(key)) return inflight.get(key);
+    const promise = fn()
+      .then((value) => {
+        cache.set(key, { at: Date.now(), value });
+        inflight.delete(key);
+        return value;
+      })
+      .catch((err) => {
+        inflight.delete(key);
+        throw err;
+      });
+    inflight.set(key, promise);
+    return promise;
+  };
+  if (hit && age < STALE_MS) {
+    refresh().catch(() => {}); // already logged by fetchSariee; keep serving the last good list
+    return hit.value;
+  }
+  return refresh();
 }
 
 function slugify(s) {

@@ -35,8 +35,12 @@ router.get('/', ah(async (req, res) => {
     content.get('about'),
     reviews.latestApproved(6).catch(() => []), // real, moderated reviews only; none = the section is simply absent
   ]);
+  // A rendered hero loop (see tools/hero-loop) is used only while its source is the hero image the admin has set now;
+  // change the hero image and the page quietly falls back to the still + live light layers.
+  let heroVideo = null;
+  try { const m = require('../public/media/hero-loop.json'); if (m && m.file && m.source === home.hero_image) heroVideo = m; } catch (_) { /* no video rendered */ }
   await markWishlisted(req, bestsellers);
-  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, allProducts, home, about, voices });
+  res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, allProducts, home, about, voices, heroVideo });
 }));
 
 // Shop / catalog, filtered by ?category=<slug> and ?sub=<slug>

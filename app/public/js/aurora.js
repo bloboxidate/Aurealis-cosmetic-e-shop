@@ -88,7 +88,8 @@
   ].join('\n');
 
   var root = document.documentElement;
-  var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || document.documentElement.classList.contains('au-lite');
+  var lite = document.documentElement.classList.contains('au-lite');
+  var coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || lite; // ~30fps path
 
   function create(opts) {
     var canvas = opts && opts.canvas, stage = opts && opts.stage, host = (opts && opts.host) || (stage && stage.parentNode);
@@ -97,7 +98,7 @@
 
     var gl = null, prog = null, buf = null, loc = {};
     var S = { p: 0, tp: 0, mx: 0.5, my: 0.5, tmx: 0.5, tmy: 0.5, pres: 0, tpres: 0, t: 0, last: 0, lastDraw: 0,
-              visible: false, raf: 0, drawn: false, scale: coarse ? 0.45 : 0.68, w: 0, h: 0, slow: 0, n: 0, sum: 0, cuts: 0, lost: false, dead: false };
+              visible: false, raf: 0, drawn: false, scale: lite ? 0.42 : (coarse ? 0.55 : 0.68), w: 0, h: 0, slow: 0, n: 0, sum: 0, cuts: 0, lost: false, dead: false };
 
     function compile(type, src) {
       var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -143,10 +144,11 @@
       S.mx += (S.tmx - S.mx) * k(5); S.my += (S.tmy - S.my) * k(5);
       S.pres += (S.tpres - S.pres) * k(3); S.p += (S.tp - S.p) * k(6);
       draw();
-      // If frames run slow, render fewer pixels (twice at most) rather than stutter.
+      // If frames run slow, render fewer pixels (twice at most) rather than stutter. (The coarse/phone path renders at
+      // ~30fps by design, so frames there are ~33ms apart and its "slow" line is higher.)
       if (S.cuts < 2 && dt > 0) {
         S.n++; if (S.n > 10) S.sum += dt;
-        if (S.n >= 70) { if (S.sum / 60 > 0.026) { S.scale *= 0.72; S.cuts++; size(); } S.n = 0; S.sum = 0; }
+        if (S.n >= 70) { if (S.sum / 60 > (coarse ? 0.05 : 0.026)) { S.scale *= 0.72; S.cuts++; size(); } S.n = 0; S.sum = 0; }
       }
       S.raf = requestAnimationFrame(frame);
     }

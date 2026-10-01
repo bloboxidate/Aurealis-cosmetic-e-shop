@@ -11,6 +11,3 @@ app/data/
 
 # Vercel
 .vercel
-
-# hero-loop tool scratch files
-app/tools/hero-loop/_hero.*

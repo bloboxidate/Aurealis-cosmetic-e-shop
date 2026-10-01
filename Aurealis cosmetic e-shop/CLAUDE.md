@@ -50,21 +50,3 @@ is only the traps.
 `app/routes/sariee.js` (`/api/sariee/*`) exposes catalog, cart, register/login and
 `checkout` publicly with no CSRF, rate limit or auth, and nothing in the app uses it.
 Don't build on it; prefer removing it or gating it behind `requireAdmin`.
-
-## Added in the redesign-v2 pass (each of these will bite if forgotten)
-- **Bump `ASSET_V` when you deploy** (Vercel env var; default `1`). CSS/JS are cached for a day and requested as `?v=ASSET_V`,
-  so without a bump returning visitors keep the old files. Fonts are hashed filenames and need no bump.
-- **Read cache (`lib/ttl.js`).** Reads in `content`, `categories`, `overlay` and `reviews` are cached (fresh 15 s, then served
-  stale while one background query refreshes). Writes through the same module bust it. A new write function in those
-  modules must be added to that module's `ttl.wrap(...)` list or admin edits won't show. Other serverless instances can
-  lag by about 15 s. `catalog.js` has the same stale-while-revalidate for the Sariee list (60 s fresh, 5 min stale).
-- **No session for anonymous browsing.** `middleware/csrf.js` skips creating a CSRF token (so no session row, no cookie) on the
-  public pages in `PUBLIC_PAGES`. If one of those pages ever gets a form that needs `csrfToken`, remove it from the list.
-- **JS is split.** `motion.js` is the core; `motion-home/about/product/banner.js`, `aurora.js`, `ritual.js`, `search.js`, `sound.js`
-  load only where used and register with `AuCore.queue(priority, fn)`. Keep that order (hero 10, scenes 20, footer 30, product
-  40, index 45, pointer 50+, reveals 90): ScrollTriggers must be created in DOM order.
-- **Hero loop video** (`public/media/hero-loop.json`) is used only while its `source` equals the admin's current hero image.
-  Regenerate with `tools/hero-loop/` after changing the hero (see its README). The page falls back to the still by itself.
-- **Wishlist toggle and add-to-bag answer JSON** when called with `Accept: application/json` (storefront hearts / product page
-  / ritual builder). The plain form posts still redirect, so the site works without JS.
-- Self-hosted fonts live in `public/fonts` (variable files, hashed names); there is no Google Fonts request any more.

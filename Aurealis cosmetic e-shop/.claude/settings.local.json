@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(rm -f data/aurealis.db data/aurealis.db-wal data/aurealis.db-shm)",
+      "Bash(node db/seed.js)",
+      "Bash(node -e ' *)",
+      "Bash(DATABASE_URL=\"postgresql://u:p@127.0.0.1:6543/db\" node -e \"const db=require\\('./db/database'\\); console.log\\('loaded backend =', db.backend\\); process.exit\\(0\\);\")",
+      "Bash(python -c ' *)"
+    ]
+  }
+}

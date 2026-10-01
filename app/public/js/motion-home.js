@@ -29,7 +29,7 @@
    * copy), and — on fine pointers only — a gentle cursor parallax and light.
    * ------------------------------------------------------------------ */
   function heroReady() {
-    var img = $('.au-hero-img');
+    var img = $('.au-hero-still');
     var imgReady = img && img.decode ? img.decode().catch(function () {}) : Promise.resolve();
     var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
     // Never hold the page hostage to a slow image/font.
@@ -102,6 +102,33 @@
       });
     }
 
+
+    // --- Hero loop video (desktop-class only): the still stays underneath; the video fades in over it once it can
+    //     play, and plays only while the hero is on screen. Skipped on phones/touch, data-saver, slow connections
+    //     and low-power devices, where the still + live light layers are the hero. ---
+    var video = $('.au-hero-video', hero);
+    function startHeroVideo() {
+      if (!video || !FINE || window.innerWidth <= 820 || root.classList.contains('au-lite')) return;
+      var cn = navigator.connection;
+      if (cn && (cn.saveData || /(^|-)2g$|3g/.test(cn.effectiveType || ''))) return;
+      var src = video.getAttribute('data-src');
+      if (!src) return;
+      var shown = false;
+      video.addEventListener('canplay', function () {
+        if (shown) return;
+        shown = true;
+        var p = video.play();
+        var reveal = function () { gsap.to(video, { opacity: 1, duration: 1.8, ease: 'power2.inOut' }); };
+        if (p && p.then) p.then(reveal).catch(function () {}); else reveal();
+      });
+      video.preload = 'auto';
+      video.src = src;
+      ScrollTrigger.create({
+        trigger: hero, start: 'top bottom', end: 'bottom top',
+        onToggle: function (self) { if (!shown) return; if (self.isActive) { var q = video.play(); if (q && q.catch) q.catch(function () {}); } else video.pause(); }
+      });
+    }
+
     // --- Entrance: the hero "develops" ---
     function revealHero() {
       var tl = gsap.timeline({
@@ -111,6 +138,7 @@
           // End on an explicit scale of 1 (not clearProps): the scroll/cursor parallax shares this
           // element's transform, and clearing 'scale' left GSAP's cached 1.16 to be written back.
           if (img) gsap.set(img, { scale: 1 });
+          startHeroVideo();
           buildHeroExit();
           ScrollTrigger.refresh();
         }

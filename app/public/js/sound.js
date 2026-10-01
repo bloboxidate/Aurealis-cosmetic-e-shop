@@ -81,7 +81,7 @@
 
   var btn = document.createElement('button');
   btn.type = 'button'; btn.className = 'au-sound'; btn.setAttribute('aria-pressed', 'false');
-  btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 10v4"/><path d="M10 7v10"/><path d="M14 9v6"/><path d="M18 11v2"/></svg><span class="au-sound-off" aria-hidden="true"></span>';
+  btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 10v4"/><path d="M10 7v10"/><path d="M14 9v6"/><path d="M18 11v2"/></svg>';
   function paint() { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); btn.setAttribute('aria-label', on ? 'Turn ambient sound off' : 'Turn ambient sound on'); btn.title = on ? 'Sound on' : 'Sound off'; btn.classList.toggle('is-on', on); }
   btn.addEventListener('click', function () { setOn(!on, true); });
   host.insertBefore(btn, host.firstChild);

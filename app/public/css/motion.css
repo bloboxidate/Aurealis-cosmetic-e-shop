@@ -45,8 +45,8 @@
    y 12-60% of a square photo. Centre-cropping it into a wide hero put the eyes on
    the top edge, so bias the crop towards the face (more on narrow screens, where
    the subject is on the right). */
-.au-hero-img { object-position: 50% 36%; }
-@media (max-width: 820px) { .au-hero-img { object-position: 72% 36%; } }
+.au-hero-img img, .au-hero-img video { object-position: 50% 36%; }
+@media (max-width: 820px) { .au-hero-img img, .au-hero-img video { object-position: 72% 36%; } }
 
 /* Start states (revealed by motion.js). */
 .au-motion:not(.au-fail) [data-hero] { opacity: 0; }
@@ -539,10 +539,8 @@ button.au-heart-pop:not(.product-card-wishlist) { animation: au-heart-pop .7s va
 
 /* ---------- Ambient sound toggle (header) ---------- */
 .au-sound { position: relative; background: none; border: 0; padding: 0; margin: 0; color: #3a352e; cursor: pointer; display: flex; align-items: center; }
-.au-sound svg path { transform-box: fill-box; transform-origin: 50% 50%; }
-.au-sound.is-on svg path { animation: au-bars 1.3s ease-in-out infinite; }
+.au-sound svg path { transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(.06); transition: transform .6s var(--ease-lux); }
+.au-sound.is-on svg path { transform: none; animation: au-bars 1.3s ease-in-out infinite; }
 .au-sound.is-on svg path:nth-child(2) { animation-delay: -.4s; } .au-sound.is-on svg path:nth-child(3) { animation-delay: -.8s; } .au-sound.is-on svg path:nth-child(4) { animation-delay: -.2s; }
 @keyframes au-bars { 0%, 100% { transform: scaleY(.45); } 50% { transform: scaleY(1.35); } }
-.au-sound-off { position: absolute; left: 50%; top: 50%; width: 24px; height: 1.8px; margin: -1px 0 0 -12px; background: currentColor; transform: rotate(-45deg); border-radius: 2px; transition: opacity .4s ease; }
-.au-sound.is-on .au-sound-off { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .au-sound.is-on svg path { animation: none; } }

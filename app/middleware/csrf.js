@@ -12,7 +12,18 @@ function ensureToken(req) {
 }
 
 // Expose res.locals.csrfToken so any view can embed it in a form.
+// Public, form-less pages that an anonymous visitor can browse without a session. Creating a token modifies the
+// session, which makes express-session INSERT a row into the (remote) database and hold the response open until it is
+// saved: for every first-time visitor and every crawler. None of these pages embeds a token for a signed-out visitor
+// (the only token on them is the logout form, shown to signed-in users), so they get an empty one and no session.
+// Anything else - login, signup, checkout, account, admin, every POST - still gets a real token as before.
+const PUBLIC_PAGES = /^\/(?:$|shop\/?$|product\/|about\/?$|contact\/?$|shipping-policy\/?$|refund-policy\/?$)/;
+
 function csrfLocals(req, res, next) {
+  if ((req.method === 'GET' || req.method === 'HEAD') && !req.session.userId && !req.session.csrfToken && PUBLIC_PAGES.test(req.path)) {
+    res.locals.csrfToken = '';
+    return next();
+  }
   res.locals.csrfToken = ensureToken(req);
   next();
 }
