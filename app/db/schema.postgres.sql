@@ -134,3 +134,36 @@ CREATE INDEX IF NOT EXISTS idx_reviews_product ON reviews(sariee_product_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_approved ON reviews(sariee_product_id, is_approved);
 
 CREATE INDEX IF NOT EXISTS idx_subcategories_cat ON subcategories(category_id);
+
+-- BEGIN security
+-- Supabase publishes every table in `public` through its web API to the `anon` and `authenticated` roles, and by default grants
+-- them full rights. This app never uses that API (it connects straight to Postgres as the owner, which bypasses row-level
+-- security), so every table keeps row-level security ON with no policies (deny all for the API roles) and those roles get no
+-- table rights. The block only touches tables that still need it, so it takes no table locks once everything is protected,
+-- and it also covers tables added later. It never stops the server from starting.
+DO $$
+DECLARE t record; changed boolean := false;
+BEGIN
+  FOR t IN SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+           WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND NOT c.relrowsecurity LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t.relname);
+  END LOOP;
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') AND EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    FOR t IN SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+             WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p')
+               AND (has_table_privilege('anon', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+                 OR has_table_privilege('authenticated', c.oid, 'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) LOOP
+      EXECUTE format('REVOKE ALL ON TABLE public.%I FROM anon, authenticated', t.relname);
+      changed := true;
+    END LOOP;
+    IF changed THEN
+      REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
+    END IF;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON FUNCTIONS FROM anon, authenticated;
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'row-level security setup skipped: %', SQLERRM;
+END $$;
+-- END security

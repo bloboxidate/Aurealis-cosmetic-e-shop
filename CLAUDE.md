@@ -26,6 +26,10 @@ is only the traps.
 - **CSRF is applied per route** (`verifyCsrf` on the route), never `router.use(verifyCsrf)`
   in a router mounted at `/`: all routers share that mount, so it 403s every router
   registered after it (this broke the wishlist). `admin.js` is safe — it's mounted at `/admin`.
+- **Supabase exposure:** the `-- BEGIN security` block at the end of `db/schema.postgres.sql` keeps row-level security ON for every `public` table and
+  strips the `anon`/`authenticated` roles' rights (Supabase grants them everything by default and publishes tables through its web API). It runs on
+  every start, only touches what still needs it, and covers tables added later. The app connects as `postgres` (owner, bypasses RLS), so it is unaffected.
+  Don't add policies or grants for `anon` unless you start using the Supabase client API. Applied to production on 2026-10-02.
 - **Route order in `routes/admin.js`:** `POST /products/order` must stay *before*
   `POST /products/:id`, or "order" is captured as an id and drag-reorder silently breaks.
 - **Load `lib/sariee/endpoints.json` with `require()`**, not `fs.readFileSync` — Vercel's
