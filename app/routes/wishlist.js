@@ -4,6 +4,8 @@ const wishlist = require('../lib/wishlist');
 const catalog = require('../lib/catalog');
 const ah = require('../lib/ah');
 const { flash, requireAuth } = require('../middleware/auth');
+const { sameOrigin } = require('../middleware/same-origin');
+const { cartLimiter } = require('../middleware/rate-limit');
 
 router.get('/wishlist', requireAuth, ah(async (req, res) => {
   const rows = await wishlist.list(req.session.userId);
@@ -17,9 +19,11 @@ router.get('/wishlist', requireAuth, ah(async (req, res) => {
 // Toggle add/remove, then bounce back to wherever the request came from.
 // Signed-in toggles from the storefront's hearts are done in place (fetch) and answered with JSON; a plain
 // form post (no JS) still redirects back as before. Signed-out requests are redirected to /login by requireAuth.
-router.post('/wishlist/toggle', requireAuth, ah(async (req, res) => {
+router.post('/wishlist/toggle', sameOrigin, requireAuth, cartLimiter, ah(async (req, res) => {
   const productId = req.body.product_id;
-  const back = req.body.next || req.get('Referer') || '/wishlist';
+  // Only a path on this site: an attacker-supplied `next` must never send the visitor to another domain.
+  const next = typeof req.body.next === 'string' ? req.body.next : '';
+  const back = /^\/(?![/\\])/.test(next) ? next : '/wishlist';
   const wantsJson = req.xhr || (req.headers.accept || '').includes('application/json');
   if (!productId) return wantsJson ? res.status(400).json({ ok: false }) : res.redirect(back);
 

@@ -9,6 +9,8 @@ const wishlist = require('../lib/wishlist');
 const reviews = require('../lib/reviews');
 const ah = require('../lib/ah');
 const { requireAuth, flash } = require('../middleware/auth');
+const { sameOrigin } = require('../middleware/same-origin');
+const { reviewLimiter } = require('../middleware/rate-limit');
 
 // Marks up a list of decorated products with `.wishlisted` for the signed-in
 // user, one query for the whole list rather than one per card.
@@ -156,7 +158,7 @@ router.get('/product/:slug', ah(async (req, res, next) => {
   });
 }));
 
-router.post('/product/:slug/reviews', requireAuth, ah(async (req, res) => {
+router.post('/product/:slug/reviews', sameOrigin, requireAuth, reviewLimiter, ah(async (req, res) => {
   const product = await Products.bySlug(req.params.slug);
   if (!product) return res.status(404).render('error', { title: 'Not found', heading: 'Not found', message: 'Product not found.' });
 

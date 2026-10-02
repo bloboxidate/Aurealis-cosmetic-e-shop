@@ -87,9 +87,8 @@ ADMIN_PASSWORD=a-strong-password
 ```
 
 Storefront browsing needs only the `SARIEE_*` store settings above. Add
-`SARIEE_LOGIN_EMAIL` / `SARIEE_LOGIN_PASSWORD` only if you use the
-`/api/sariee/admin/*` proxy (the app's own admin UI doesn't call Sariee's
-company API). Full variable list: [Environment variables](#environment-variables).
+`SARIEE_LOGIN_EMAIL` / `SARIEE_LOGIN_PASSWORD` (or a bearer token) only if you
+need Sariee's company-portal API (the app's own admin UI doesn't call it). Full variable list: [Environment variables](#environment-variables).
 
 ### Database: SQLite vs Postgres
 
@@ -127,7 +126,6 @@ See `.env.example` for annotated defaults. Summary:
 | `SARIEE_API_BASE_URL`, `SARIEE_STORE_DOMAIN`, `SARIEE_REQUEST_REFERER`, `SARIEE_LOCALE` | yes | Sariee store selection (`x-domain`, `x-locale`, `Referer`) |
 | `SARIEE_TIMEOUT_MS` | no | Per-request timeout, default 20000 |
 | `SARIEE_LOGIN_EMAIL`, `SARIEE_LOGIN_PASSWORD` *or* `SARIEE_API_BEARER_TOKEN` | only for `/api/company/*` | Company/admin auth for the admin proxy |
-| `SARIEE_ADMIN_PROXY_ALLOW` | no | Comma-separated endpoint ids the admin proxy may call with POST/PUT/PATCH/DELETE |
 | `SARIEE_DEFAULT_COUNTRY` | no | Country for the checkout city picker, default `Egypt` |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_STORAGE_BUCKET` | for image uploads | Supabase Storage for admin images; bucket defaults to `site-images` and must be **public** |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | no | Real email delivery. Without `SMTP_HOST`, emails are only **logged** to the console |
@@ -152,37 +150,24 @@ The essentials:
 - `lib/catalog.js` fetches every page of Sariee's product list (60 s cache),
   maps it to the view shape, then merges the local overlay and taxonomy.
 
-## `/api/sariee/*` JSON API
-
-`routes/sariee.js` exposes Sariee through our server: catalog, cart, checkout
-and geo helpers for anyone, plus `/admin/endpoints` and `/admin/call/:id`
-(admin session only; GET endpoints are open, mutating ones need the id listed in
-`SARIEE_ADMIN_PROXY_ALLOW`). **Nothing in the storefront or admin UI uses it.**
-See [Known issues](#known-issues).
-
 ## Security measures in place
 
 `helmet` with a CSP (inline script/style allowed — the EJS views need them),
 CSRF tokens on auth, checkout and all `/admin` POSTs, `express-rate-limit` on
-login / signup / password reset (20 per 15 min) and checkout (10 per 15 min),
+login / signup / password reset (20 per 15 min), checkout (10 per 15 min), promo codes (15 per 15 min), bag and wishlist changes (120 per 5 min) and reviews (8 per hour),
+an Origin/Fetch-Metadata check on the anonymous cart, wishlist and review posts (`middleware/same-origin.js`),
 session regeneration on login, bcrypt hashing, hashed single-use reset tokens,
 review moderation, image-only 5 MB upload limit, and generic responses on
 password-reset requests to prevent account enumeration.
 
 ## Known issues
 
-1. **`/api/sariee/*` is an unprotected public surface.** The catalog, cart,
-   register, login and especially `POST /api/sariee/checkout` have no CSRF
-   check, no rate limit and no authentication, and checkout creates a real
-   Sariee order — bypassing the limiter on the real `/checkout` route. Nothing
-   in the app calls these routes. The safe fix is to remove them or gate the
-   mount behind `requireAdmin`. *(Not yet changed.)*
-2. **Sariee's cart API has had server-side bugs** (`cart/init` on a non-empty
+1. **Sariee's cart API has had server-side bugs** (`cart/init` on a non-empty
    cart, quantity updates, `checkout-action` — history in the integration
    guide). `lib/scart.js` works around them by trusting its session snapshot and
    falling back to local recalculation; if Sariee regresses, symptoms are
    500s on those calls.
-3. **Uploads need Supabase Storage.** Without `SUPABASE_URL` +
+2. **Uploads need Supabase Storage.** Without `SUPABASE_URL` +
    `SUPABASE_SERVICE_ROLE_KEY`, admin image uploads return a clear error; the
    rest of the admin works.
 4. **No automated tests.** Changes are verified by running the app.
@@ -204,7 +189,6 @@ app/
     shop.js              Home, /shop, /product/:slug (+ reviews), /about, /shipping-policy, /refund-policy, /contact
     cart.js, checkout.js, auth.js, wishlist.js
     admin.js             Taxonomy, product curation, page content, review moderation
-    sariee.js            /api/sariee JSON API (see Known issues)
   lib/
     sariee/              client.js, index.js, endpoints.json (425 endpoints)
     catalog.js           Sariee products + overlay + taxonomy

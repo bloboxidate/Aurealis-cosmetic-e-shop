@@ -84,8 +84,7 @@ working locally.
 | `SUPABASE_STORAGE_BUCKET` | Bucket name if not `site-images` |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Real emails (order confirmation, password reset, cancellation). Without `SMTP_HOST` the emails are **only logged** — so password-reset links never reach customers |
 | `STORE_OPS_EMAIL` | Inbox for customer cancellation requests (Sariee has no cancel API). Unset = stored in the DB, not emailed |
-| `SARIEE_LOGIN_EMAIL`, `SARIEE_LOGIN_PASSWORD` | Sariee company-portal login, used **only** by the `/api/sariee/admin/*` proxy. (Or set `SARIEE_API_BEARER_TOKEN` instead of the pair.) The app's own admin UI doesn't need them |
-| `SARIEE_ADMIN_PROXY_ALLOW` | Endpoint ids the admin proxy may call with POST/PUT/PATCH/DELETE. Leave empty unless you know you need it |
+| `SARIEE_LOGIN_EMAIL`, `SARIEE_LOGIN_PASSWORD` | Sariee company-portal login, used only for Sariee's company-portal API. (Or set `SARIEE_API_BEARER_TOKEN` instead of the pair.) The app's own admin UI doesn't need them |
 
 **Optional tuning**: `SARIEE_TIMEOUT_MS` (default 20000), `SARIEE_DEFAULT_COUNTRY`
 (default `Egypt`), `CATALOG_CACHE_MS` (default 60000), `GEO_CACHE_MS` (default 3600000).

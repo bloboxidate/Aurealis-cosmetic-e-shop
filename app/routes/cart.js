@@ -3,6 +3,8 @@ const router = express.Router();
 const cart = require('../lib/scart'); // Sariee-backed cart
 const ah = require('../lib/ah');
 const { flash } = require('../middleware/auth');
+const { sameOrigin } = require('../middleware/same-origin');
+const { cartLimiter, promoLimiter } = require('../middleware/rate-limit');
 
 function wantsJson(req) {
   return req.xhr || (req.headers.accept || '').includes('application/json');
@@ -22,7 +24,7 @@ router.get('/cart', ah(async (req, res) => {
 }));
 
 // Add to bag (form post from product page or AJAX from cards)
-router.post('/cart/add', ah(async (req, res) => {
+router.post('/cart/add', sameOrigin, cartLimiter, ah(async (req, res) => {
   const { product_id, size, qty } = req.body;
   const ok = await cart.addItem(req, product_id, size, qty);
   const failMsg = req.addFailReason === 'stock' ? 'Sorry, that item is out of stock right now.' : 'Sorry, that item could not be added.';
@@ -34,7 +36,7 @@ router.post('/cart/add', ah(async (req, res) => {
   res.redirect('/cart');
 }));
 
-router.post('/cart/update', ah(async (req, res) => {
+router.post('/cart/update', sameOrigin, cartLimiter, ah(async (req, res) => {
   const itemId = req.body.item_id;
   let qty = req.body.qty;
   // Support relative +/- buttons (op=inc|dec) so the cart works without JS.
@@ -52,7 +54,7 @@ router.post('/cart/update', ah(async (req, res) => {
   res.redirect('/cart');
 }));
 
-router.post('/cart/remove', ah(async (req, res) => {
+router.post('/cart/remove', sameOrigin, cartLimiter, ah(async (req, res) => {
   await cart.removeItem(req, req.body.item_id);
   if (wantsJson(req)) {
     const t = await cart.totals(req, { promoCode: req.session.promo || '' });
@@ -61,7 +63,7 @@ router.post('/cart/remove', ah(async (req, res) => {
   res.redirect('/cart');
 }));
 
-router.post('/cart/promo', ah(async (req, res) => {
+router.post('/cart/promo', sameOrigin, promoLimiter, ah(async (req, res) => {
   const code = (req.body.code || '').trim();
   const valid = await cart.applyPromo(req, code);
   req.session.promoError = valid || !code ? null : 'That promo code isn’t valid.';

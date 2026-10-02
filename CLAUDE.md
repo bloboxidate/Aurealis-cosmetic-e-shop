@@ -19,6 +19,10 @@ is only the traps.
 - Read, print or commit `app/.env`.
 
 ## Traps (each one has bitten this project)
+- **Anonymous POST routes (`/cart/*`, `/wishlist/toggle`, review posts) use `middleware/same-origin.js`, not tokens.** Anonymous visitors have no
+  session/token on public pages by design, so a token would break add-to-bag for first-time visitors. The middleware checks `Sec-Fetch-Site` /
+  `Origin` / `Referer` and refuses cross-site posts. New anonymous-facing POST routes should use `sameOrigin` plus a limiter from `middleware/rate-limit.js`.
+  Limiters keep their counters in each serverless instance's memory (not shared); a Vercel Firewall rate-limit rule is the strict backstop.
 - **CSRF is applied per route** (`verifyCsrf` on the route), never `router.use(verifyCsrf)`
   in a router mounted at `/`: all routers share that mount, so it 403s every router
   registered after it (this broke the wishlist). `admin.js` is safe — it's mounted at `/admin`.
@@ -46,10 +50,9 @@ is only the traps.
 - Admin image uploads need Supabase Storage (`lib/storage.js`); the Vercel filesystem is
   not persistent — don't write uploads to disk.
 
-## Known open issue
-`app/routes/sariee.js` (`/api/sariee/*`) exposes catalog, cart, register/login and
-`checkout` publicly with no CSRF, rate limit or auth, and nothing in the app uses it.
-Don't build on it; prefer removing it or gating it behind `requireAdmin`.
+## Removed
+`/api/sariee/*` (a public JSON proxy nobody used) was deleted because it exposed catalog, cart, login and checkout with no CSRF,
+rate limit or auth. The storefront talks to Sariee only server-side through `lib/sariee`. Don't re-add a public proxy.
 
 ## Added in the redesign-v2 pass (each of these will bite if forgotten)
 - **Bump `ASSET_V` when you deploy** (Vercel env var; default `1`). CSS/JS are cached for a day and requested as `?v=ASSET_V`,

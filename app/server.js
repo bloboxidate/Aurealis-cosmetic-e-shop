@@ -134,7 +134,6 @@ app.use('/', require('./routes/auth'));
 app.use('/', require('./routes/checkout'));
 app.use('/', require('./routes/wishlist'));
 app.use('/admin', require('./routes/admin'));
-app.use('/api/sariee', require('./routes/sariee'));
 
 // 404
 app.use((req, res) => {
