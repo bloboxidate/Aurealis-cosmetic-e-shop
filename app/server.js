@@ -77,7 +77,9 @@ app.use('/css', express.static(path.join(__dirname, 'public', 'css'), { maxAge: 
 // Cache-bust query for the motion CSS/JS (head.ejs). Bump ASSET_V (or the '1'
 // below) whenever those files change in production; in dev it changes on
 // every restart so a 1-day maxAge never serves stale files.
-app.locals.assetV = process.env.ASSET_V || (isProd ? '1' : String(Date.now()));
+// Cache-busting version for /css and /js (they are cached for a day). A manual ASSET_V always wins; otherwise on Vercel it is
+// the deploy's commit id, so every deploy gets a fresh version by itself. Locally it changes on every start.
+app.locals.assetV = process.env.ASSET_V || (isProd ? (process.env.VERCEL_GIT_COMMIT_SHA || '1').slice(0, 8) : String(Date.now()));
 
 // The site has no locale-prefixed routing (English is the only, unprefixed
 // content) — /en and any /en/* path just redirect to the same path without
