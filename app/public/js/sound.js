@@ -1,7 +1,8 @@
-/* Auréalis — optional ambient sound. OFF by default; a small speaker button in the header turns it on and the choice
- * is remembered. Everything is synthesised live with the Web Audio API (no audio files): a slow, open pad whose
+/* Auréalis — ambient sound. ON by default; the small speaker button in the header turns it off and the choice is
+ * remembered. Everything is synthesised live with the Web Audio API (no audio files): a slow, open pad whose
  * brightness follows how far down the page you are, plus a soft chime when something is added to the bag.
- * Browsers only allow audio after a gesture, so a remembered "on" starts at your first click or key press. */
+ * Browsers only allow audio after a gesture, so it begins at the visitor's first tap, click or key press (the first
+ * tap on the entrance, if it is skipped, counts). Visitors on data-saver never get it. */
 (function () {
   'use strict';
   var AC = window.AudioContext || window.webkitAudioContext;
@@ -14,7 +15,11 @@
   var KEY = 'au-sound';
   var on = false, ctx = null, master = null, filter = null, tick = 0;
 
-  function saved() { try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; } }
+  // A visitor's own choice wins; otherwise the admin's default (data-au-sound on <html>, set in head.ejs).
+  function saved() {
+    try { var v = localStorage.getItem(KEY); if (v === '0') return false; if (v === '1') return true; } catch (e) {}
+    return root.getAttribute('data-au-sound') !== 'off';
+  }
   function save(v) { try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {} }
 
   function build() {
@@ -49,15 +54,16 @@
     filter.frequency.setTargetAtTime(520 + p * 1500, ctx.currentTime, 0.8);
   }
 
-  function setOn(v, fromGesture) {
-    on = v; save(v); paint();
+  function setOn(v, fromGesture, auto) {
+    on = v; if (!auto) save(v); paint();
     if (v) {
       build();
       var start = function () { ctx.resume(); master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0.9, ctx.currentTime, 1.1); tick = tick || setInterval(follow, 250); };
       if (fromGesture || ctx.state === 'running') start();
       else { // remembered "on": wait for the first gesture
-        var once = function () { document.removeEventListener('pointerdown', once); document.removeEventListener('keydown', once); if (on) start(); };
-        document.addEventListener('pointerdown', once); document.addEventListener('keydown', once);
+        var evs = ['pointerup', 'click', 'touchend', 'keydown'];   // touchend/click are the gestures iOS and Android accept
+        var once = function () { evs.forEach(function (ev) { document.removeEventListener(ev, once, true); }); if (on) start(); };
+        evs.forEach(function (ev) { document.addEventListener(ev, once, true); });
       }
     } else if (ctx) {
       master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0, ctx.currentTime, 0.25);
@@ -86,5 +92,5 @@
   btn.addEventListener('click', function () { setOn(!on, true); });
   host.insertBefore(btn, host.firstChild);
   paint();
-  if (saved()) setOn(true, false);
+  if (saved()) setOn(true, false, true);
 })();

@@ -68,3 +68,24 @@ Don't build on it; prefer removing it or gating it behind `requireAdmin`.
 - **Wishlist toggle and add-to-bag answer JSON** when called with `Accept: application/json` (storefront hearts / product page
   / ritual builder). The plain form posts still redirect, so the site works without JS.
 - Self-hosted fonts live in `public/fonts` (variable files, hashed names); there is no Google Fonts request any more.
+
+## Admin rebuild (each of these will bite if forgotten)
+- **Never save in the admin on the local `:3000` server: it writes to the LIVE production DB (and uploads to the live Supabase bucket).**
+  Test admin work in a sandbox: `DATABASE_URL= ADMIN_EMAIL=sandbox@aurealis.test ADMIN_PASSWORD=<throwaway> node db/seed.js`
+  once (must print `(sqlite)`), then `DATABASE_URL= SUPABASE_URL= SUPABASE_SERVICE_ROLE_KEY= PORT=3100 node server.js`
+  (blank env vars stop dotenv from filling them in). Catalog reads still go to live Sariee; never add to bag or check out there.
+- **Starting any server against Postgres runs `db/schema.postgres.sql`** (`init()`), so a new table is created in production the moment a
+  local server starts. Prefer storing new settings in the `site_content` JSON store (keys `site`, `announcement`, `product_extras`,
+  `activity`) over new tables.
+- **Every content write goes through `lib/contentSchema.js`.** A field not listed in `SCHEMA` is dropped on save. A new editable field needs:
+  a default in `lib/content.js`, a `SCHEMA` entry, and a form field. `req: true` fields fall back to their default when left blank;
+  `bool` fields need `F.toggle()` (hidden `0` + checkbox `1`) or "off" never arrives; `url` fields only allow `http(s)`, `/path`, `mailto:`, `tel:`, `#`.
+  "Restore original wording" (`resetPatch`) never touches image fields (`hero_image`, about `image`).
+- **Route order in `routes/admin.js`:** literal `POST /products/order` and `/products/bulk` stay above `POST /products/:id`.
+- Admin writes answer JSON when called with `Accept: application/json` (`done()`), and redirect with a flash otherwise.
+  Plain-form AJAX must send urlencoded bodies (`URLSearchParams`), never `FormData` (multipart is parsed only on the upload routes).
+- A new write function in `reviews`/`overlay`/`content` must be added to that module's `ttl.wrap(...)` write list.
+- Hidden homepage sections are not rendered at all (the motion code looks elements up); the hero is never hideable.
+- Admin form classes are `.fld`/`.input`/etc. under `.adm` (`admin.css`). Do not name anything `.field`: the storefront's `head.ejs` already defines it.
+- Product text from Sariee is plain text with blank-line (CRLF) paragraph breaks: render it with `paragraphs()` (res.locals), never a bare `<%= %>`.
+- The first-visit entrance waits up to 1.3 s for the aurora shader's first frame, else uses the CSS orb; sound defaults come from `data-au-sound` on `<html>` (set in `head.ejs` from the `site` settings).

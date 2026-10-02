@@ -1,114 +1,71 @@
-<!doctype html>
-<html lang="en">
-<head><%- include('../partials/head') %></head>
-<body>
-<% const inp='padding:9px 12px;border-radius:8px;border:1px solid rgba(58,53,46,.25);font-size:13px;background:#fff';
-   const mini='background:none;border:none;color:#c1602f;font-weight:700;cursor:pointer;font-size:13px';
-   const del='background:none;border:none;color:#b0533a;cursor:pointer;font-size:13px'; %>
-<div class="admin-shell" style="display:flex;min-height:100vh;background:#fbf7f1">
-  <%- include('../partials/admin-nav', { adminActive }) %>
-  <div class="admin-main" style="flex:1;padding:40px 48px;max-width:920px">
-    <div class="serif" style="font-size:36px;margin-bottom:8px">Categories</div>
-    <div style="font-size:14px;color:#8a8175;margin-bottom:24px">Your local storefront taxonomy. Assign products to these on the <a class="au-link" href="/admin/products" style="color:#c1602f">Products</a> page.</div>
-    <%- include('../partials/flash') %>
-
-    <!-- add category -->
-    <form action="/admin/categories" method="post" style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:18px;display:flex;gap:10px;align-items:end;margin-bottom:28px;flex-wrap:wrap">
-      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-      <div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">New category name</label><input name="name" required placeholder="e.g. Skincare" style="<%= inp %>"></div>
-      <div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">Slug (optional)</label><input name="slug" placeholder="auto" style="<%= inp %>"></div>
-      <div><label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px">Sort</label><input name="sort_order" type="number" value="0" style="<%= inp %>;width:70px"></div>
-      <button type="submit" class="btn-primary" style="padding:10px 20px">Add category</button>
-    </form>
-
-    <% if (categories.length === 0) { %>
-      <div style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:28px;color:#8a8175;font-size:14px">No categories yet — add your first above. Until you create categories, the storefront nav stays empty and the shop shows all products.</div>
-    <% } %>
-
-    <% categories.forEach(function(c){ %>
-      <div style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:22px;margin-bottom:18px">
-        <div class="category-image-upload" data-id="<%= c.id %>" style="display:flex;gap:14px;align-items:center;margin-bottom:16px">
-          <img class="image-upload-preview" src="<%= c.image_url %>" style="width:72px;height:72px;object-fit:cover;border-radius:10px;background:#f0ece5;display:<%= c.image_url ? 'block' : 'none' %>">
-          <div>
-            <label style="display:block;font-size:11px;font-weight:700;color:#6b6357;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Tile image</label>
-            <input type="file" accept="image/*" class="image-upload-input">
-            <div class="image-upload-status" style="font-size:12px;color:#8a8175;margin-top:4px"></div>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-          <form action="/admin/categories/<%= c.id %>/edit" method="post" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <input name="name" value="<%= c.name %>" style="<%= inp %>;font-weight:700">
-            <input name="slug" value="<%= c.slug %>" style="<%= inp %>;width:120px" title="slug">
-            <div style="display:flex;flex-direction:column;gap:3px">
-              <span style="font-size:9px;font-weight:700;color:#8a8175;text-transform:uppercase;letter-spacing:.05em">Order</span>
-              <input name="sort_order" type="number" value="<%= c.sort_order %>" style="<%= inp %>;width:64px">
-            </div>
-            <button type="submit" style="<%= mini %>">Save</button>
-          </form>
-          <form action="/admin/categories/<%= c.id %>/delete" method="post" onsubmit="return confirm('Delete category “<%= c.name %>”?')"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" style="<%= del %>">Delete</button></form>
-        </div>
-
-        <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(58,53,46,.08)">
-          <div style="font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#8a8175;margin-bottom:10px">Subcategories</div>
-          <% const subs = subcategories.filter(function(s){ return s.category_id === c.id }); %>
-          <% if (subs.length === 0) { %><div style="font-size:13px;color:#a49c8f;margin-bottom:10px">None yet.</div><% } %>
-          <% subs.forEach(function(s){ %>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0">
-              <form action="/admin/subcategories/<%= s.id %>/edit" method="post" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap">
-                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                <input type="hidden" name="category_id" value="<%= c.id %>">
-                <input name="name" value="<%= s.name %>" style="<%= inp %>">
-                <input name="slug" value="<%= s.slug %>" style="<%= inp %>;width:120px" title="slug">
-                <div style="display:flex;flex-direction:column;gap:3px">
-                  <span style="font-size:9px;font-weight:700;color:#8a8175;text-transform:uppercase;letter-spacing:.05em">Order</span>
-                  <input name="sort_order" type="number" value="<%= s.sort_order %>" style="<%= inp %>;width:64px">
-                </div>
-                <button type="submit" style="<%= mini %>">Save</button>
-              </form>
-              <form action="/admin/subcategories/<%= s.id %>/delete" method="post" onsubmit="return confirm('Delete subcategory “<%= s.name %>”?')"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" style="<%= del %>">Delete</button></form>
-            </div>
-          <% }); %>
-
-          <form action="/admin/subcategories" method="post" style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <input type="hidden" name="category_id" value="<%= c.id %>">
-            <input name="name" required placeholder="New subcategory" style="<%= inp %>">
-            <input name="slug" placeholder="slug (auto)" style="<%= inp %>;width:120px">
-            <button type="submit" style="border:1px solid rgba(58,53,46,.3);background:none;border-radius:100px;padding:8px 16px;font-size:12px;cursor:pointer">+ Add</button>
-          </form>
-        </div>
-      </div>
-    <% }); %>
+<%- include('../partials/admin-open') %>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Categories</h1>
+    <p class="adm-sub">The groups in your store menu and on the collections list. Give each a picture, then assign products to them on the <a href="/admin/products">Products</a> page.</p>
   </div>
 </div>
-<script>
-document.querySelectorAll('.category-image-upload').forEach(function (box) {
-  var input = box.querySelector('.image-upload-input');
-  var preview = box.querySelector('.image-upload-preview');
-  var status = box.querySelector('.image-upload-status');
-  var csrfToken = <%- JSON.stringify(csrfToken) %>;
-  input.addEventListener('change', function () {
-    var file = input.files[0];
-    if (!file) return;
-    var fd = new FormData();
-    fd.append('image', file);
-    status.textContent = 'Uploading…';
-    fetch('/admin/categories/' + box.dataset.id + '/image', {
-      method: 'POST',
-      headers: { 'X-CSRF-Token': csrfToken },
-      body: fd,
-    }).then(function (r) { return r.json(); }).then(function (data) {
-      if (data.ok) {
-        preview.src = data.url;
-        preview.style.display = 'block';
-        status.textContent = 'Saved.';
-      } else {
-        status.textContent = data.message || 'Upload failed.';
-      }
-    }).catch(function () { status.textContent = 'Upload failed.'; });
-  });
-});
-</script>
-</body>
-</html>
+
+<div class="stack" style="max-width:900px">
+  <form action="/admin/categories" method="post" class="card card-pad">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="card-h"><div><h2 class="card-t">New category</h2></div></div>
+    <div class="grid" style="grid-template-columns:2fr 1.4fr 90px auto;align-items:end">
+      <div class="fld" style="margin:0"><label for="nc-name">Name</label><input class="input" id="nc-name" name="name" required placeholder="e.g. Skincare"></div>
+      <div class="fld" style="margin:0"><label for="nc-slug">Web address <span class="opt">optional</span></label><input class="input" id="nc-slug" name="slug" placeholder="made from the name"></div>
+      <div class="fld" style="margin:0"><label for="nc-sort">Order</label><input class="input" id="nc-sort" name="sort_order" type="number" value="0"></div>
+      <button type="submit" class="btn btn-solid">Add category</button>
+    </div>
+  </form>
+
+  <% if (categories.length === 0) { %>
+    <div class="card empty"><div class="big">No categories yet</div><div>Until you add some, the store menu stays empty and every product shows under “Shop All”.</div></div>
+  <% } %>
+
+  <% categories.forEach(function (c) { var subs = subcategories.filter(function (s) { return s.category_id === c.id; }); %>
+    <section class="card cat">
+      <div class="row wrap between" style="align-items:flex-start;gap:18px">
+        <div class="imgup" data-upload-url="/admin/categories/<%= c.id %>/image" style="gap:14px">
+          <% if (c.image_url) { %><img class="cat-img" src="<%= c.image_url %>" alt="" style="width:64px;height:64px"><div class="ph" hidden style="width:64px;height:64px">Photo</div><% } else { %><img class="cat-img" src="" alt="" hidden style="width:64px;height:64px"><div class="ph" style="width:64px;height:64px">Photo</div><% } %>
+          <div><div class="lbl" style="margin-bottom:6px">Tile picture</div><input type="file" accept="image/*" class="input" style="padding:6px 8px;font-size:12px;max-width:230px" aria-label="Upload a picture for <%= c.name %>"><div class="hint imgup-status"></div></div>
+        </div>
+        <form action="/admin/categories/<%= c.id %>/delete" method="post" data-confirm="Products in it stay in the store; they just lose this category." data-confirm-title="Delete “<%= c.name %>”?" data-confirm-yes="Delete" data-danger>
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="btn btn-sm btn-danger">Delete</button>
+        </form>
+      </div>
+
+      <form action="/admin/categories/<%= c.id %>/edit" method="post" class="row wrap" style="margin-top:16px;align-items:flex-end">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="fld grow" style="margin:0;min-width:160px"><label>Name</label><input class="input strong" name="name" value="<%= c.name %>" aria-label="Name of <%= c.name %>"></div>
+        <div class="fld" style="margin:0;width:170px"><label>Web address</label><input class="input" name="slug" value="<%= c.slug %>" aria-label="Web address of <%= c.name %>"></div>
+        <div class="fld" style="margin:0;width:80px"><label>Order</label><input class="input" name="sort_order" type="number" value="<%= c.sort_order %>" aria-label="Order of <%= c.name %>"></div>
+        <button type="submit" class="btn">Save</button>
+      </form>
+
+      <hr class="hr">
+      <div class="lbl" style="margin-bottom:8px">Subcategories</div>
+      <% if (!subs.length) { %><div class="muted small" style="margin-bottom:8px">None yet.</div><% } %>
+      <% subs.forEach(function (s) { %>
+        <div class="sub">
+          <form action="/admin/subcategories/<%= s.id %>/edit" method="post" class="row wrap grow" style="gap:8px">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="category_id" value="<%= c.id %>">
+            <input class="input" name="name" value="<%= s.name %>" style="max-width:220px" aria-label="Subcategory name">
+            <input class="input" name="slug" value="<%= s.slug %>" style="max-width:150px" aria-label="Subcategory address">
+            <input class="input" name="sort_order" type="number" value="<%= s.sort_order %>" style="max-width:76px" aria-label="Order">
+            <button type="submit" class="btn btn-sm">Save</button>
+          </form>
+          <form action="/admin/subcategories/<%= s.id %>/delete" method="post" data-confirm="Products keep their main category." data-confirm-title="Delete “<%= s.name %>”?" data-confirm-yes="Delete" data-danger>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="btn btn-sm btn-ghost">Delete</button>
+          </form>
+        </div>
+      <% }); %>
+      <form action="/admin/subcategories" method="post" class="row wrap" style="margin-top:10px;gap:8px">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>"><input type="hidden" name="category_id" value="<%= c.id %>">
+        <input class="input" name="name" required placeholder="New subcategory" style="max-width:220px" aria-label="New subcategory name">
+        <input class="input" name="slug" placeholder="web address (auto)" style="max-width:170px" aria-label="New subcategory address">
+        <button type="submit" class="btn btn-sm">Add subcategory</button>
+      </form>
+    </section>
+  <% }); %>
+</div>
+<%- include('../partials/admin-close') %>

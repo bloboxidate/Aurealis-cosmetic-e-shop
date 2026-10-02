@@ -1,10 +1,31 @@
 <% const active = typeof navActive !== 'undefined' ? navActive : ''; %>
 <% const cats = (typeof navCategories !== 'undefined' ? navCategories : []); %>
-<!-- First-visit curtain (home only, once per session). Hidden by default; head.ejs
-     adds html.au-intro to show it and motion.js lifts it. It no longer waits for
-     window.load — it never blocks on images, and is forced away if JS fails. -->
-<div id="au-loader" class="au-loader" aria-hidden="true"><div class="au-loader-panel"></div><img src="/assets/aurealis-logo-black.webp" alt=""><span class="au-loader-line"></span></div>
+<!-- First-visit threshold (home only, once per session): a night sky ignites into an aurora, a glass orb opens,
+     and the hero develops in the light that comes through. Hidden by default; head.ejs adds html.au-intro to show it
+     and motion-home.js plays it (click / tap / any key skips). It never blocks on images and is forced away if JS fails. -->
+<div id="au-loader" class="au-loader" aria-hidden="true">
+  <div class="au-loader-panel"></div>
+  <canvas class="au-loader-canvas"></canvas>
+  <i class="au-loader-orb"></i>
+  <div class="au-loader-mark">
+    <img src="/assets/aurealis-logo-black.webp" alt="">
+    <span class="au-loader-line"></span>
+    <p class="au-loader-tag serif"><%= (typeof site !== 'undefined' && site && site.intro_tagline) || 'Step into the light.' %></p>
+  </div>
+  <i class="au-loader-flash"></i>
+  <span class="au-loader-skip">Tap to skip</span>
+</div>
 <a class="au-skip" href="#main">Skip to content</a>
+<% if (typeof announcement !== 'undefined' && announcement && announcement.enabled && announcement.text) {
+     var _as = announcement.text + '|' + (announcement.link_url || ''), _ak = 0;
+     for (var _i = 0; _i < _as.length; _i++) { _ak = ((_ak << 5) - _ak + _as.charCodeAt(_i)) | 0; }
+     var _aext = /^https?:\/\//i.test(announcement.link_url || ''); %>
+<div class="au-announce" id="au-announce" role="region" aria-label="Announcement">
+  <p><%= announcement.text %><% if (announcement.link_url && announcement.link_label) { %> <a href="<%= announcement.link_url %>"<%- _aext ? ' target="_blank" rel="noopener"' : '' %>><%= announcement.link_label %></a><% } %></p>
+  <button type="button" class="au-announce-x" aria-label="Dismiss this message"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M1.5 1.5l9 9M10.5 1.5l-9 9"/></svg></button>
+</div>
+<script>(function(){var b=document.getElementById('au-announce');if(!b)return;var k='au-ann-<%= _ak %>';try{if(localStorage.getItem(k)){b.remove();return;}}catch(e){}b.querySelector('.au-announce-x').addEventListener('click',function(){try{localStorage.setItem(k,'1');}catch(e){}b.remove();});})();</script>
+<% } %>
 <div class="au-header" role="banner" style="position:relative;display:flex;align-items:center;justify-content:space-between;padding:16px 64px;border-bottom:1px solid rgba(58,53,46,.12)">
 
   <!-- Left: hamburger nav (all viewports) -->

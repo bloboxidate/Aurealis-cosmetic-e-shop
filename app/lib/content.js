@@ -16,7 +16,38 @@ const DEFAULTS = {
     hero_image: '',
     bestsellers_title: 'Bestsellers',
     bestsellers_text: 'Our most-loved essentials.',
+    // Which sections appear (the hero always does). Hidden sections are not rendered at all.
+    show_strip: true, show_bestsellers: true, show_aurora: true, show_collections: true,
+    show_story: true, show_ritual: true, show_voices: true,
+    // The Northern Light chapter: *word* is shown in italics.
+    aurora_eyebrow: 'The Northern Light',
+    aurora_line1: 'Light is *never* one color.',
+    aurora_line2: '*Neither* is skin.',
+    aurora_line3: 'Auréalis is made to let it *move.*',
+    aurora_link: 'Discover the collection →',
+    story_quote: '“The aurora taught us that light is never one color. Every formula moves through emerald, teal and violet the way the sky does.”',
+    story_link: 'Our Story →',
+    ritual_eyebrow: 'Your Ritual',
+    ritual_title: 'Choose your steps. We will keep the order.',
   },
+  // Site-wide behaviour: the first-visit entrance, ambient sound, the hero loop video.
+  site: {
+    intro_enabled: true,
+    intro_tagline: 'Step into the light.',
+    sound_default: true,
+    hero_video_enabled: true,
+  },
+  // A slim message above the header (free shipping, a launch, a holiday closure…).
+  announcement: {
+    enabled: false,
+    text: '',
+    link_label: '',
+    link_url: '',
+  },
+  // Per-product text the admin adds on top of Sariee's: { "<sariee id>": { details, how_to_use, ingredients, badge } }.
+  product_extras: {},
+  // The last things changed in the admin, newest first: { items: [{ t, who, text }] }.
+  activity: { items: [] },
   about: {
     eyebrow: 'Our Story',
     title: "Light doesn't have one color. Neither does your glow.",

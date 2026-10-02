@@ -17,26 +17,40 @@
   --d-glide: 1.6s;
 }
 
-/* ---------- First-visit curtain (home, once per session) ---------- */
-/* The wordmark settles in on a cream panel, docks into the header's logo
-   position, then the panel lifts off the hero. The header's own logo and
-   controls stay hidden until then (see motion.js). */
+/* ---------- First-visit threshold (home, once per session) ---------- */
+/* A night sky, an aurora that ignites, a glass orb that opens. The wordmark and one line sit in it; then a warm
+   flash and the hero develops beneath. The header's own logo and controls stay hidden until it ends (motion-home.js).
+   With no WebGL (or on low-power devices) a CSS orb and gradient stand in. */
 .au-loader { display: none; }
 .au-intro .au-loader {
-  position: fixed; inset: 0; z-index: 300;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px;
+  position: fixed; inset: 0; z-index: 300; overflow: hidden; background: #04070f;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
 }
 .au-intro.au-fail .au-loader { display: none; }
-/* scrollbar-gutter keeps the layout width identical when scroll unlocks, so the
-   header logo the wordmark docks onto never shifts under it. */
+/* scrollbar-gutter keeps the layout width identical when scroll unlocks, so nothing shifts under the header. */
 .au-intro:not(.au-fail) { overflow: hidden; scrollbar-gutter: stable; }
-.au-loader-panel { position: absolute; inset: 0; background: #fff9f3; will-change: transform; }
-.au-loader img { position: relative; height: clamp(84px, 15.75vw, 140px); width: auto; display: block; opacity: 0; will-change: transform; }
-.au-loader-line {
-  position: relative; display: block; width: min(160px, 30vw); height: 1px;
-  background: rgba(58, 53, 46, .35);
-  transform-origin: left center; transform: scaleX(0);
-}
+.au-loader-panel { position: absolute; inset: 0; will-change: opacity;
+  background:
+    radial-gradient(70% 55% at 50% 100%, rgba(61, 245, 160, .22), transparent 70%),
+    radial-gradient(60% 60% at 80% 20%, rgba(138, 107, 255, .26), transparent 70%),
+    radial-gradient(60% 50% at 15% 70%, rgba(53, 201, 230, .18), transparent 70%),
+    linear-gradient(180deg, #04070f, #0b0a22); }
+.au-loader-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; visibility: hidden; opacity: 0; transition: opacity 1.6s ease; }
+.au-loader-canvas.is-on { opacity: 1; }
+.au-loader-orb { display: none; position: absolute; left: 50%; top: 44%; width: 34vh; height: 34vh; margin: -17vh 0 0 -17vh; border-radius: 50%; transform: scale(0); will-change: transform;
+  background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, .85) 0 3%, rgba(255, 255, 255, 0) 9%), radial-gradient(circle at 50% 50%, rgba(120, 200, 235, .35), rgba(138, 107, 255, .35) 62%, rgba(61, 245, 160, .3) 100%);
+  box-shadow: inset 0 0 30px rgba(255, 255, 255, .22), 0 0 70px rgba(138, 107, 255, .4); }
+.au-loader.no-gl .au-loader-orb { display: block; }
+.au-loader-mark { opacity: 0; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 4vh; text-align: center; will-change: transform, opacity; }
+.au-loader-mark img { height: clamp(84px, 15.75vw, 140px); width: auto; display: block; filter: brightness(0) invert(1) drop-shadow(0 0 26px rgba(150, 255, 215, .35)); }
+.au-loader-line { display: block; width: min(180px, 34vw); height: 1px; transform-origin: center; transform: scaleX(0);
+  background: linear-gradient(90deg, rgba(61, 245, 160, 0), #3df5a0 20%, #35c9e6 45%, #8a6bff 70%, rgba(242, 123, 192, 0)); }
+.au-loader-tag { margin: 0; font-size: clamp(20px, 3.4vw, 30px); font-style: italic; font-weight: 400; letter-spacing: .01em; color: #fff9f3; line-height: 1.2; }
+.au-loader-tag .au-lw { display: inline-block; }
+.au-loader-flash { position: absolute; inset: 0; opacity: 0; pointer-events: none; will-change: opacity;
+  background: radial-gradient(circle at 50% 46%, #fff6e2 0%, rgba(247, 213, 149, .9) 26%, rgba(248, 174, 127, .6) 55%, rgba(248, 174, 127, 0) 82%); }
+.au-loader-skip { position: absolute; z-index: 1; left: 0; right: 0; bottom: max(26px, env(safe-area-inset-bottom)); text-align: center; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255, 249, 243, .5); opacity: 0; }
+@media (hover: hover) and (pointer: fine) { .au-loader { cursor: pointer; } }
 .au-intro:not(.au-fail) .au-logo img { opacity: 0; }
 .au-intro:not(.au-fail) .au-header > div { opacity: 0; }
 
@@ -67,6 +81,32 @@
     radial-gradient(40% 60% at 70% 100%, rgba(248, 174, 127, .55), rgba(248, 174, 127, 0) 70%); }
 @media (max-width: 820px) { .au-hero-sun { background: radial-gradient(90% 60% at 70% 20%, rgba(255, 214, 150, .8), rgba(255, 214, 150, 0) 65%); } }
 
+/* Night grade: the copy side of the photo sits under a deep aurora-night wash (indigo, not brown), so the warm
+   skin on the right glows against a cool sky. The curtain below is the only aurora on the hero. */
+.au-hero { align-items: center; }
+.au-hero-grade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(4, 9, 26, .9) 0%, rgba(8, 18, 42, .7) 38%, rgba(22, 24, 52, .2) 70%, rgba(22, 24, 52, 0) 100%); }
+.au-hero-curtain { position: absolute; inset: 0 34% 0 0; pointer-events: none; mix-blend-mode: screen; transform-origin: 50% 100%; opacity: .9;
+  background:
+    repeating-linear-gradient(90deg, rgba(90, 255, 180, 0) 0 13px, rgba(90, 255, 180, .34) 21px, rgba(90, 255, 180, 0) 36px, rgba(60, 210, 240, 0) 61px, rgba(60, 210, 240, .26) 72px, rgba(60, 210, 240, 0) 96px),
+    repeating-linear-gradient(90deg, rgba(150, 120, 255, 0) 0 44px, rgba(150, 120, 255, .22) 58px, rgba(150, 120, 255, 0) 80px),
+    linear-gradient(0deg, rgba(53, 201, 230, .55) 0%, rgba(61, 245, 160, .46) 30%, rgba(138, 107, 255, .32) 62%, rgba(138, 107, 255, 0) 94%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 38%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 22%, rgba(0, 0, 0, .7) 55%, transparent 96%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, #000 0%, #000 38%, transparent 100%), linear-gradient(0deg, transparent 0%, #000 22%, rgba(0, 0, 0, .7) 55%, transparent 96%);
+  mask-composite: intersect; }
+.au-motion:not(.au-fail) .au-hero-curtain { animation: au-curtain 16s ease-in-out infinite alternate; will-change: transform, opacity; }
+.au-lite .au-hero-curtain { animation: none !important; }
+@keyframes au-curtain { 0% { transform: translateX(-2.5%) scaleY(.96); opacity: .72; } 100% { transform: translateX(2.5%) scaleY(1.06); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .au-hero-curtain { animation: none !important; } }
+/* Phones: the face fills the top, so the copy drops to the bottom on a bottom-weighted wash. */
+@media (max-width: 820px) {
+  .au-hero { align-items: flex-end; }
+  .au-hero .au-pad { padding-bottom: 72px !important; }
+  .au-hero-grade { background: linear-gradient(0deg, rgba(6, 12, 30, .88) 0%, rgba(10, 18, 40, .66) 42%, rgba(18, 24, 50, .12) 72%, rgba(18, 24, 50, 0) 100%); }
+  .au-hero-curtain { inset: 0; }
+  .au-motion:not(.au-fail) .au-hero .au-hero-cue { display: none; }
+}
+
 /* Atmosphere layers — decorative, only exist while motion is active. */
 .au-hero-aurora, .au-hero-glow, .au-hero-veil, .au-hero-cue { display: none; pointer-events: none; }
 .au-motion:not(.au-fail) .au-hero-aurora {
@@ -78,7 +118,7 @@
    and sand tones; lavender gives a cool mist behind the copy. (At high strength azure/lavender
    over a face turns skin grey — keep these low.) */
 .au-hero-aurora i:nth-child(1) { width: 60%; height: 80%; left: 48%; top: -10%; background: radial-gradient(closest-side, rgba(247, 213, 149, .85), rgba(247, 213, 149, 0)); }
-.au-hero-aurora i:nth-child(2) { width: 60%; height: 72%; left: 8%;  top: 30%;  background: radial-gradient(closest-side, rgba(191, 181, 232, .75), rgba(191, 181, 232, 0)); }
+.au-hero-aurora i:nth-child(2) { width: 60%; height: 72%; left: 4%;  top: 30%;  background: radial-gradient(closest-side, rgba(70, 230, 190, .5), rgba(70, 230, 190, 0)); }
 .au-hero-aurora i:nth-child(3) { width: 56%; height: 62%; left: 52%; top: 46%;  background: radial-gradient(closest-side, rgba(248, 174, 127, .7),  rgba(248, 174, 127, 0)); }
 .au-motion:not(.au-fail) .au-hero-veil { display: block; position: absolute; inset: 0; background: #1f120a; opacity: 1; }
 @media (hover: hover) and (pointer: fine) {
@@ -239,9 +279,9 @@ body::after {
 .au-aurora-stage {
   position: relative; overflow: hidden; min-height: 100svh; display: flex; align-items: center;
   background:
-    radial-gradient(60% 70% at 78% 38%, rgba(191, 181, 232, .34), transparent 70%),
-    radial-gradient(70% 60% at 20% 90%, rgba(165, 209, 228, .30), transparent 70%),
-    radial-gradient(50% 50% at 50% 100%, rgba(165, 191, 151, .28), transparent 70%),
+    radial-gradient(60% 70% at 78% 38%, rgba(138, 107, 255, .34), transparent 70%),
+    radial-gradient(70% 60% at 20% 90%, rgba(53, 201, 230, .30), transparent 70%),
+    radial-gradient(50% 50% at 50% 100%, rgba(61, 245, 160, .28), transparent 70%),
     linear-gradient(180deg, #0a1018, #17122b);
 }
 .au-aurora-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; visibility: hidden; opacity: 0; transition: opacity 1.4s ease; }
@@ -255,9 +295,9 @@ body::after {
 .au-aurora-link { display: inline-block; font-family: 'Manrope', sans-serif; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: #fff9f3; line-height: 1.4; }
 .au-aurora-legend { z-index: 1; position: absolute; left: 64px; right: 64px; bottom: 36px; display: flex; align-items: center; gap: 10px; }
 .au-aurora-legend i { width: 8px; height: 8px; border-radius: 50%; display: block; opacity: .85; }
-.au-aurora-legend i:nth-child(1) { background: #a5d1e4; } .au-aurora-legend i:nth-child(2) { background: #a5bf97; }
-.au-aurora-legend i:nth-child(3) { background: #bfb5e8; } .au-aurora-legend i:nth-child(4) { background: #f7d595; }
-.au-aurora-legend i:nth-child(5) { background: #f8ae7f; }
+.au-aurora-legend i:nth-child(1) { background: #3df5a0; } .au-aurora-legend i:nth-child(2) { background: #35c9e6; }
+.au-aurora-legend i:nth-child(3) { background: #8a6bff; } .au-aurora-legend i:nth-child(4) { background: #f27bc0; }
+.au-aurora-legend i:nth-child(5) { background: #f7d595; }
 .au-aurora-bar { flex: 1; height: 1px; background: rgba(255, 249, 243, .18); margin-left: 14px; position: relative; overflow: hidden; display: none; }
 .au-aurora-bar b { position: absolute; inset: 0; background: #f0b892; transform-origin: left; transform: scaleX(0); display: block; }
 @media (max-width: 820px) {
@@ -321,8 +361,10 @@ html:has(#nav-toggle:checked) { overflow: hidden; }
 }
 .nav-mobile-foot { margin-top: 44px; max-width: 320px; font-size: 14px; line-height: 1.6; color: #6b6357; }
 @media (max-width: 820px) {
-  .nav-mobile { padding: 120px 22px 40px; }
-  .nav-mobile a::before { margin-right: 1em; }
+  .nav-mobile { padding: 110px 24px 40px; }
+  .nav-mobile a, .nav-mobile-logout { font-size: clamp(26px, 7.2vw, 32px); line-height: 1.2; padding: .1em 0; }
+  .nav-mobile a::before { margin-right: 1em; font-size: 11px; top: .55em; }
+  .nav-mobile-foot { margin-top: 32px; font-size: 13px; }
 }
 /* The open: the sheet is drawn down from the top edge, then the links rise into it in turn. */
 @keyframes au-menu-in { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0% 0); } }
@@ -408,6 +450,58 @@ html:has(#nav-toggle:checked) { overflow: hidden; }
 .au-index-peek img.is-on { opacity: 1; transform: none; }
 @media (hover: none), (pointer: coarse) { .au-index-peek { display: none; } }
 
+/* ---------- Product cards ----------
+   The plate is a pearl wash (mint > lavender > peach); the white product photo is multiplied into it, so the
+   bottle sits in tinted light instead of on a white box. A thin aurora hairline lights the plate on hover. */
+.product-card { display: flex; flex-direction: column; align-items: flex-start; }   /* buttons line up across a row, whatever the name wraps to */
+.pc-wish { position: absolute; top: 12px; left: 12px; z-index: 3; margin: 0; }
+.pc-link { display: block; width: 100%; color: inherit; text-decoration: none; }
+.product-card-media { position: relative; width: 100%; aspect-ratio: 4 / 5; margin-bottom: 18px; border-radius: 18px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center; background: linear-gradient(165deg, #e8f3f0 0%, #eeeaf7 56%, #fbeedd 100%); }
+.product-card-media img { width: 100%; height: 100%; object-fit: cover; display: block; mix-blend-mode: multiply; }
+.pc-noimg { font-size: 13px; color: #6b6357; letter-spacing: .05em; }
+.product-card-media::before { content: ''; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: 1px; pointer-events: none; opacity: 0;
+  background: linear-gradient(135deg, #3df5a0, #35c9e6 36%, #8a6bff 68%, #f27bc0); transition: opacity .8s var(--ease-lux);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+@media (hover: hover) and (pointer: fine) { .product-card:hover .product-card-media::before, .product-card:focus-within .product-card-media::before { opacity: .9; } }
+.pc-name { font-size: 24px; font-weight: 500; line-height: 1.12; color: #2c2822; margin: 0 0 6px; letter-spacing: .005em; }
+.pc-sub { font-size: 13px; color: #6b6357; margin: 0 0 6px; line-height: 1.45; }
+.pc-price { font-size: 12.5px; letter-spacing: .12em; color: #6b6357; margin: 0 0 16px; font-variant-numeric: tabular-nums; }
+.product-card-add { position: relative; display: inline-block; width: auto; padding: 7px 0 9px; margin: auto 0 0; border: 0; border-radius: 0; background: none; cursor: pointer;
+  font: 700 11.5px/1 'Manrope', sans-serif; letter-spacing: .16em; text-transform: uppercase; color: #3a352e; }
+.product-card-add::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; transform-origin: 0 50%; transform: scaleX(.24);
+  background: linear-gradient(90deg, #3df5a0, #35c9e6, #8a6bff, #f27bc0); transition: transform .8s var(--ease-lux); }
+.product-card-add:hover::after, .product-card-add:focus-visible::after, .product-card:hover .product-card-add::after { transform: scaleX(1); }
+.product-card-add:active { transform: translateY(1px); }
+.product-card-add:disabled { cursor: default; opacity: .7; }
+@media (max-width: 820px) { .pc-name { font-size: 21px; } .pc-price { font-size: 12px; letter-spacing: .1em; margin-bottom: 14px; } }
+@media (hover: none), (pointer: coarse) { .product-card-add { padding: 16px 0 17px; } .product-card-add::after { transform: scaleX(1); bottom: 9px; } }
+
+/* Pearl plates for the strip and the product page, same wash as the cards. */
+.prod-strip-img, .pdp-main, .pdp-thumb { background: linear-gradient(165deg, #e8f3f0 0%, #eeeaf7 56%, #fbeedd 100%); }
+.prod-strip-img img, .pdp-main img, .pdp-thumb img { mix-blend-mode: multiply; }
+.prod-strip-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 500; line-height: 1.2; color: #2c2822; }
+.prod-strip-price { font-size: 12px; letter-spacing: .12em; }
+
+/* Product description: Sariee's text arrives as paragraphs; the first one is usually the tagline, so it leads. */
+.pdp-desc { font-size: 15px; line-height: 1.75; color: #5a5148; margin-bottom: 32px; max-width: 460px; }
+.pdp-desc p { margin: 0 0 1.05em; }
+.pdp-desc p:last-child { margin-bottom: 0; }
+.pdp-desc p:first-child:not(:last-child) { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; line-height: 1.35; color: #3a352e; }
+.pdp-acc-body p { margin: 0 0 .9em; } .pdp-acc-body p:last-child { margin-bottom: 0; }
+
+/* Announcement bar (admin: Site settings). A slim night strip above the header; dismissible. */
+.au-announce { position: relative; z-index: 61; display: flex; align-items: center; justify-content: center; padding: 9px 46px; background: #0b1020; color: #f4efe6; text-align: center; }
+.au-announce p { margin: 0; font-size: 12.5px; letter-spacing: .05em; line-height: 1.5; }
+.au-announce a { margin-left: 8px; color: #f7d595; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.au-announce-x { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: grid; place-items: center; border: 0; background: none; color: rgba(244, 239, 230, .65); cursor: pointer; border-radius: 50%; }
+.au-announce-x:hover { color: #fff; background: rgba(255, 255, 255, .1); }
+@media (max-width: 620px) { .au-announce { padding: 8px 40px 8px 16px; } .au-announce p { font-size: 12px; } }
+/* While the full-screen menu is open the bar steps aside (it keeps its space, so the header does not jump). */
+html:has(#nav-toggle:checked) .au-announce { visibility: hidden; }
+/* A badge the admin can put on a product's picture. */
+.pc-badge { position: absolute; right: 12px; top: 12px; z-index: 2; padding: 5px 11px; border-radius: 14px; background: rgba(11, 16, 32, .86); color: #fff9f3; font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; pointer-events: none; }
+
 /* ---------- Product imagery: warm light that follows the cursor ---------- */
 .product-card-media::after, .prod-strip-img::after {
   content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: multiply; transition: opacity .7s var(--ease-lux);
@@ -417,7 +511,7 @@ html:has(#nav-toggle:checked) { overflow: hidden; }
 @media (hover: hover) and (pointer: fine) {
   .product-card:hover .product-card-media::after, .prod-strip-item:hover .prod-strip-img::after { opacity: 1; }
 }
-.au-motion:not(.au-fail) [data-m-item] .product-card-media { clip-path: inset(0 0 100% 0 round 16px); }
+.au-motion:not(.au-fail) [data-m-item] .product-card-media { clip-path: inset(0 0 100% 0 round 18px); }
 
 /* ---------- Hero glitter (cursor trail, fine pointers) ---------- */
 .au-hero-sparks { display: none; }
@@ -519,8 +613,10 @@ button.au-heart-pop:not(.product-card-wishlist) { animation: au-heart-pop .7s va
 .au-ritual-step { position: absolute; right: 12px; top: 12px; width: 34px; height: 34px; border-radius: 50%; background: #3a352e; color: #fff9f3; display: flex; align-items: center; justify-content: center;
   font: 700 14px/1 'Manrope', sans-serif; font-style: normal; transform: scale(0); transition: transform .6s var(--ease-lux); }
 .au-ritual-tile[aria-pressed="true"] .au-ritual-step { transform: scale(1); }
-.au-ritual-name { display: block; font-size: 15px; font-weight: 700; padding: 0 6px; }
-.au-ritual-price { display: block; font-size: 14px; color: #6b6357; padding: 2px 6px 0; }
+.au-ritual-img { background: linear-gradient(165deg, #e8f3f0 0%, #eeeaf7 56%, #fbeedd 100%); }
+.au-ritual-img img { mix-blend-mode: multiply; }
+.au-ritual-name { display: block; font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 500; line-height: 1.15; color: #2c2822; padding: 0 6px; }
+.au-ritual-price { display: block; font-size: 12px; letter-spacing: .12em; color: #6b6357; padding: 4px 6px 0; font-variant-numeric: tabular-nums; }
 .au-ritual-bar { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-top: 34px; padding-top: 26px; border-top: 1px solid rgba(58, 53, 46, .18); }
 .au-ritual-sum { display: flex; align-items: baseline; gap: 18px; flex-wrap: wrap; }
 .au-ritual-sum span { font-size: 14px; color: #6b6357; }
@@ -539,8 +635,8 @@ button.au-heart-pop:not(.product-card-wishlist) { animation: au-heart-pop .7s va
 
 /* ---------- Ambient sound toggle (header) ---------- */
 .au-sound { position: relative; background: none; border: 0; padding: 0; margin: 0; color: #3a352e; cursor: pointer; display: flex; align-items: center; }
-.au-sound svg path { transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(.06); transition: transform .6s var(--ease-lux); }
-.au-sound.is-on svg path { transform: none; animation: au-bars 1.3s ease-in-out infinite; }
+.au-sound svg path { transform-box: fill-box; transform-origin: 50% 50%; transform: scaleY(.42); opacity: .6; transition: transform .6s var(--ease-lux), opacity .6s var(--ease-lux); }
+.au-sound.is-on svg path { transform: none; opacity: 1; animation: au-bars 1.3s ease-in-out infinite; }
 .au-sound.is-on svg path:nth-child(2) { animation-delay: -.4s; } .au-sound.is-on svg path:nth-child(3) { animation-delay: -.8s; } .au-sound.is-on svg path:nth-child(4) { animation-delay: -.2s; }
 @keyframes au-bars { 0%, 100% { transform: scaleY(.45); } 50% { transform: scaleY(1.35); } }
 @media (prefers-reduced-motion: reduce) { .au-sound.is-on svg path { animation: none; } }

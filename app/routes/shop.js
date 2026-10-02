@@ -38,7 +38,7 @@ router.get('/', ah(async (req, res) => {
   // A rendered hero loop (see tools/hero-loop) is used only while its source is the hero image the admin has set now;
   // change the hero image and the page quietly falls back to the still + live light layers.
   let heroVideo = null;
-  try { const m = require('../public/media/hero-loop.json'); if (m && m.file && m.source === home.hero_image) heroVideo = m; } catch (_) { /* no video rendered */ }
+  try { const m = require('../public/media/hero-loop.json'); if (m && m.file && m.source === home.hero_image && (res.locals.site || {}).hero_video_enabled !== false) heroVideo = m; } catch (_) { /* no video rendered */ }
   await markWishlisted(req, bestsellers);
   res.render('home', { title: 'Auréalis — Born of the aurora', bestsellers, allProducts, home, about, voices, heroVideo });
 }));

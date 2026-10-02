@@ -67,6 +67,26 @@ async function listPending() {
   );
 }
 
+async function pendingCount() {
+  const r = await db.get('SELECT COUNT(*) AS n FROM reviews WHERE is_approved = 0');
+  return Number(r && r.n) || 0;
+}
+
+// Approved reviews, newest first, with the reviewer's email (admin only) so they can be unpublished or removed.
+async function listPublished(limit = 100) {
+  return db.all(
+    `SELECT r.id, r.sariee_product_id, r.rating, r.body, r.created_at, u.email
+     FROM reviews r JOIN users u ON u.id = r.user_id
+     WHERE r.is_approved = 1 ORDER BY r.created_at DESC LIMIT ?`,
+    [limit]
+  );
+}
+
+// Take a published review back to "pending" without deleting it.
+async function unpublish(id) {
+  await db.run('UPDATE reviews SET is_approved = 0 WHERE id = ?', [id]);
+}
+
 async function approve(id) {
   await db.run('UPDATE reviews SET is_approved = 1 WHERE id = ?', [id]);
 }
@@ -75,5 +95,5 @@ async function reject(id) {
   await db.run('DELETE FROM reviews WHERE id = ?', [id]);
 }
 
-module.exports = ttl.wrap({ latestApproved, forProduct, summary, summarize, hasReviewed, create, listPending, approve, reject },
-  'reviews', ['latestApproved', 'forProduct', 'summary'], ['create', 'approve', 'reject']);
+module.exports = ttl.wrap({ latestApproved, forProduct, summary, summarize, hasReviewed, create, listPending, pendingCount, listPublished, approve, reject, unpublish },
+  'reviews', ['latestApproved', 'forProduct', 'summary'], ['create', 'approve', 'reject', 'unpublish']);

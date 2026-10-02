@@ -5,12 +5,12 @@
 %>
 <% if (_rp.length >= 2) { %>
 <section class="au-ritual au-pad" data-ritual aria-labelledby="au-ritual-h">
-  <div class="au-ritual-eyebrow" data-m="rise">Your Ritual</div>
-  <h2 id="au-ritual-h" class="serif au-ritual-title" data-m="lines">Choose your steps. We will keep the order.</h2>
+  <div class="au-ritual-eyebrow" data-m="rise"><%= (typeof home !== 'undefined' && home.ritual_eyebrow) || 'Your Ritual' %></div>
+  <h2 id="au-ritual-h" class="serif au-ritual-title" data-m="lines"><%= (typeof home !== 'undefined' && home.ritual_title) || 'Choose your steps. We will keep the order.' %></h2>
   <div class="au-ritual-grid" data-m-group>
     <% _rp.forEach(function(p){ %>
       <button type="button" class="au-ritual-tile" data-m-item data-id="<%= p.id %>" data-cents="<%= p.price_cents %>" data-size="<%= (p.sizes && p.sizes[0]) || '' %>" aria-pressed="false">
-        <span class="au-ritual-img" style="background:<%= p.color || '#f1ece5' %>"><img src="<%= p.image_url %>" alt="" loading="lazy"><i class="au-ritual-step" aria-hidden="true"></i></span>
+        <span class="au-ritual-img"<% if (p.color) { %> style="background:<%= p.color %>"<% } %>><img src="<%= p.image_url %>" alt="" loading="lazy"><i class="au-ritual-step" aria-hidden="true"></i></span>
         <span class="au-ritual-name"><%= p.name %></span>
         <span class="au-ritual-price"><%= price(p.price_cents) %></span>
       </button>

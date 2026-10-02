@@ -1,0 +1,86 @@
+<%- include('../partials/admin-open') %>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Site settings</h1>
+    <p class="adm-sub">How the whole store behaves: the message above the header, the first impression, and the atmosphere.</p>
+  </div>
+</div>
+
+<div class="editor">
+  <nav class="toc" aria-label="Sections">
+    <a href="#announcement" class="is-on">Announcement bar</a>
+    <a href="#entrance">Entrance</a>
+    <a href="#sound">Sound</a>
+    <a href="#hero-video">Hero video</a>
+    <a href="#backup">Backup</a>
+  </nav>
+
+  <div class="stack">
+    <form method="post" action="/admin/content/announcement" data-ajax data-guard class="card card-pad section" id="announcement">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="card-h">
+        <div><h2 class="card-t">Announcement bar</h2><p class="card-d">A slim message above the header on every page: free shipping, a launch, a holiday closure. Visitors can dismiss it; a new message appears again for everyone.</p></div>
+        <%- F.toggle('enabled', announcement.enabled, { label: 'Show the announcement bar' }) %>
+      </div>
+      <div class="preview" style="margin-bottom:18px"><span class="announce-preview" id="ann-preview"><span id="ann-text"></span><a id="ann-link" href="#" onclick="return false"></a></span></div>
+      <%- F.text('text', 'Message', announcement.text, { max: 160, placeholder: 'Complimentary delivery on orders over EGP 1,000' }) %>
+      <div class="grid g2">
+        <%- F.text('link_label', 'Link text', announcement.link_label, { max: 40, opt: true, placeholder: 'Shop now' }) %>
+        <%- F.text('link_url', 'Link address', announcement.link_url, { max: 300, opt: true, placeholder: '/shop', hint: 'A page on your store like <code>/shop</code>, or a full address starting with <code>https://</code>.' }) %>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:6px"><button type="submit" class="btn btn-solid">Save announcement</button></div>
+    </form>
+
+    <form method="post" action="/admin/content/site" data-ajax data-guard data-main-form class="stack" id="site-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <section class="card card-pad section" id="entrance">
+        <div class="card-h">
+          <div><h2 class="card-t">Entrance animation</h2><p class="card-d">When someone first opens the homepage, a night sky ignites into an aurora and a glass orb opens onto the hero. It plays once per visit and can be skipped with a tap. It never plays for people who have asked their device to reduce motion.</p></div>
+          <%- F.toggle('intro_enabled', site.intro_enabled, { label: 'Play the entrance animation' }) %>
+        </div>
+        <%- F.text('intro_tagline', 'The line shown under the logo', site.intro_tagline, { max: 60 }) %>
+      </section>
+
+      <section class="card card-pad section" id="sound">
+        <div class="card-h">
+          <div><h2 class="card-t">Ambient sound</h2><p class="card-d">A soft, slow pad of sound that follows how far down the page someone has scrolled, with a gentle chime when something is added to the bag. Browsers only allow sound after a tap or a click, so it begins at the visitor’s first one. A small speaker icon in the header lets anyone switch it off, and their choice is remembered.</p></div>
+          <%- F.toggle('sound_default', site.sound_default, { label: 'Sound on by default' }) %>
+        </div>
+        <p class="hint" style="margin:0">Switching this off doesn’t remove the speaker icon: visitors can still turn the sound on. Anyone who has already chosen for themselves keeps their choice.</p>
+      </section>
+
+      <section class="card card-pad section" id="hero-video">
+        <div class="card-h">
+          <div><h2 class="card-t">Hero loop video</h2><p class="card-d">A short looping video over the hero photo: light moving across the skin. It is used only while it matches the current hero image, and never on slow connections, in data-saver mode or on low-power devices. Turn it off if you prefer the still photograph.</p></div>
+          <%- F.toggle('hero_video_enabled', site.hero_video_enabled, { label: 'Use the hero loop video' }) %>
+        </div>
+      </section>
+
+      <div class="row" style="justify-content:flex-end"><button type="submit" class="btn btn-solid">Save settings</button></div>
+    </form>
+
+    <section class="card card-pad section" id="backup">
+      <div class="card-h"><div><h2 class="card-t">Backup</h2><p class="card-d">Download a copy of everything you have written and arranged here: page text, categories, product order, flags and product extras. It never includes customers or their emails.</p></div></div>
+      <div class="row wrap"><a class="btn" href="/admin/backup.json" download>Download a backup</a><span class="hint">A good habit before a big change.</span></div>
+    </section>
+
+    <form method="post" action="/admin/content/site/reset" data-ajax data-reload data-confirm="This puts the entrance, sound and hero video settings back to how they were originally." data-confirm-title="Restore original settings?" data-confirm-yes="Restore" data-danger>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-ghost">Restore the original settings</button>
+    </form>
+  </div>
+</div>
+<script>
+(function () {
+  var t = document.getElementById('f-text'), l = document.getElementById('f-link_label'), on = document.querySelector('#announcement input[type="checkbox"][name="enabled"]');
+  var pt = document.getElementById('ann-text'), pl = document.getElementById('ann-link'), box = document.getElementById('ann-preview');
+  function upd() {
+    pt.textContent = t.value || 'Your message appears here';
+    pl.textContent = l.value; pl.style.display = l.value ? '' : 'none';
+    box.style.opacity = on.checked ? '1' : '.45';
+  }
+  [t, l, on].forEach(function (el) { el.addEventListener('input', upd); el.addEventListener('change', upd); }); upd();
+})();
+</script>
+<%- include('../partials/admin-close') %>

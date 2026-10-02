@@ -20,10 +20,10 @@
    * a slow drifting aurora in the brand palette, the scrim, a cursor-following
    * light, an "exposure" veil that lifts, then the copy.
    *
-   * First visit of a session: the wordmark settles in, DOCKS into the header's
-   * logo position, the cream panel lifts off the hero, the header's controls
-   * fade up, and the hero develops. Every other visit skips the curtain and
-   * plays the same hero entrance directly.
+   * First visit of a session: the "threshold" (see "Threshold" below) - a night sky
+   * ignites into an aurora, a glass orb opens, a warm flash, and the hero develops
+   * in the light that comes through; the header's controls fade up last. Every other
+   * visit skips it and plays the same hero entrance directly.
    *
    * After it settles: scroll parallax at three different speeds (photo, light,
    * copy), and — on fine pointers only — a gentle cursor parallax and light.
@@ -103,12 +103,13 @@
     }
 
 
-    // --- Hero loop video (desktop-class only): the still stays underneath; the video fades in over it once it can
-    //     play, and plays only while the hero is on screen. Skipped on phones/touch, data-saver, slow connections
-    //     and low-power devices, where the still + live light layers are the hero. ---
+    // --- Hero loop video: the still stays underneath; the video fades in over it once it can play, and plays only
+    //     while the hero is on screen. Same frame as the still, so it lines up on every screen shape. Skipped on
+    //     data-saver, slow connections and low-power devices (and if the OS refuses autoplay, e.g. iOS Low Power
+    //     Mode), where the still + live light layers are the hero. ---
     var video = $('.au-hero-video', hero);
     function startHeroVideo() {
-      if (!video || !FINE || window.innerWidth <= 820 || root.classList.contains('au-lite')) return;
+      if (!video || root.classList.contains('au-lite')) return;
       var cn = navigator.connection;
       if (cn && (cn.saveData || /(^|-)2g$|3g/.test(cn.effectiveType || ''))) return;
       var src = video.getAttribute('data-src');
@@ -121,6 +122,7 @@
         var reveal = function () { gsap.to(video, { opacity: 1, duration: 1.8, ease: 'power2.inOut' }); };
         if (p && p.then) p.then(reveal).catch(function () {}); else reveal();
       });
+      video.muted = true; video.setAttribute('playsinline', ''); video.setAttribute('webkit-playsinline', '');   // phones only autoplay a muted, inline video
       video.preload = 'auto';
       video.src = src;
       ScrollTrigger.create({
@@ -228,41 +230,106 @@
       return;
     }
 
-    // --- Curtain: wordmark settles in, docks into the header, the panel lifts, the hero develops ---
+    // --- Threshold: a night sky ignites into an aurora, a glass orb condenses and opens, a warm flash, and the hero
+    //     develops in the light that comes through. Click / tap / any key skips (the timeline just runs fast). ---
     try { sessionStorage.setItem('au-intro', '1'); } catch (e) {}
     window.scrollTo(0, 0);
-    var panel = $('.au-loader-panel', loader);
-    var logo = $('img', loader);
+    var mark = $('.au-loader-mark', loader);
     var line = $('.au-loader-line', loader);
-    var ready = heroReady(); // runs while the wordmark is on screen
+    var tag = $('.au-loader-tag', loader);
+    var flash = $('.au-loader-flash', loader);
+    var fbOrb = $('.au-loader-orb', loader);
+    var skipHint = $('.au-loader-skip', loader);
+    var canvas = $('.au-loader-canvas', loader);
+    var ready = heroReady(); // runs while the sky is on screen
+    var orb = { r: 0, y: 0.56 }, lit = { i: 0, p: 0 };   // orb radius in screen heights; curtain brightness; palette walk
+    var REST = 0.17;
+    var gl = null;
+    var lowPower = root.classList.contains('au-lite');
+    var touch = window.matchMedia('(hover: none)').matches;
+    if (skipHint && touch) skipHint.textContent = 'Tap to skip'; else if (skipHint) skipHint.textContent = 'Click to skip';
 
-    function dockLogo() {
-      // Fly the wordmark onto exactly where the header's own logo sits.
-      if (!headerLogo) return;
-      var a = logo.getBoundingClientRect(), b = headerLogo.getBoundingClientRect();
-      gsap.to(logo, {
-        x: '+=' + ((b.left + b.width / 2) - (a.left + a.width / 2)),
-        y: '+=' + ((b.top + b.height / 2) - (a.top + a.height / 2)),
-        duration: 1.05, ease: 'expo.inOut'
-      });
+    function paint() {
+      if (gl) { gl.setOrb(0.5, orb.y, orb.r); gl.setIntensity(lit.i); gl.setProgress(lit.p); }
+      else if (fbOrb) gsap.set(fbOrb, { scale: orb.r / REST, opacity: Math.max(0, 1 - Math.max(0, orb.r - 1) / 1.6) });
     }
+    var glFailed = false, glOn = false, glGo = null;
+    function noGL() { glFailed = true; gl = null; loader.classList.add('no-gl'); }   // CSS orb + gradient stand in
+    if (canvas && !lowPower && window.AuAurora) {
+      gl = window.AuAurora.create({ canvas: canvas, stage: loader, host: loader, immediate: true, onFail: noGL,
+                                    onDraw: function () { glOn = true; if (glGo) glGo(); } });
+      if (!gl) noGL(); else if (glFailed) gl = null;   // onFail can fire inside create(), before it returns
+    } else noGL();
+
+    var split = (SplitText && tag) ? SplitText.create(tag, { type: 'words', mask: 'words', wordsClass: 'au-lw' }) : null;
+
+    var finished = false;
     function finishCurtain() {
+      if (finished) return; finished = true;
       root.classList.remove('au-intro'); // loader disappears, header logo + controls take over, scroll unlocks
       if (C.lenis()) C.lenis().start();          // same frame as the class change, so the scrollbar gutter never flips
       gsap.set(headerSides, { clearProps: 'opacity' });
+      if (gl) { gl.destroy(); gl = null; }
+      clearTimeout(cap);
+      if (C.lenis()) gsap.ticker.lagSmoothing(0); else gsap.ticker.lagSmoothing(500, 33);   // back to what motion.js set: 0 while Lenis drives scrolling
+      ['click', 'touchstart', 'wheel'].forEach(function (ev) { loader.removeEventListener(ev, skip); });
+      document.removeEventListener('keydown', onKey);
     }
+    var skipped = false, intro = null;
+    function skip() {
+      if (skipped || finished) return; skipped = true;
+      if (!intro) return;                      // still waiting for the sky; play() fast-forwards as soon as it starts
+      intro.resume();
+      gsap.to(intro, { timeScale: 6, duration: 0.3, ease: 'power2.in' });
+    }
+    var cap = 0;
+    function onKey(e) { if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') skip(); }
+    ['click', 'touchstart', 'wheel'].forEach(function (ev) { loader.addEventListener(ev, skip, { passive: true }); });
+    document.addEventListener('keydown', onKey);
 
+    function play() {
+    if (finished) return;
     gsap.set(headerSides, { opacity: 0 });
-    var intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    intro.fromTo(logo, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.9 }, 0.05);
-    intro.to(line, { scaleX: 1, duration: 1.0, ease: 'power2.inOut' }, 0.2);
-    intro.call(function () { intro.pause(); ready.then(function () { intro.resume(); }); }, null, 1.05);
-    intro.to(line, { opacity: 0, duration: 0.4 }, 1.15);
-    intro.call(dockLogo, null, 1.15);
-    intro.to(panel, { yPercent: -100, duration: 1.2, ease: 'expo.inOut' }, 2.05);
-    intro.call(revealHero, null, 2.3);
-    intro.to(headerSides, { opacity: 1, duration: 1.1, stagger: 0.12, ease: 'power2.out' }, 2.7);
-    intro.call(finishCurtain, null, 3.4);
+    gsap.set(mark, { opacity: 0, filter: 'blur(10px)', y: 12 });
+    if (split) gsap.set(split.words, { yPercent: 120 });
+    paint();
+
+    intro = gsap.timeline({ defaults: { ease: 'power3.out' }, onUpdate: paint });
+    // 1. the sky wakes: the curtains ignite, the palette walks emerald -> teal -> violet, a drop of light condenses
+    intro.to(lit, { i: 1, duration: 2.8, ease: 'power2.inOut' }, 0.15)
+         .to(lit, { p: 0.4, duration: 3.4, ease: 'none' }, 0.15)
+         .to(orb, { r: REST, duration: 2.6, ease: 'expo.out' }, 0.5);
+    // 2. the wordmark arrives in the light, a thread of aurora draws under it, then one line
+    intro.to(mark, { opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.6 }, 1.0)
+         .to(line, { scaleX: 1, duration: 1.4, ease: 'power2.inOut' }, 1.4);
+    if (split) intro.to(split.words, { yPercent: 0, duration: 1.3, stagger: 0.14 }, 1.8);
+    else intro.fromTo(tag, { opacity: 0 }, { opacity: 1, duration: 1.2 }, 1.8);
+    if (skipHint) intro.to(skipHint, { opacity: 1, duration: 1.0 }, 1.6).to(skipHint, { opacity: 0, duration: 0.5 }, 3.4);
+    // hold on the finished frame until the hero image and fonts are ready (never longer than heroReady's own 1.8 s cap)
+    intro.call(function () { intro.pause(); ready.then(function () { intro.resume(); }); }, null, 3.0);
+    // 3. through the glass: the orb swells past the edges, the mark lifts away, the palette turns violet-rose
+    intro.to(mark, { opacity: 0, filter: 'blur(8px)', y: -18, scale: 1.04, duration: 0.8, ease: 'power2.in' }, 3.2)
+         .to(orb, { r: 3.4, duration: 1.5, ease: 'power3.in' }, 3.2)
+         .to(lit, { p: 0.9, duration: 1.5, ease: 'none' }, 3.2);
+    // 4. light: a warm flash, then the hero develops underneath while the dark lifts off it
+    intro.to(flash, { opacity: 1, duration: 0.65, ease: 'power2.in' }, 3.95)
+         .call(revealHero, null, 4.45)
+         .to(loader, { opacity: 0, duration: 1.2, ease: 'power2.inOut' }, 4.5)
+         .to(headerSides, { opacity: 1, duration: 1.1, stagger: 0.12, ease: 'power2.out' }, 5.1)
+         .call(finishCurtain, null, 5.8);
+    // The entrance must never hold the page hostage: timing follows the wall clock (a slow GPU drops frames instead of
+    // stretching the sequence), and after 9 s it fast-forwards to the end whatever happened.
+    gsap.ticker.lagSmoothing(0);
+    cap = setTimeout(skip, 9000);
+    if (skipped) { skipped = false; skip(); }
+    }
+    // Wait (at most 1.3 s, over the dark gradient) for the shader's first frame, so the sky is part of the picture from the
+    // first beat. A device too slow to compile it in time gets the CSS orb and gradient for this visit instead.
+    var glWait = (gl && !glOn) ? new Promise(function (res) { glGo = res; }) : Promise.resolve();
+    Promise.race([glWait, delay(1300)]).then(function () {
+      if (gl && !glOn) { gl.destroy(); noGL(); }
+      play();
+    });
   }
 
   /* ------------------------------------------------------------------

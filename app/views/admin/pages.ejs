@@ -1,0 +1,82 @@
+<%- include('../partials/admin-open') %>
+<%
+  const TABS = [
+    ['about', 'About', '/about'], ['shop', 'Shop', '/shop'], ['shipping', 'Shipping policy', '/shipping-policy'],
+    ['refund', 'Refund policy', '/refund-policy'], ['contact', 'Contact', '/contact'], ['footer', 'Footer', '/'],
+  ];
+  const cur = TABS.find(function (t) { return t[0] === tab; }) || TABS[0];
+  const c = content[cur[0]] || {};
+%>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Pages</h1>
+    <p class="adm-sub">The words on your About, Shop, policy, Contact and footer. Changes go live as soon as you save. The homepage has its own place under <a href="/admin/homepage">Homepage</a>.</p>
+  </div>
+  <div class="adm-actions">
+    <a class="btn" href="<%= cur[2] %>" target="_blank" rel="noopener">Preview this page</a>
+    <button type="submit" form="page-form" class="btn btn-solid">Save <%= cur[1].toLowerCase() %></button>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Pages">
+  <% TABS.forEach(function (t) { %><a href="/admin/pages?tab=<%= t[0] %>" class="<%= t[0] === cur[0] ? 'is-on' : '' %>"<%- t[0] === cur[0] ? ' aria-current="page"' : '' %>><%= t[1] %></a><% }); %>
+</nav>
+
+<div class="stack" style="max-width:820px">
+  <form id="page-form" method="post" action="/admin/content/<%= cur[0] %>" data-ajax data-guard data-main-form class="card card-pad">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <div class="card-h"><div><h2 class="card-t"><%= cur[1] %></h2></div></div>
+
+    <% if (cur[0] === 'about') { %>
+      <%- F.text('eyebrow', 'Small line above the title', c.eyebrow, { max: 80 }) %>
+      <%- F.text('title', 'Title', c.title, { max: 160 }) %>
+      <%- F.rich('body', 'Story', c.body, { rows: 14, max: 8000 }) %>
+    <% } else if (cur[0] === 'shop') { %>
+      <%- F.text('title', 'Heading (when no category is chosen)', c.title, { max: 100 }) %>
+      <%- F.rich('intro', 'Intro line', c.intro, { rows: 4, max: 1000, hint: 'Shown under the heading. Leave blank for none.' }) %>
+    <% } else if (cur[0] === 'shipping' || cur[0] === 'refund') { %>
+      <%- F.text('title', 'Page title', c.title, { max: 100 }) %>
+      <%- F.rich('intro', 'Intro line (under the title)', c.intro, { rows: 3, max: 1000 }) %>
+      <%- F.rich('body', 'Policy text', c.body, { rows: 18, max: 10000 }) %>
+    <% } else if (cur[0] === 'contact') { %>
+      <%- F.text('title', 'Page title', c.title, { max: 100 }) %>
+      <%- F.rich('intro', 'Intro text', c.intro, { rows: 4, max: 1500 }) %>
+      <div class="grid g2">
+        <%- F.text('email', 'Email shown on the page', c.email, { max: 120, opt: true, hint: 'Leave blank to use the footer email.' }) %>
+        <%- F.text('phone', 'Phone number shown on the page', c.phone, { max: 40, opt: true, hint: 'Leave blank to use the footer phone.' }) %>
+      </div>
+      <div class="grid g2">
+        <%- F.area('hours', 'Opening hours', c.hours, { max: 400, rows: 3, opt: true }) %>
+        <%- F.area('address', 'Address', c.address, { max: 400, rows: 3, opt: true }) %>
+      </div>
+      <%- F.rich('extra', 'Extra text below the details', c.extra, { rows: 6, max: 3000, opt: true }) %>
+    <% } else { %>
+      <%- F.area('tagline', 'Tagline', c.tagline, { max: 240, rows: 3 }) %>
+      <div class="grid g2">
+        <%- F.text('email', 'Contact email', c.email, { max: 120, opt: true }) %>
+        <%- F.text('phone', 'Phone', c.phone, { max: 40, opt: true }) %>
+      </div>
+      <div class="grid g2">
+        <%- F.text('instagram', 'Instagram address', c.instagram, { max: 300, opt: true, placeholder: 'https://instagram.com/yourbrand' }) %>
+        <%- F.text('tiktok', 'TikTok address', c.tiktok, { max: 300, opt: true, placeholder: 'https://tiktok.com/@yourbrand' }) %>
+      </div>
+      <%- F.text('copyright', 'Copyright line', c.copyright, { max: 120 }) %>
+    <% } %>
+  </form>
+
+  <% if (cur[0] === 'about') { %>
+    <section class="card card-pad">
+      <div class="card-h"><div><h2 class="card-t">Story picture</h2><p class="card-d">Shown on the About page and beside the quote on the homepage.</p></div></div>
+      <div class="imgup" data-upload-url="/admin/content/about/image">
+        <% if (c.image) { %><img src="<%= c.image %>" alt="Current story picture"><div class="ph" hidden>No image</div><% } else { %><img src="" alt="" hidden><div class="ph">No image yet</div><% } %>
+        <div><input type="file" accept="image/*" class="input" style="padding:8px" aria-label="Upload a new story picture"><div class="hint imgup-status" style="margin-top:6px">JPG, PNG or WebP, up to 5&nbsp;MB.</div></div>
+      </div>
+    </section>
+  <% } %>
+
+  <form method="post" action="/admin/content/<%= cur[0] %>/reset" data-ajax data-reload data-confirm="This puts the <%= cur[1].toLowerCase() %> text back to the original wording. Pictures are kept." data-confirm-title="Restore the original wording?" data-confirm-yes="Restore" data-danger>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <button type="submit" class="btn btn-ghost">Restore the original wording</button>
+  </form>
+</div>
+<%- include('../partials/admin-close') %>

@@ -1,0 +1,100 @@
+<%- include('../partials/admin-open') %>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Homepage</h1>
+    <p class="adm-sub">The first thing visitors see. Change the words, swap the picture, and choose which sections appear. Changes go live as soon as you save.</p>
+  </div>
+  <div class="adm-actions">
+    <a class="btn" href="/" target="_blank" rel="noopener">Preview the store</a>
+    <button type="submit" form="home-form" class="btn btn-solid" data-main-form-btn>Save changes</button>
+  </div>
+</div>
+
+<div class="editor">
+  <nav class="toc" aria-label="Sections">
+    <a href="#hero" class="is-on">Hero</a>
+    <a href="#sections">Sections</a>
+    <a href="#bestsellers">Bestsellers</a>
+    <a href="#chapter">Northern Light</a>
+    <a href="#story">Our story</a>
+    <a href="#ritual">Your ritual</a>
+  </nav>
+
+  <div class="stack">
+    <section class="card card-pad section" id="hero">
+      <div class="card-h"><div><h2 class="card-t">Hero image</h2><p class="card-d">The large photograph at the very top. Use a wide image with the person on the right and plenty of calm space on the left for the words.</p></div></div>
+      <div class="imgup" data-upload-url="/admin/content/home/image">
+        <% if (home.hero_image) { %><img src="<%= home.hero_image %>" alt="Current hero image"><div class="ph" hidden>No image</div><% } else { %><img src="" alt="" hidden><div class="ph">No image yet</div><% } %>
+        <div>
+          <input type="file" accept="image/*" class="input" style="padding:8px" aria-label="Upload a new hero image">
+          <div class="hint imgup-status" style="margin-top:6px">JPG, PNG or WebP, up to 5&nbsp;MB.</div>
+        </div>
+      </div>
+      <% if (video === 'stale') { %><div class="notice" style="margin-top:14px"><span>The hero image changed after the hero loop video was made, so visitors see the still photo. To bring the gentle motion back, render the loop again (see <code>tools/hero-loop</code>).</span></div><% } %>
+      <% if (video === 'current') { %><div class="notice ok" style="margin-top:14px"><span>The hero loop video matches this image and plays for visitors.</span></div><% } %>
+    </section>
+
+    <form id="home-form" method="post" action="/admin/content/home" data-ajax data-guard data-main-form class="stack">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <section class="card card-pad section" id="hero-words">
+        <div class="card-h"><div><h2 class="card-t">Hero words</h2><p class="card-d">The line above, the headline, the sentence under it and the button.</p></div></div>
+        <div class="grid g2">
+          <%- F.text('hero_eyebrow', 'Small line above the headline', home.hero_eyebrow, { max: 120 }) %>
+          <%- F.text('hero_cta', 'Button label', home.hero_cta, { max: 40 }) %>
+        </div>
+        <%- F.text('hero_title', 'Headline', home.hero_title, { max: 120 }) %>
+        <%- F.area('hero_text', 'Sentence under the headline', home.hero_text, { max: 320, rows: 3 }) %>
+      </section>
+
+      <section class="card card-pad section" id="sections">
+        <div class="card-h"><div><h2 class="card-t">Sections</h2><p class="card-d">Switch off anything you don’t want on the homepage. The hero always stays. A hidden section is removed from the page, not just covered.</p></div></div>
+        <%- F.toggleRow('show_strip', 'Scrolling product strip', 'The row of every product, drifting across just under the hero.', home.show_strip !== false) %>
+        <%- F.toggleRow('show_bestsellers', 'Bestsellers', 'Appears only when at least one product is marked as a bestseller.', home.show_bestsellers !== false) %>
+        <%- F.toggleRow('show_aurora', 'The Northern Light chapter', 'The full-screen aurora with three lines that play as you scroll.', home.show_aurora !== false) %>
+        <%- F.toggleRow('show_collections', 'Collections list', 'The large typographic list of your categories.', home.show_collections !== false) %>
+        <%- F.toggleRow('show_story', 'Our story', 'The picture and quote about where Auréalis comes from.', home.show_story !== false) %>
+        <%- F.toggleRow('show_ritual', 'Ritual builder', 'Customers pick several products in order and add them to the bag together.', home.show_ritual !== false) %>
+        <%- F.toggleRow('show_voices', 'Customer words', 'Approved reviews. Appears only when there are some.', home.show_voices !== false) %>
+      </section>
+
+      <section class="card card-pad section" id="bestsellers">
+        <div class="card-h"><div><h2 class="card-t">Bestsellers heading</h2><p class="card-d">Choose which products are bestsellers on the <a href="/admin/products">Products</a> page.</p></div></div>
+        <div class="grid g2">
+          <%- F.text('bestsellers_title', 'Heading', home.bestsellers_title, { max: 60 }) %>
+          <%- F.text('bestsellers_text', 'Small text', home.bestsellers_text, { max: 120, opt: true }) %>
+        </div>
+      </section>
+
+      <section class="card card-pad section" id="chapter">
+        <div class="card-h"><div><h2 class="card-t">The Northern Light chapter</h2><p class="card-d">Three statements that appear one after another over the aurora. Put <code>*asterisks*</code> around a word to show it in italics and gold.</p></div></div>
+        <%- F.text('aurora_eyebrow', 'Small label', home.aurora_eyebrow, { max: 60 }) %>
+        <%- F.text('aurora_line1', 'First statement', home.aurora_line1, { max: 90 }) %>
+        <%- F.text('aurora_line2', 'Second statement', home.aurora_line2, { max: 60 }) %>
+        <%- F.text('aurora_line3', 'Third statement', home.aurora_line3, { max: 90 }) %>
+        <%- F.text('aurora_link', 'Link under the third statement', home.aurora_link, { max: 60 }) %>
+        <div class="preview small muted" style="margin-top:4px">Tip: keep each statement short. They are shown very large, one at a time.</div>
+      </section>
+
+      <section class="card card-pad section" id="story">
+        <div class="card-h"><div><h2 class="card-t">Our story</h2><p class="card-d">The quote beside the story picture. The picture itself is the one on the <a href="/admin/pages?tab=about">About page</a>.</p></div></div>
+        <%- F.area('story_quote', 'Quote', home.story_quote, { max: 420, rows: 4 }) %>
+        <%- F.text('story_link', 'Link label', home.story_link, { max: 40 }) %>
+      </section>
+
+      <section class="card card-pad section" id="ritual">
+        <div class="card-h"><div><h2 class="card-t">Your ritual</h2><p class="card-d">The heading above the ritual builder.</p></div></div>
+        <div class="grid g2">
+          <%- F.text('ritual_eyebrow', 'Small label', home.ritual_eyebrow, { max: 40 }) %>
+          <%- F.text('ritual_title', 'Heading', home.ritual_title, { max: 100 }) %>
+        </div>
+      </section>
+    </form>
+
+    <form method="post" action="/admin/content/home/reset" data-ajax data-reload data-confirm="This puts every homepage heading, line and switch back to the original wording. Your hero image is kept." data-confirm-title="Restore the original wording?" data-confirm-yes="Restore" data-danger>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="btn btn-ghost">Restore the original wording</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/admin-close') %>

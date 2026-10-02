@@ -1,0 +1,48 @@
+    </main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<div class="savebar" id="savebar" role="region" aria-label="Unsaved changes">
+  <span class="msg" id="savebar-msg">You have unsaved changes</span>
+  <button type="button" class="btn btn-sm" id="savebar-discard">Discard</button>
+  <button type="button" class="btn btn-sm btn-warm" id="savebar-save">Save changes</button>
+</div>
+
+<div class="modal" id="confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-t" aria-hidden="true">
+  <div class="modal-box">
+    <h3 id="confirm-t">Are you sure?</h3>
+    <p id="confirm-p"></p>
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button type="button" class="btn" id="confirm-no">Cancel</button>
+      <button type="button" class="btn btn-solid" id="confirm-yes">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Jump to" aria-hidden="true">
+  <div class="palette-box">
+    <input type="text" id="palette-q" placeholder="Jump to a page or product…" autocomplete="off" aria-label="Search">
+    <ul id="palette-list"></ul>
+  </div>
+</div>
+
+<%
+  const _nav = [
+    { t: 'Dashboard', u: '/admin', k: 'Page' }, { t: 'Products', u: '/admin/products', k: 'Page' },
+    { t: 'Categories', u: '/admin/categories', k: 'Page' }, { t: 'Homepage', u: '/admin/homepage', k: 'Page' },
+    { t: 'Pages (About, Shop, Policies, Footer)', u: '/admin/pages', k: 'Page' }, { t: 'Site settings (announcement, entrance, sound)', u: '/admin/settings', k: 'Page' },
+    { t: 'Reviews', u: '/admin/reviews', k: 'Page' }, { t: 'Announcement bar', u: '/admin/settings#announcement', k: 'Setting' },
+    { t: 'Entrance animation', u: '/admin/settings#entrance', k: 'Setting' }, { t: 'Ambient sound', u: '/admin/settings#sound', k: 'Setting' },
+    { t: 'Hero image and text', u: '/admin/homepage#hero', k: 'Homepage' }, { t: 'Show or hide homepage sections', u: '/admin/homepage#sections', k: 'Homepage' },
+    { t: 'Download a backup', u: '/admin/backup.json', k: 'Backup' }, { t: 'View the store', u: '/', k: 'Store' },
+  ];
+  const _items = _nav.concat(typeof paletteItems !== 'undefined' ? paletteItems : []);
+  const _boot = { csrf: csrfToken, flash: typeof flash !== 'undefined' ? flash : null, items: _items };
+%>
+<script>window.ADM = <%- JSON.stringify(_boot).replace(/</g, '\\u003c') %>;</script>
+<script src="/js/admin.js?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script>
+<% if (typeof pageScript !== 'undefined' && pageScript) { %><script src="/js/<%= pageScript %>?v=<%= typeof assetV !== 'undefined' ? assetV : '1' %>"></script><% } %>
+</body>
+</html>

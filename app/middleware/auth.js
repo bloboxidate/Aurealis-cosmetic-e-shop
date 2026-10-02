@@ -10,23 +10,29 @@ const richtext = require('../lib/richtext');
 // run in parallel instead of stacking three round-trips on every request.
 async function locals(req, res, next) {
   try {
-    const [user, navCategories, footer, cartCount] = await Promise.all([
+    const [user, navCategories, footer, cartCount, announcement, site] = await Promise.all([
       req.session.userId
         ? db.get('SELECT id, email, first_name, last_name, is_admin FROM users WHERE id = ?', [req.session.userId])
         : Promise.resolve(null),
       Cats.listCategories().catch(() => []),
       content.get('footer').catch(() => content.defaults('footer')),
       cart.getCount(req),
+      content.get('announcement').catch(() => content.defaults('announcement')),
+      content.get('site').catch(() => content.defaults('site')),
     ]);
     if (req.session.userId && !user) req.session.userId = null; // stale
 
     res.locals.user = user || null;
     res.locals.navCategories = navCategories;
     res.locals.footer = footer;
+    res.locals.announcement = announcement;
+    res.locals.site = site;
     res.locals.cartCount = cartCount;
     res.locals.money = money;
     res.locals.price = price;
     res.locals.richText = richtext.render;
+    res.locals.paragraphs = richtext.paragraphs;
+    res.locals.emphasize = richtext.emphasize;
     res.locals.flash = req.session.flash || null;
     res.locals.currentPath = req.path;
     delete req.session.flash;

@@ -15,7 +15,7 @@
   <main id="main">
 
   <!-- hero -->
-  <section class="au-hero" style="position:relative;min-height:clamp(560px,calc(100svh - 70px),900px);display:flex;align-items:center;overflow:hidden;background:
+  <section class="au-hero" style="position:relative;min-height:clamp(560px,calc(100svh - 70px),900px);display:flex;overflow:hidden;background:
       radial-gradient(120% 120% at 20% 10%, rgba(165,209,228,.95), transparent 55%),
       radial-gradient(120% 120% at 90% 30%, rgba(191,181,232,.9), transparent 55%),
       radial-gradient(140% 120% at 50% 90%, rgba(165,191,151,.9), transparent 55%),
@@ -23,8 +23,9 @@
     <% if (home.hero_image) { %><div class="au-hero-img" style="position:absolute;inset:0"><img class="au-hero-still" src="<%= home.hero_image %>" alt="" fetchpriority="high" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% if (typeof heroVideo !== 'undefined' && heroVideo) { %><video class="au-hero-video" muted loop playsinline preload="none" tabindex="-1" aria-hidden="true" data-src="<%= heroVideo.file %>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0"></video><% } %></div><% } %>
     <!-- Atmosphere (decorative, motion-only; see motion.css/motion.js): slow drifting light in the brand palette over the photo -->
     <div class="au-hero-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-    <!-- scrim: darkest on the left where the text sits, fading to clear on the right -->
-    <div class="au-hero-grade" style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(38,20,10,.66) 0%,rgba(46,26,14,.4) 42%,rgba(60,34,18,.08) 74%,rgba(60,34,18,0) 100%)"></div>
+    <!-- night grade: deep aurora-night wash on the copy side, fading to clear over the face (css: .au-hero-grade) -->
+    <div class="au-hero-grade"></div>
+    <div class="au-hero-curtain" aria-hidden="true"></div>
     <!-- golden hour: a warm bloom behind the face, in the moodboard's light -->
     <div class="au-hero-sun" aria-hidden="true"></div>
     <div class="au-hero-glow" aria-hidden="true"></div>
@@ -46,7 +47,7 @@
        aria-hidden. Pauses on hover/focus; with reduced motion it becomes a
        plain horizontally-scrollable row. -->
   <% var _strip = (typeof allProducts !== 'undefined' ? allProducts : []).filter(function(p){ return p.image_url; }); %>
-  <% if (_strip.length) { %>
+  <% if (_strip.length && home.show_strip !== false) { %>
     <% var _loops = _strip.length < 6 ? Math.ceil(6 / _strip.length) : 1; %>
     <% var _dur = Math.max(30, _strip.length * _loops * 4); %>
     <div data-strip style="padding:clamp(40px,7vw,70px) 0 0">
@@ -56,7 +57,7 @@
             <div class="prod-strip-set" <%- _copy ? 'aria-hidden="true"' : '' %>>
               <% for (var _r = 0; _r < _loops; _r++) { _strip.forEach(function(p){ %>
                 <a class="prod-strip-item au-link" href="/product/<%= p.slug %>" <%- _copy ? 'tabindex="-1"' : '' %>>
-                  <div class="prod-strip-img" style="background:<%= p.color || '#f1ece5' %>"><img src="<%= p.image_url %>" alt="<%= _copy ? '' : p.name %>" loading="lazy"></div>
+                  <div class="prod-strip-img"<% if (p.color) { %> style="background:<%= p.color %>"<% } %>><img src="<%= p.image_url %>" alt="<%= _copy ? '' : p.name %>" loading="lazy"></div>
                   <div class="prod-strip-name"><%= p.name %></div>
                   <div class="prod-strip-price"><%= price(p.price_cents) %></div>
                 </a>
@@ -69,10 +70,10 @@
   <% } %>
 
   <!-- bestsellers -->
-  <% if (bestsellers.length) { %>
+  <% if (bestsellers.length && home.show_bestsellers !== false) { %>
   <div class="au-pad" style="padding:clamp(48px,9vw,80px) 64px">
     <div data-m="rise" style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:40px">
-      <div class="serif" style="font-size:clamp(28px,6vw,36px)">Bestsellers</div>
+      <div><div class="serif" style="font-size:clamp(28px,6vw,36px)"><%= home.bestsellers_title %></div><% if (home.bestsellers_text) { %><div style="font-size:14px;color:#6b6357;margin-top:6px"><%= home.bestsellers_text %></div><% } %></div>
       <a class="au-link au-ulink" href="/shop" style="font-size:13px;letter-spacing:.05em;color:#a8501f;text-transform:uppercase;font-weight:700">View all</a>
     </div>
     <div class="grid-4" data-m-group style="display:grid;grid-template-columns:repeat(4,1fr);gap:28px">
@@ -86,27 +87,29 @@
   <!-- the northern light: a dark, scroll-driven chapter. Three statements play over a live aurora
        (js/aurora.js, raw WebGL) as the page scrolls. Without motion/WebGL it is a plain dark section
        with the same three lines stacked over a CSS gradient. -->
+  <% if (home.show_aurora !== false) { %>
   <section class="au-aurora" data-aurora="section" aria-labelledby="au-aurora-h">
     <div class="au-aurora-stage" data-aurora="stage">
       <canvas class="au-aurora-canvas" aria-hidden="true"></canvas>
       <div class="au-aurora-copy au-pad">
-        <div class="au-aurora-eyebrow">The Northern Light</div>
+        <div class="au-aurora-eyebrow"><%= home.aurora_eyebrow %></div>
         <div class="au-aurora-lines">
-          <h2 id="au-aurora-h" class="serif au-aurora-line" data-aurora="line">Light is <em>never</em> one color.</h2>
-          <p class="serif au-aurora-line" data-aurora="line"><em>Neither</em> is skin.</p>
+          <h2 id="au-aurora-h" class="serif au-aurora-line" data-aurora="line"><%- emphasize(home.aurora_line1) %></h2>
+          <p class="serif au-aurora-line" data-aurora="line"><%- emphasize(home.aurora_line2) %></p>
           <div class="au-aurora-line au-aurora-last" data-aurora="line">
-            <p class="serif">Auréalis is made to let it <em>move.</em></p>
-            <a class="au-link au-ulink au-aurora-link" data-aurora="link" href="/shop">Discover the collection →</a>
+            <p class="serif"><%- emphasize(home.aurora_line3) %></p>
+            <a class="au-link au-ulink au-aurora-link" data-aurora="link" href="/shop"><%= home.aurora_link %></a>
           </div>
         </div>
       </div>
       <div class="au-aurora-legend" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span class="au-aurora-bar"><b></b></span></div>
     </div>
   </section>
+  <% } %>
 
   <!-- collections: a typographic index. Under a mouse, a product image floats beside the cursor for the row you point at. -->
   <% var _cats = (typeof navCategories !== 'undefined' ? navCategories : []); var _prods = (typeof allProducts !== 'undefined' ? allProducts : []); %>
-  <% if (_cats.length) { %>
+  <% if (_cats.length && home.show_collections !== false) { %>
   <section class="au-index au-pad" data-index aria-labelledby="au-index-h">
     <div class="au-index-head" data-m="rise"><span id="au-index-h">The Collections</span><span>Auréalis</span></div>
     <ul data-m-group>
@@ -120,23 +123,25 @@
   <% } %>
 
   <!-- brand story -->
-  <div data-horizon style="height:8px;background:linear-gradient(90deg,#f7d595 0%,#a5d1e4 33%,#a5bf97 66%,#bfb5e8 100%)"></div>
+  <% if (home.show_story !== false) { %>
+  <div data-horizon style="height:3px;background:linear-gradient(90deg,#3df5a0 0%,#35c9e6 34%,#8a6bff 68%,#f27bc0 100%);box-shadow:0 0 22px rgba(53,201,230,.55)"></div>
   <div data-story="section" class="au-pad grid-2" style="display:grid;grid-template-columns:1fr 1fr;align-items:center;background:rgba(255,255,255,.4);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);padding:80px 64px;gap:60px">
-    <div data-story="image" style="position:relative;width:100%;aspect-ratio:4/3;max-height:480px;border-radius:20px;overflow:hidden;background:
+    <div data-story="image" style="position:relative;width:100%;aspect-ratio:4/5;max-height:min(580px,64vh);border-radius:20px;overflow:hidden;background:
         radial-gradient(120% 120% at 30% 20%, rgba(191,181,232,.9), transparent 55%),
         radial-gradient(120% 120% at 80% 80%, rgba(247,213,149,.9), transparent 55%),
         linear-gradient(160deg,#3f6f86,#4c6b45)">
       <% if (about && about.image) { %><img src="<%= about.image %>" alt="Our story" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block"><% } %>
     </div>
     <div>
-      <div data-story="quote" class="serif" style="font-size:clamp(22px,5vw,30px);line-height:1.4;margin-bottom:24px">"The aurora taught us that light is never one color. Every formula moves through sage, azure and lavender the way the sky does."</div>
-      <a data-story="link" class="au-link au-ulink" href="/about" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#a8501f;font-weight:700">Our Story →</a>
+      <div data-story="quote" class="serif" style="font-size:clamp(26px,5.4vw,44px);line-height:1.26;margin-bottom:32px;max-width:18em"><%= home.story_quote %></div>
+      <a data-story="link" class="au-link au-ulink" href="/about" style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#a8501f;font-weight:700"><%= home.story_link %></a>
     </div>
   </div>
+  <% } %>
 
   </main>
-  <%- include('partials/ritual') %>
-  <%- include('partials/voices') %>
+  <% if (home.show_ritual !== false) { %><%- include('partials/ritual') %><% } %>
+  <% if (home.show_voices !== false) { %><%- include('partials/voices') %><% } %>
 
   <%- include('partials/footer') %>
 </div>

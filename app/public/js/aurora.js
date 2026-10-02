@@ -1,8 +1,8 @@
 /* Auréalis aurora — the home "Northern Light" chapter, drawn live in one fragment shader.
  *
  * Raw WebGL, no library (one full-screen triangle). Three layered light curtains with slanted
- * rays, a thin halo ring, drifting stars, film grain. Palette = the brand's five colours; scroll
- * progress walks the palette (azure -> sage -> lavender -> honey -> apricot) and the cursor bends
+ * rays, a thin halo ring, drifting stars, film grain. Palette = emerald/teal low edge, violet and rose on the
+ * tall rays; scroll progress walks it (emerald -> teal -> violet -> rose) and the cursor bends
  * the curtains and lifts a glow.
  *
  * Integration contract (so the page never gets worse) — same as relight.js:
@@ -25,35 +25,47 @@
     'uniform float u_t;',
     'uniform vec3 u_m;',   // pointer: x,y in canvas px (y up), z presence 0..1
     'uniform float u_p;',  // scroll progress 0..1
+    'uniform vec4 u_o;',   // orb: x,y as screen fractions (y up), radius multiplier (0 = no orb), curtain intensity
     'float h21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}',
     'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);',
     '  return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x),mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x),f.y);}',
     'float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}',
-    // brand palette: azure, sage, lavender, honey, apricot
-    'vec3 pal(float x){x=clamp(x,0.,1.)*4.;',
-    '  vec3 az=vec3(.647,.82,.894),sg=vec3(.647,.749,.592),lv=vec3(.749,.71,.91),hn=vec3(.969,.835,.584),ap=vec3(.973,.682,.498);',
-    '  if(x<1.)return mix(az,sg,x);if(x<2.)return mix(sg,lv,x-1.);if(x<3.)return mix(lv,hn,x-2.);return mix(hn,ap,x-3.);}',
-    // the sky: night gradient, stars and three layered light curtains (also sampled, refracted, by the orb)
+    // aurora palette: emerald -> teal -> violet -> rose (scroll walks it; honey is kept for the orb's halo)
+    'vec3 pal(float x){x=clamp(x,0.,3.);',
+    '  vec3 em=vec3(.10,.96,.56),te=vec3(.08,.76,.92),vi=vec3(.50,.32,.98),ro=vec3(.98,.36,.70);',
+    '  if(x<1.)return mix(em,te,x);if(x<2.)return mix(te,vi,x-1.);return mix(vi,ro,x-2.);}',
+    // the sky: night gradient, stars, three layered light curtains and a ridge line (also sampled, refracted, by the orb)
     'vec3 sky(vec2 p){',
     '  float t=u_t;vec2 R=u_res;',
     '  vec2 m=(u_m.xy-.5*R)/R.y;float md=length(p-m);float push=u_m.z*exp(-md*md*7.);',
-    '  vec3 col=mix(vec3(.024,.036,.064),vec3(.075,.052,.14),smoothstep(-.5,.5,p.y));',
+    '  vec3 col=mix(vec3(.018,.04,.058),vec3(.05,.036,.13),smoothstep(-.5,.5,p.y));',
+    '  col+=vec3(0.,.07,.07)*exp(-pow((p.y+.2)*3.2,2.));',
     '  vec2 fc=(p*R.y+.5*R)/3.;float sr=h21(floor(fc));float sd=length(fract(fc)-.5)*3.;',
-    '  col+=vec3(.9,.92,1.)*step(.9975,sr)*smoothstep(1.5,.2,sd)*(.45+.55*sin(t*1.6+sr*80.))*smoothstep(-.05,.45,p.y)*.85;',
+    '  col+=vec3(.9,.94,1.)*step(.9975,sr)*smoothstep(1.5,.2,sd)*(.45+.55*sin(t*1.6+sr*80.))*smoothstep(-.05,.45,p.y)*.85;',
     '  for(int i=0;i<3;i++){float fi=float(i);',
     '    float x=p.x*1.15+fi*2.7;',
     '    float sway=fbm(vec2(x*.8+t*.05*(1.+fi*.3),fi*5.+t*.03));',
-    '    float y0=-.2+fi*.07+(sway-.5)*.5+.04*sin(x*3.+t*.2+fi)+push*.12;',
+    '    float y0=-.16+fi*.07+(sway-.5)*.5+.04*sin(x*3.+t*.2+fi)+push*.12;',
     '    float d=p.y-y0;',
-    '    float edge=smoothstep(-.03,.02,d);',
-    '    float fall=exp(-max(d,0.)*(4.6-fi*.7));',
-    '    float rays=pow(.5+.5*vn(vec2(x*34.+d*3.5*(1.+fi),t*.25+fi*9.)),2.1);',
-    '    float body=edge*fall*(.25+1.1*rays)*(.55+.45*fbm(vec2(x*2.2+t*.07,d*2.5+fi)));',
-    '    body+=exp(-pow(d*26.,2.))*.42;',
-    '    vec3 c=pal(u_p*.62+fi*.14+d*.55+.1*sin(x*2.));c=mix(vec3(dot(c,vec3(.3,.59,.11))),c,1.7);',
-    '    col+=c*body*(.9-fi*.14);',
+    '    float edge=smoothstep(-.012,.01,d);',
+    '    float rn=vn(vec2(x*46.+d*2.5*(1.+fi),t*.2+fi*9.));',   // fine rays
+    '    float rb=vn(vec2(x*13.+fi*3.,t*.08));',                // broad bands: some rays run tall, some stay low
+    '    float fall=exp(-max(d,0.)*(3.5+fi*.8-1.7*rb));',
+    '    float rays=pow(.4+.6*rn,1.8)*(.45+1.0*rb);',
+    '    float body=edge*fall*(.2+1.3*rays)*(.55+.45*fbm(vec2(x*2.2+t*.07,d*2.5+fi)));',
+    '    body+=exp(-pow(d*30.,2.))*.5*(.45+rb);',               // bright, crisp lower edge
+    '    float s=u_p*1.9+fi*.12;',
+    '    vec3 c=mix(pal(s+.1*sin(x*2.)),pal(s+1.05+.1*sin(x*1.7+fi)),smoothstep(0.,.5,d));', // low = leading hue, tall rays shift on
+    '    col+=c*body*(.95-fi*.16)*u_o.w;',
     '  }',
-    '  return col+pal(.55)*push*.07;',
+    '  col+=pal(.7+u_p*1.9)*push*.07;',
+    // ridge line: dark ground with a faint reflected sheen
+    '  float rh=-.33+.05*fbm(vec2(p.x*2.6+3.1,1.7))+.018*sin(p.x*9.);',
+    '  float aa=2.2/R.y;float gm=smoothstep(rh+aa,rh-aa,p.y);',
+    '  vec3 sheen=pal(.4+u_p*1.9+p.x*.4)*(.04+.1*fbm(vec2(p.x*5.+t*.1,2.3)))*exp(min(p.y-rh,0.)*14.);',
+    '  col+=pal(.4+u_p*1.9)*exp(-max(p.y-rh,0.)*40.)*.05;',
+    '  col=mix(col,vec3(.006,.011,.022)+sheen,gm);',
+    '  return col;',
     '}',
     'void main(){',
     '  vec2 R=u_res;vec2 p=(gl_FragCoord.xy-.5*R)/R.y;float t=u_t;',
@@ -61,8 +73,9 @@
     '  vec3 col=sky(p);',
     // glass orb: a sphere that refracts the sky behind it (inverting and magnifying it), with
     // chromatic dispersion, a fresnel rim and a specular highlight that follows the cursor.
-    '  float ax=.5*R.x/R.y;float R0=min(.25,ax*.72);',
-    '  vec2 oc=vec2(ax*.6,.1+.012*sin(t*.5))+m*.05;',
+    '  float ax=.5*R.x/R.y;float R0=min(.25,ax*.72)*u_o.z;',
+    '  vec2 oc=vec2((u_o.x-.5)*R.x/R.y,u_o.y-.5+.012*sin(t*.5))+m*.05;',
+    '  if(R0>.002){',
     '  vec2 q=(p-oc)/R0;float r2=dot(q,q);',
     '  float aa=2./(R0*R.y);float rr=sqrt(r2);',
     '  float halo=exp(-pow((rr-1.14)*9.,2.))*.11+exp(-r2*.55)*.035;',
@@ -77,10 +90,11 @@
     '    vec3 L=normalize(vec3(-.45+m.x*.5,.65+m.y*.4,.62));',
     '    float spec=pow(max(dot(reflect(-L,n),vec3(0.,0.,1.)),0.),70.);',
     '    float spec2=pow(max(dot(reflect(-normalize(vec3(.5,-.4,.5)),n),vec3(0.,0.,1.)),0.),40.)*.35;',
-    '    vec3 glass=refr*.95+vec3(.015,.02,.045)*(1.-fr)+vec3(.7,.85,1.)*fr*.42+vec3(1.,.96,.88)*(spec*1.3+spec2);',
+    '    vec3 glass=refr*.95+vec3(.015,.02,.045)*(1.-fr)+vec3(.7,.85,1.)*fr*.42+vec3(1.,.96,.88)*(spec*1.3+spec2)*(1.-smoothstep(1.,3.5,u_o.z));',
     '    col=mix(col,glass,1.-smoothstep(1.-aa,1.+aa,rr));',
     '  }',
-    '  col=1.-exp(-col*1.55);',
+    '  }',
+    '  col=1.-exp(-col*1.7);',
     '  col*=mix(.62,1.,smoothstep(1.1,.2,length(p*vec2(.9,1.1))));',
     '  col+=(h21(gl_FragCoord.xy+fract(t)*91.)-.5)*.022;',
     '  gl_FragColor=vec4(col,1.);',
@@ -98,25 +112,38 @@
 
     var gl = null, prog = null, buf = null, loc = {};
     var S = { p: 0, tp: 0, mx: 0.5, my: 0.5, tmx: 0.5, tmy: 0.5, pres: 0, tpres: 0, t: 0, last: 0, lastDraw: 0,
-              visible: false, raf: 0, drawn: false, scale: lite ? 0.42 : (coarse ? 0.55 : 0.68), w: 0, h: 0, slow: 0, n: 0, sum: 0, cuts: 0, lost: false, dead: false };
+              ox: 0.8, oy: 0.6, or: -1, oi: 1, ready: false, visible: false, raf: 0, drawn: false, scale: lite ? 0.42 : (coarse ? 0.55 : 0.68), w: 0, h: 0, slow: 0, n: 0, sum: 0, cuts: 0, lost: false, dead: false };
 
-    function compile(type, src) {
-      var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
-      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { if (window.console) console.warn('[aurora] shader:', gl.getShaderInfoLog(s)); return null; }
-      return s;
-    }
-    function setup() {
-      var vs = compile(gl.VERTEX_SHADER, VERT), fs = compile(gl.FRAGMENT_SHADER, FRAG);
-      if (!vs || !fs) return false;
+    // Compile and link without blocking: with KHR_parallel_shader_compile the browser works off the main thread and we
+    // poll for completion; without it the first status query below blocks until the driver is done (what it always did).
+    function setup(cb) {
+      var vs = gl.createShader(gl.VERTEX_SHADER), fs = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(vs, VERT); gl.compileShader(vs); gl.shaderSource(fs, FRAG); gl.compileShader(fs);
       prog = gl.createProgram(); gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return false;
-      gl.useProgram(prog);
-      buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-      var a = gl.getAttribLocation(prog, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
-      loc.res = gl.getUniformLocation(prog, 'u_res'); loc.t = gl.getUniformLocation(prog, 'u_t');
-      loc.m = gl.getUniformLocation(prog, 'u_m'); loc.p = gl.getUniformLocation(prog, 'u_p');
-      return true;
+      function finish() {
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+          if (window.console) console.warn('[aurora] shader:', gl.getShaderInfoLog(vs) || gl.getShaderInfoLog(fs) || gl.getProgramInfoLog(prog));
+          return false;
+        }
+        gl.useProgram(prog);
+        buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        var a = gl.getAttribLocation(prog, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+        loc.res = gl.getUniformLocation(prog, 'u_res'); loc.t = gl.getUniformLocation(prog, 'u_t');
+        loc.m = gl.getUniformLocation(prog, 'u_m'); loc.p = gl.getUniformLocation(prog, 'u_p'); loc.o = gl.getUniformLocation(prog, 'u_o');
+        return true;
+      }
+      var ext = gl.getExtension('KHR_parallel_shader_compile');
+      if (!ext) { cb(finish()); return; }
+      (function poll() {
+        if (S.dead || S.lost) return;
+        if (gl.getProgramParameter(prog, ext.COMPLETION_STATUS_KHR)) cb(finish()); else requestAnimationFrame(poll);
+      })();
+    }
+    function started(ok) {
+      if (S.dead) return;
+      if (!ok) { S.dead = true; if (opts && opts.onFail) opts.onFail(); return; }
+      S.ready = true; size(); draw(); kick();
     }
     function size() {
       var cw = stage.clientWidth, ch = stage.clientHeight; if (!cw || !ch) return;
@@ -128,11 +155,14 @@
       if (gl && !S.lost) gl.viewport(0, 0, S.w, S.h);
     }
     function draw() {
-      if (!gl || S.lost || !S.w) return;
+      if (!gl || S.lost || !S.w || !S.ready) return;
       gl.uniform2f(loc.res, S.w, S.h); gl.uniform1f(loc.t, S.t);
       gl.uniform3f(loc.m, S.mx * S.w, (1 - S.my) * S.h, S.pres); gl.uniform1f(loc.p, S.p);
+      // orb radius is given in screen-height units (or < 0 = the page default); the shader wants a multiplier of its base radius
+      var r0 = Math.min(0.25, 0.5 * S.w / S.h * 0.72), om = S.or < 0 ? 1 : (S.or < 0.004 ? 0 : S.or / r0);
+      gl.uniform4f(loc.o, S.ox, S.oy, om, S.oi);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      if (!S.drawn) { S.drawn = true; canvas.style.visibility = 'visible'; canvas.classList.add('is-on'); }
+      if (!S.drawn) { S.drawn = true; canvas.style.visibility = 'visible'; canvas.classList.add('is-on'); if (opts && opts.onDraw) opts.onDraw(); }
     }
     function frame(now) {
       S.raf = 0;
@@ -152,38 +182,49 @@
       }
       S.raf = requestAnimationFrame(frame);
     }
-    function kick() { if (!S.raf && S.visible && !document.hidden && !S.lost && !S.dead) { S.last = 0; S.raf = requestAnimationFrame(frame); } }
+    function kick() { if (!S.raf && S.ready && S.visible && !document.hidden && !S.lost && !S.dead) { S.last = 0; S.raf = requestAnimationFrame(frame); } }
 
     function build() {
       if (S.dead) return;
       try {
         gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: 'high-performance' });
       } catch (e) { gl = null; }
-      if (!gl || !setup()) { S.dead = true; return; }
+      if (!gl) { S.dead = true; if (opts && opts.onFail) opts.onFail(); return; }
       canvas.addEventListener('webglcontextlost', function (e) {
-        e.preventDefault(); S.lost = true; if (S.raf) { cancelAnimationFrame(S.raf); S.raf = 0; }
+        e.preventDefault(); S.lost = true; S.ready = false; if (S.raf) { cancelAnimationFrame(S.raf); S.raf = 0; }
         canvas.style.visibility = 'hidden'; canvas.classList.remove('is-on'); S.drawn = false;
       });
       canvas.addEventListener('webglcontextrestored', function () {
-        S.lost = false; if (setup()) { size(); draw(); kick(); } else S.dead = true;
+        S.lost = false; setup(started);
       });
-      size(); draw(); kick();
+      setup(started);
     }
 
     // Visibility: only render while the chapter is on screen.
+    var io = null, ro = null;
     if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (es) { S.visible = es[0].isIntersecting; if (S.visible) kick(); }).observe(host);
+      io = new IntersectionObserver(function (es) { S.visible = es[0].isIntersecting; if (S.visible) kick(); }); io.observe(host);
     } else S.visible = true;
     document.addEventListener('visibilitychange', kick);
-    if ('ResizeObserver' in window) new ResizeObserver(function () { size(); if (S.drawn && !S.raf) draw(); }).observe(stage);
+    if ('ResizeObserver' in window) { ro = new ResizeObserver(function () { size(); if (S.drawn && !S.raf) draw(); }); ro.observe(stage); }
     else window.addEventListener('resize', size);
 
     // Build at idle, never as it scrolls into view (a one-off compile shows up as a dropped frame).
     var ric = window.requestIdleCallback || function (f) { return setTimeout(f, 300); };
-    ric(build, { timeout: 2500 });
+    if (opts && opts.immediate) build(); else ric(build, { timeout: 2500 });
 
     return {
       setProgress: function (p) { S.tp = Math.max(0, Math.min(1, p)); },
+      setOrb: function (x, y, r) { S.ox = x; S.oy = y; S.or = r; },     // entrance only: place/size the orb (r in screen heights)
+      setIntensity: function (i) { S.oi = i; },                         // entrance only: how bright the curtains burn (0..1+)
+      destroy: function () {                                            // frees the GPU context once the entrance is over
+        S.dead = true; S.visible = false;
+        if (S.raf) { cancelAnimationFrame(S.raf); S.raf = 0; }
+        if (io) io.disconnect(); if (ro) ro.disconnect();
+        document.removeEventListener('visibilitychange', kick);
+        try { var x = gl && gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); } catch (e) {}
+        canvas.style.visibility = 'hidden';
+      },
       setPointer: function (x, y) { // x,y in 0..1 of the stage, or null to release
         if (x == null) { S.tpres = 0; return; }
         S.tmx = x; S.tmy = y; S.tpres = 1;

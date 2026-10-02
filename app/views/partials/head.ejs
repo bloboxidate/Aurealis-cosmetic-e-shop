@@ -66,28 +66,12 @@
   .au-toast{position:fixed;bottom:28px;right:28px;background:#3a352e;color:#fff9f3;padding:14px 20px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.25);z-index:200;transform:translateY(12px);opacity:0;pointer-events:none;transition:transform .6s cubic-bezier(.16,1,.3,1),opacity .4s ease}
   .au-toast svg{flex:none;color:#a5bf97}
   .au-toast.au-toast-show{transform:translateY(0);opacity:1}
-  /* Product card interactions — quick-add icon reveals on hover with a pop-in,
-     and both add buttons pulse green on a successful add so it's obvious
-     something happened. */
-  .product-card-quick-add{opacity:0;transform:translateY(-4px);transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .5s cubic-bezier(.16,1,.3,1),background-color .3s ease}
-  @media (hover:hover) and (pointer:fine) {
-    .product-card:hover .product-card-quick-add,.product-card:focus-within .product-card-quick-add{opacity:1;transform:translateY(0)}
-  }
-  /* No real hover on touch — there's nothing to "reveal" it on, so just show
-     it plainly instead of leaving it permanently hidden/undiscoverable. */
-  @media (hover:none), (pointer:coarse) {
-    .product-card-quick-add{opacity:1;transform:none}
-  }
-  .product-card-quick-add:hover{background:#f8ae7f}
-  .product-card-quick-add:active{transform:scale(.95)}
-  .product-card-add{transition:background-color .5s cubic-bezier(.16,1,.3,1),color .5s cubic-bezier(.16,1,.3,1),transform .2s ease}
-  .product-card-add:hover{background:#3a352e;color:#fff9f3}
+  /* Product card add button: see the product card block in motion.css. */
   /* Wishlist heart — always visible (unlike the cart quick-add) since there's
      no equivalent always-visible fallback control on the card for it. */
   .product-card-wishlist{width:40px;height:40px;padding:0;border-radius:50%;background:#fff9f3;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(58,53,46,.18);transition:background-color .4s cubic-bezier(.16,1,.3,1),transform .4s cubic-bezier(.16,1,.3,1)}
   .product-card-wishlist:hover{background:#f8ae7f;transform:scale(1.04)}
   .product-card-wishlist:active{transform:scale(.94)}
-  .product-card-add:active{transform:scale(.97)}
   @keyframes au-added-pulse{
     0%{transform:scale(1)}
     35%{transform:scale(1.08)}
@@ -229,9 +213,10 @@
   try {
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       d.classList.add('au-motion');
-      if (location.pathname === '/' && !sessionStorage.getItem('au-intro')) d.classList.add('au-intro');
+      if (<%= (typeof site === 'undefined' || site.intro_enabled !== false) ? 'true' : 'false' %> && location.pathname === '/' && !sessionStorage.getItem('au-intro')) d.classList.add('au-intro');
     }
   } catch (e) {}
+  d.setAttribute('data-au-sound', '<%= (typeof site === 'undefined' || site.sound_default !== false) ? 'on' : 'off' %>');   // the admin's default for ambient sound (see sound.js)
   setTimeout(function () { if (!window.__auReady) d.classList.add('au-fail'); }, 4000);
 })();
 </script>

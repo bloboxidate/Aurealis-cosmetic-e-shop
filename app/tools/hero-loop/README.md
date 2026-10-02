@@ -15,8 +15,10 @@ How the page uses it (`routes/shop.js`, `views/home.ejs`, `public/js/motion-home
   admin changes the hero image, the page silently falls back to the still plus the live light layers. Re-run the script
   (with the new image and a bumped `--version`) to get a matching loop again.
 - It starts after the hero's entrance, fades in over the still, and plays only while the hero is on screen.
-- It is **not loaded** on phones/touch, with "reduce motion", with data-saver or a slow connection, or in the low-power
-  mode (`html.au-lite`). Those visitors get the still image and the live layers.
+- It plays on phones too: the video is the whole hero frame, so it lines up with the still under the same `object-fit:
+  cover` crop on any screen shape. It is **not loaded** with "reduce motion", with data-saver or a slow connection, or in
+  the low-power mode (`html.au-lite`), and it quietly stays the still if the OS refuses autoplay (e.g. iOS Low Power
+  Mode). Those visitors get the still image and the live layers.
 
 The script assumes a wide photo with the person on one side (use `--subject left` if they are on the left) in front of
 a fairly plain backdrop. Always look at the result: the person must stay crisp and the backdrop movement subtle.

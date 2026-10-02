@@ -82,9 +82,7 @@
     });
   });
 
-  // --- Product cards: quick add-to-bag (hover icon + button below the card) ---
-  var CHECK_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2f4a26" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
-  var BAG_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3a352e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>';
+  // --- Product cards: add-to-bag (the button below the card) ---
 
   function updateCartBadge(count, animate) {
     var badge = document.getElementById('cart-badge');
@@ -123,8 +121,7 @@
     if (btn.disabled) return;
     btn.disabled = true;
     btn.classList.add('au-busy'); // the Sariee round trip takes ~1s: show that something is happening
-    var isQuick = btn.classList.contains('product-card-quick-add');
-    var label = isQuick ? null : btn.textContent;
+    var label = btn.textContent;
 
     fetch('/cart/add', {
       method: 'POST',
@@ -141,20 +138,11 @@
       } else {
         toast(data.message || 'Sorry, that item could not be added.', true);
       }
-      if (isQuick) {
-        if (data.ok) {
-          btn.innerHTML = CHECK_ICON;
-          setTimeout(function () { btn.innerHTML = BAG_ICON; btn.disabled = false; }, 1300);
-        } else {
-          btn.disabled = false;
-        }
-      } else {
-        btn.textContent = data.ok ? 'Added ✓' : 'Unavailable';
-        setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 1300);
-      }
+      btn.textContent = data.ok ? 'Added ✓' : 'Unavailable';
+      setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 1300);
     }).catch(function () {
       btn.classList.remove('au-busy');
-      if (!isQuick) btn.textContent = label;
+      btn.textContent = label;
       btn.disabled = false;
       toast('Something went wrong. Please try again.', true);
     });
@@ -235,14 +223,6 @@
   });
 
   document.addEventListener('click', function (e) {
-    var quick = e.target.closest('.product-card-quick-add');
-    if (quick) {
-      e.preventDefault();
-      e.stopPropagation();
-      var quickName = quick.closest('.product-card');
-      addToCart(quick.dataset.productId, quick, quickName && quickName.querySelector('[data-product-name]') ? quickName.querySelector('[data-product-name]').textContent : null, { source: cardImage(quick) });
-      return;
-    }
     var add = e.target.closest('.product-card-add');
     if (add) {
       e.preventDefault();

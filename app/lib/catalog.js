@@ -12,6 +12,7 @@
 
 const sariee = require('./sariee');
 const overlay = require('./overlay');
+const content = require('./content'); // editable site content (product extras live here)
 const Cats = require('./categories'); // local taxonomy tables (read side)
 
 const TTL_MS = Number(process.env.CATALOG_CACHE_MS || 60000);
@@ -145,14 +146,21 @@ function buildIndex(list) {
   return { bySlug, byId, byBarcode };
 }
 
+// Admin-added product text (details / how to use / ingredients / badge), one cached read for the whole catalog.
+// Never lets a content-store hiccup take the storefront down.
+async function productExtras() {
+  try { return (await content.get('product_extras')) || {}; } catch (err) { return {}; }
+}
+
 // Merge the overlay onto one already-mapped Sariee product. A product can
 // belong to several categories at once (product_categories); `categories` is
 // the full list, and `category`/`subcategory` are the first one — kept for
 // display contexts that only ever show a single category (breadcrumbs, nav
 // active-state) and for backward compatibility, falling back to Sariee's own
 // category when nothing's been assigned locally.
-function decorate(p, ov, catsBySariee) {
+function decorate(p, ov, catsBySariee, extras) {
   const o = ov.get(p.id) || {};
+  const ex = (extras && extras[p.id]) || {};
   const categories = (catsBySariee && catsBySariee.get(p.id)) || [];
   const primary = categories[0];
   return {
@@ -164,6 +172,13 @@ function decorate(p, ov, catsBySariee) {
     is_featured: !!o.is_featured,
     is_bestseller: !!o.is_bestseller,
     is_hidden: !!o.is_hidden,
+    // Text the admin added on top of Sariee's wins when it is set; Sariee's own stays available for the admin form.
+    details: ex.details || p.details,
+    how_to_use: ex.how_to_use || p.how_to_use,
+    ingredients: ex.ingredients || p.ingredients,
+    badge: ex.badge || '',
+    extras: ex,
+    sariee_text: { details: p.details, how_to_use: p.how_to_use, ingredients: p.ingredients },
     badges: p.badges.slice(),
     sizes: p.sizes || [],
   };
@@ -172,8 +187,8 @@ function decorate(p, ov, catsBySariee) {
 // Merge the local overlay into every product. Sets category/subcategory (local
 // assignment, falling back to Sariee's), sort_order, featured/bestseller/hidden.
 async function withOverlay() {
-  const [{ list }, ov, catsBySariee] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap()]);
-  return list.map((p) => decorate(p, ov, catsBySariee));
+  const [{ list }, ov, catsBySariee, extras] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap(), productExtras()]);
+  return list.map((p) => decorate(p, ov, catsBySariee, extras));
 }
 
 function byOrder(a, b) {
@@ -208,17 +223,17 @@ async function featured(limit = 8) {
 }
 
 async function bySlug(slug) {
-  const [{ index }, ov, catsBySariee] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap()]);
+  const [{ index }, ov, catsBySariee, extras] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap(), productExtras()]);
   const p = index.bySlug.get(slug);
   if (!p) return null;
-  const decorated = decorate(p, ov, catsBySariee);
+  const decorated = decorate(p, ov, catsBySariee, extras);
   return decorated.is_hidden ? null : decorated;
 }
 
 async function byId(id) {
-  const [{ index }, ov, catsBySariee] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap()]);
+  const [{ index }, ov, catsBySariee, extras] = await Promise.all([fetchSariee(), overlay.map(), overlay.categoriesMap(), productExtras()]);
   const p = index.byId.get(id);
-  return p ? decorate(p, ov, catsBySariee) : null;
+  return p ? decorate(p, ov, catsBySariee, extras) : null;
 }
 
 // Raw (pre-overlay) lookup by barcode id — used by the cart, which only needs

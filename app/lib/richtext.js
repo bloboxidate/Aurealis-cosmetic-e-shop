@@ -35,4 +35,20 @@ function render(text) {
   }).join('');
 }
 
-module.exports = { render };
+// Plain text from Sariee (product descriptions etc.) -> safe HTML paragraphs. Nothing but line structure is
+// interpreted: a blank line starts a new paragraph, a single newline becomes <br>. Everything is escaped first.
+function paragraphs(text) {
+  const blocks = String(text == null ? '' : text).replace(/\r\n?/g, '\n').trim().split(/\n[ \t]*\n+/);
+  return blocks
+    .map((b) => b.split('\n').map((l) => l.trim()).filter(Boolean).map(esc).join('<br>'))
+    .filter(Boolean)
+    .map((b) => '<p>' + b + '</p>')
+    .join('');
+}
+
+// One line of admin-typed text with *word* shown in italics (used for editable headlines). Escaped first.
+function emphasize(text) {
+  return esc(text == null ? '' : text).replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+}
+
+module.exports = { render, paragraphs, emphasize, inline, esc };

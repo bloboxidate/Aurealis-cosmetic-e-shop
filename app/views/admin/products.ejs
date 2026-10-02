@@ -1,104 +1,73 @@
-<!doctype html>
-<html lang="en">
-<head><%- include('../partials/head') %></head>
-<body>
-<div class="admin-shell" style="display:flex;min-height:100vh;background:#fbf7f1">
-  <%- include('../partials/admin-nav', { adminActive }) %>
-  <div class="admin-main" style="flex:1;padding:40px 48px;max-width:1000px">
-    <div style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:12px;margin-bottom:8px">
-      <div class="serif" style="font-size:36px">Products</div>
-      <button id="save-order" style="display:none;background:#3a352e;color:#fff9f3;border:none;border-radius:100px;padding:10px 22px;font-size:13px;cursor:pointer">Save new order</button>
-    </div>
-    <div style="font-size:14px;color:#8a8175;margin-bottom:24px">Products come from Sariee. Here you set how they appear: drag to reorder, assign a category/subcategory, and toggle featured / bestseller / hidden. Prices, images and stock are managed in Sariee.</div>
-    <%- include('../partials/flash') %>
-    <% if (typeof sarieeError !== 'undefined' && sarieeError) { %>
-      <div style="background:rgba(248,174,127,.35);color:#8a3d16;border-radius:12px;padding:14px 18px;font-size:13px;margin-bottom:24px">Couldn't load products from Sariee right now (<%= sarieeError %>). Try refreshing in a moment.</div>
-    <% } %>
-
-    <% if (products.length === 0) { %>
-      <div style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:28px;color:#8a8175;font-size:14px">No products found in your Sariee store.</div>
-    <% } %>
-
-    <div id="rows">
-      <% products.forEach(function(p){ %>
-        <div class="prow" draggable="true" data-id="<%= p.id %>" style="background:#fff;border-radius:14px;border:1px solid rgba(58,53,46,.08);padding:16px;margin-bottom:14px">
-          <div style="display:flex;gap:16px;align-items:center;margin-bottom:14px">
-            <div class="drag" title="Drag to reorder" style="cursor:grab;color:#c9c1b4;font-size:20px;user-select:none">⠿</div>
-            <div style="width:52px;height:52px;border-radius:10px;background:#f0ece5;flex:none;overflow:hidden"><% if (p.image_url) { %><img src="<%= p.image_url %>" style="width:100%;height:100%;object-fit:cover"><% } %></div>
-            <div style="flex:1;min-width:140px">
-              <div style="font-weight:700;font-size:15px"><%= p.name %><% if (p.is_hidden) { %> <span style="font-size:11px;color:#b0533a;font-weight:700">· hidden</span><% } %></div>
-              <div style="font-size:12px;color:#8a8175"><%= price(p.price_cents) %> · Sariee cat: <%= p.sariee_category || '—' %></div>
-            </div>
-          </div>
-          <form method="post" action="/admin/products/<%= p.id %>" style="display:flex;flex-direction:column;gap:12px">
-            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-            <div style="display:flex;flex-wrap:wrap;gap:8px">
-              <% categories.forEach(function(c){ %>
-                <% var assigned = p.categories.find(function(pc){ return pc.category_slug === c.slug; }); %>
-                <% var subs = subcategories.filter(function(s){ return s.category_id === c.id; }); %>
-                <label style="display:flex;align-items:center;gap:6px;font-size:12px;background:#f7f4ee;padding:6px 10px;border-radius:100px;border:1px solid rgba(58,53,46,.1)">
-                  <input type="checkbox" name="cat_<%= c.slug %>" <%= assigned ? 'checked' : '' %>>
-                  <%= c.name %>
-                  <% if (subs.length) { %>
-                    <select name="subcat_<%= c.slug %>" style="padding:3px 5px;border-radius:6px;border:1px solid rgba(58,53,46,.2);font-size:11px;background:#fff">
-                      <option value="">— sub —</option>
-                      <% subs.forEach(function(s){ %><option value="<%= s.slug %>" <%= assigned && assigned.subcategory_slug === s.slug ? 'selected' : '' %>><%= s.name %></option><% }); %>
-                    </select>
-                  <% } %>
-                </label>
-              <% }); %>
-              <% if (categories.length === 0) { %><span style="font-size:12px;color:#a49c8f">No categories yet — add some on the Categories page.</span><% } %>
-            </div>
-            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <label style="font-size:12px;display:flex;align-items:center;gap:4px" title="Featured"><input type="checkbox" name="is_featured" <%= p.is_featured ? 'checked' : '' %>>Feat</label>
-              <label style="font-size:12px;display:flex;align-items:center;gap:4px" title="Bestseller"><input type="checkbox" name="is_bestseller" <%= p.is_bestseller ? 'checked' : '' %>>Best</label>
-              <label style="font-size:12px;display:flex;align-items:center;gap:4px" title="Hidden"><input type="checkbox" name="is_hidden" <%= p.is_hidden ? 'checked' : '' %>>Hide</label>
-              <button type="submit" style="background:none;border:1px solid rgba(58,53,46,.3);border-radius:100px;padding:7px 16px;font-size:12px;cursor:pointer">Save</button>
-            </div>
-          </form>
-        </div>
-      <% }); %>
-    </div>
+<%- include('../partials/admin-open') %>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Products</h1>
+    <p class="adm-sub">Products come from Sariee. Here you choose how they appear: the order, their categories, what’s featured or hidden, and extra text for the product page. Prices, photos and stock are changed in Sariee.</p>
   </div>
 </div>
 
-<script>
-(function () {
-  var rows = document.getElementById('rows');
-  var saveBtn = document.getElementById('save-order');
-  if (!rows) return;
-  var dragged = null;
+<% if (sarieeError) { %><div class="notice" style="margin-bottom:16px"><span>Couldn’t load products from Sariee right now (<%= sarieeError %>). Try refreshing in a moment.</span></div><% } %>
 
-  rows.addEventListener('dragstart', function (e) {
-    var row = e.target.closest('.prow'); if (!row) return;
-    dragged = row; row.style.opacity = '.4';
-  });
-  rows.addEventListener('dragend', function () {
-    if (dragged) dragged.style.opacity = '';
-    dragged = null;
-  });
-  rows.addEventListener('dragover', function (e) {
-    e.preventDefault();
-    var over = e.target.closest('.prow');
-    if (!over || over === dragged) return;
-    var rect = over.getBoundingClientRect();
-    var after = (e.clientY - rect.top) / rect.height > 0.5;
-    rows.insertBefore(dragged, after ? over.nextSibling : over);
-    saveBtn.style.display = 'inline-block';
-  });
+<div class="toolbar" id="ptools" role="search">
+  <input class="input" type="search" id="psearch" placeholder="Search products…" aria-label="Search products" autocomplete="off">
+  <div class="row wrap" id="pfilters" style="gap:6px"></div>
+</div>
 
-  saveBtn.addEventListener('click', function () {
-    var ids = Array.prototype.map.call(rows.querySelectorAll('.prow'), function (r) { return r.getAttribute('data-id'); });
-    fetch('/admin/products/order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': '<%= csrfToken %>' },
-      body: JSON.stringify({ ids: ids })
-    }).then(function (r) { return r.json(); }).then(function () {
-      saveBtn.textContent = 'Saved ✓';
-      setTimeout(function () { saveBtn.textContent = 'Save new order'; saveBtn.style.display = 'none'; }, 1400);
-    });
-  });
-})();
-</script>
-</body>
-</html>
+<div class="bulkbar" id="pbulk" hidden>
+  <label class="row" style="gap:8px;font-weight:700"><input type="checkbox" class="cb" id="pselall" aria-label="Select all shown"><span id="pbulk-n">0 selected</span></label>
+  <button type="button" class="btn btn-sm" data-bulk="show">Show</button>
+  <button type="button" class="btn btn-sm" data-bulk="hide">Hide</button>
+  <button type="button" class="btn btn-sm" data-bulk="feature">Feature</button>
+  <button type="button" class="btn btn-sm" data-bulk="bestseller">Bestseller</button>
+  <% if (categories.length) { %>
+    <select class="select" id="pbulk-cat" aria-label="Category"><option value="">Category…</option><% categories.forEach(function (c) { %><option value="<%= c.slug %>"><%= c.name %></option><% }); %></select>
+    <button type="button" class="btn btn-sm" data-bulk="add_category">Add</button>
+    <button type="button" class="btn btn-sm" data-bulk="remove_category">Remove</button>
+  <% } %>
+  <button type="button" class="btn btn-sm btn-ghost" id="pbulk-clear" style="margin-left:auto;color:#fff">Clear</button>
+</div>
+
+<noscript><div class="notice">The product manager needs JavaScript. Please turn it on for this page.</div></noscript>
+<div class="card plist" id="plist" aria-live="polite"></div>
+<p class="hint" id="pnote" style="margin-top:12px"></p>
+
+<div class="scrim" id="pscrim"></div>
+<aside class="drawer" id="pdrawer" role="dialog" aria-modal="true" aria-labelledby="pd-title" aria-hidden="true">
+  <div class="drawer-h">
+    <div class="pthumb" id="pd-thumb"></div>
+    <div class="grow"><div class="strong" id="pd-title" style="font-size:16px"></div><div class="muted small" id="pd-meta"></div></div>
+    <a class="btn btn-sm" id="pd-view" target="_blank" rel="noopener">View</a>
+    <button type="button" class="btn btn-sm btn-ghost" id="pd-close" aria-label="Close">✕</button>
+  </div>
+  <div class="drawer-b">
+    <form id="pd-form" class="stack" autocomplete="off">
+      <section>
+        <div class="lbl" style="margin-bottom:6px">In the store</div>
+        <div class="card" style="padding:4px 16px;box-shadow:none">
+          <div class="toggle-row"><div><div class="t">Visible</div><div class="d">Off hides it from the whole store.</div></div><label class="switch"><input type="checkbox" id="pd-visible"><span class="track"></span></label></div>
+          <div class="toggle-row"><div><div class="t">Featured</div></div><label class="switch"><input type="checkbox" id="pd-featured"><span class="track"></span></label></div>
+          <div class="toggle-row"><div><div class="t">Bestseller</div><div class="d">Shown in the homepage Bestsellers.</div></div><label class="switch"><input type="checkbox" id="pd-bestseller"><span class="track"></span></label></div>
+        </div>
+      </section>
+      <section>
+        <div class="lbl" style="margin-bottom:6px">Categories</div>
+        <div class="catpick" id="pd-cats"></div>
+        <% if (!categories.length) { %><div class="hint">No categories yet — <a href="/admin/categories">add some</a> first.</div><% } %>
+      </section>
+      <section>
+        <div class="fld" style="margin:0"><label for="pd-badge">Badge <span class="opt">optional</span></label><input class="input" id="pd-badge" maxlength="24" placeholder="New, Limited, Best loved…"><div class="hint">A small label on the product’s picture in the store.</div></div>
+      </section>
+      <section class="stack" style="gap:14px">
+        <div><div class="lbl">Product text</div><div class="hint">Shown on the product page. What you write here is used instead of Sariee’s; leave a box empty to keep Sariee’s (shown in grey).</div></div>
+        <div class="fld" style="margin:0"><label for="pd-details">Details</label><textarea class="textarea" id="pd-details" rows="4" maxlength="3000"></textarea></div>
+        <div class="fld" style="margin:0"><label for="pd-how">How to use</label><textarea class="textarea" id="pd-how" rows="4" maxlength="3000"></textarea></div>
+        <div class="fld" style="margin:0"><label for="pd-ing">Ingredients</label><textarea class="textarea" id="pd-ing" rows="4" maxlength="3000"></textarea></div>
+        <div class="hint">Blank line = new paragraph. Bold, headings and links are not used here.</div>
+      </section>
+    </form>
+  </div>
+  <div class="drawer-f"><button type="button" class="btn" id="pd-cancel">Cancel</button><button type="button" class="btn btn-solid" id="pd-save">Save</button></div>
+</aside>
+
+<script>window.ADM_PRODUCTS = <%- JSON.stringify({ items: items, categories: categories.map(function (c) { return { slug: c.slug, name: c.name, id: c.id }; }), subcategories: subcategories.map(function (s) { return { slug: s.slug, name: s.name, category_id: s.category_id }; }) }).replace(/</g, '\\u003c') %>;</script>
+<%- include('../partials/admin-close') %>
