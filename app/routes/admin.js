@@ -248,6 +248,9 @@ router.post('/categories/:id/image', upload.single('image'), ah(async (req, res)
 
 router.post('/categories/:id/delete', ah(async (req, res) => {
   const before = await Cats.getCategory(req.params.id);
+  // Only when the Sariee list loaded: an empty list from an outage must not wipe real assignments.
+  const { products, sarieeError } = await safeAdminProducts();
+  if (before && !sarieeError && products.length) await overlay.pruneOrphans(before.slug, products.map((p) => p.id));
   const r = await Cats.deleteCategory(req.params.id);
   if (r.ok && before) { await overlay.clearCategory(before.slug); await note(res, `Deleted the category “${before.name}”`); }
   flash(req, r.ok ? 'success' : 'error', r.ok ? 'Category deleted.' : 'Cannot delete: ' + r.reason + '.');

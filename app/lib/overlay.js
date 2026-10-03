@@ -70,6 +70,17 @@ async function renameCategory(oldSlug, newSlug) {
 async function clearCategory(slug) {
   await db.run('DELETE FROM product_categories WHERE category_slug = ?', [slug]);
 }
+// Drop a category's assignments that point at products Sariee no longer returns — the admin can't
+// unassign those, so they would block deleting the category forever.
+async function pruneOrphans(slug, knownIds = []) {
+  const known = new Set(knownIds.map(String));
+  const rows = await db.all('SELECT sariee_id FROM product_categories WHERE category_slug = ?', [slug]);
+  for (const r of rows) {
+    if (!known.has(String(r.sariee_id))) {
+      await db.run('DELETE FROM product_categories WHERE sariee_id = ? AND category_slug = ?', [r.sariee_id, slug]);
+    }
+  }
+}
 async function renameSubcategory(oldSlug, newSlug) {
   await db.run('UPDATE product_categories SET subcategory_slug = ? WHERE subcategory_slug = ?', [newSlug, oldSlug]);
 }
@@ -111,7 +122,7 @@ async function setCategories(sarieeId, assignments = []) {
 
 module.exports = ttl.wrap({
   map, get, set, setOrder,
-  renameCategory, clearCategory, renameSubcategory, clearSubcategory,
+  renameCategory, clearCategory, pruneOrphans, renameSubcategory, clearSubcategory,
   categoriesMap, getCategories, setCategories,
 }, 'overlay', ['map', 'categoriesMap'],
-['set', 'setOrder', 'renameCategory', 'clearCategory', 'renameSubcategory', 'clearSubcategory', 'setCategories']);
+['set', 'setOrder', 'renameCategory', 'clearCategory', 'pruneOrphans', 'renameSubcategory', 'clearSubcategory', 'setCategories']);

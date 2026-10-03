@@ -127,6 +127,9 @@ if (usePg) {
         WHERE category_slug != ''
         ON CONFLICT (sariee_id, category_slug) DO NOTHING
       `);
+      // Blank the legacy columns once copied. Otherwise this runs again on the next start and
+      // re-creates every assignment an admin has since removed (the "1 product still uses this category" bug).
+      await pool.query(`UPDATE product_overlay SET category_slug = '', subcategory_slug = '' WHERE category_slug != '' OR subcategory_slug != ''`);
     },
     async close() { await pool.end(); },
   };
@@ -198,6 +201,8 @@ if (usePg) {
         SELECT sariee_id, category_slug, subcategory_slug FROM product_overlay
         WHERE category_slug != ''
       `);
+      // Blank the legacy columns once copied, so removed assignments are not re-created on the next start.
+      sdb.exec(`UPDATE product_overlay SET category_slug = '', subcategory_slug = '' WHERE category_slug != '' OR subcategory_slug != ''`);
     },
     async close() { sdb.close(); },
   };
