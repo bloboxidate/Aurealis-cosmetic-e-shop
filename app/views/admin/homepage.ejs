@@ -83,10 +83,11 @@
       </section>
 
       <section class="card card-pad section" id="ritual">
-        <div class="card-h"><div><h2 class="card-t">Your ritual</h2><p class="card-d">The heading above the ritual builder.</p></div></div>
+        <div class="card-h"><div><h2 class="card-t">Your ritual</h2><p class="card-d">The heading above the ritual builder, and the prompt beside the total.</p></div></div>
         <div class="grid g2">
           <%- F.text('ritual_eyebrow', 'Small label', home.ritual_eyebrow, { max: 40 }) %>
           <%- F.text('ritual_title', 'Heading', home.ritual_title, { max: 100 }) %>
+          <%- F.text('ritual_hint', 'Prompt under the products', home.ritual_hint, { max: 40, hint: 'Shown beside the total until a product is picked.' }) %>
         </div>
       </section>
     </form>

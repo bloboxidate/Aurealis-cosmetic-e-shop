@@ -20,7 +20,7 @@ const SCHEMA = {
     show_story: bool(), show_ritual: bool(), show_voices: bool(),
     aurora_eyebrow: text(60, true), aurora_line1: text(90, true), aurora_line2: text(60, true), aurora_line3: text(90, true), aurora_link: text(60, true),
     story_quote: area(420, true), story_link: text(40, true),
-    ritual_eyebrow: text(40, true), ritual_title: text(100, true),
+    ritual_eyebrow: text(40, true), ritual_title: text(100, true), ritual_hint: text(40, true),
   },
   site: { intro_enabled: bool(), intro_tagline: text(60, true), sound_default: bool(), hero_video_enabled: bool() },
   announcement: { enabled: bool(), text: text(160), link_label: text(40), link_url: url(300) },

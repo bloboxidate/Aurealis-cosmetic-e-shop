@@ -17,7 +17,7 @@
     <% }); %>
   </div>
   <div class="au-ritual-bar">
-    <div class="au-ritual-sum" aria-live="polite"><span data-ritual-count>Pick two or more</span><b data-ritual-total></b></div>
+    <div class="au-ritual-sum" aria-live="polite"><span data-ritual-count data-idle="<%= (typeof home !== 'undefined' && home.ritual_hint) || 'Pick two or more' %>"><%= (typeof home !== 'undefined' && home.ritual_hint) || 'Pick two or more' %></span><b data-ritual-total></b></div>
     <button type="button" class="btn-primary" data-ritual-add disabled>Add to Bag</button>
   </div>
 </section>

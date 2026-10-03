@@ -29,6 +29,7 @@ const DEFAULTS = {
     story_link: 'Our Story →',
     ritual_eyebrow: 'Your Ritual',
     ritual_title: 'Choose your steps. We will keep the order.',
+    ritual_hint: 'Pick two or more',
   },
   // Site-wide behaviour: the first-visit entrance, ambient sound, the hero loop video.
   site: {

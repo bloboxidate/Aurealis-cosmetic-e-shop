@@ -24,7 +24,7 @@
       t.querySelector('.au-ritual-step').textContent = i >= 0 ? String(i + 1) : '';
     });
     var n = order.length;
-    countEl.textContent = n === 0 ? 'Pick two or more' : n === 1 ? '1 step · add one more' : n + ' steps';
+    countEl.textContent = n === 0 ? (countEl.getAttribute('data-idle') || 'Pick two or more') : n === 1 ? '1 step · add one more' : n + ' steps';
     addBtn.disabled = busy || n < 1;
     addBtn.textContent = n > 1 ? 'Add ' + n + ' to Bag' : 'Add to Bag';
     var target = total();

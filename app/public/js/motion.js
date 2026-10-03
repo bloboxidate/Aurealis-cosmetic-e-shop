@@ -235,28 +235,17 @@
     });
     header.addEventListener('focusin', show);
 
-    // While the full-screen menu is open the page behind it is inert: Tab can't wander into it, and
-    // screen readers don't read it. Everything else in the header (logo, bag, account, the menu itself) stays live.
-    function setInert(on) {
-      $$('main, .au-footer').forEach(function (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); });
-    }
-    function focusables() {
-      return $$('a[href], button, input:not([type="hidden"]), summary', header).filter(function (el) {
-        return !el.disabled && el.getClientRects().length > 0 || el === toggle || el === acct;
-      });
-    }
+    // The menu is a small dropdown under the burger: the page stays scrollable and live behind it, and
+    // a click outside or Escape closes it.
     function openedMenu() {
       if (acct) acct.checked = false;
-      show(); setInert(true);
-      if (lenis) lenis.stop();
+      show();
       var first = nav && $('a', nav);
       if (first) setTimeout(function () { first.focus({ preventScroll: true }); }, 350);
     }
     function finishClose() {
       toggle.checked = false; closing = false;
       header.classList.remove('is-menu-closing');
-      setInert(false);
-      if (lenis) lenis.start();
     }
     // Close = the same sheet drawn back up (CSS keyframes), then the checkbox — the source of truth — is released.
     function closeMenu(returnFocus) {
@@ -278,9 +267,10 @@
       toggle.addEventListener('change', function () { if (toggle.checked) openedMenu(); });
     }
     if (acct) acct.addEventListener('change', function () { if (acct.checked && toggle && toggle.checked) closeMenu(false); });
-    // Click anywhere outside the account dropdown closes it.
+    // Click anywhere outside a dropdown closes it.
     document.addEventListener('click', function (e) {
       if (acct && acct.checked && !e.target.closest('.account-menu')) acct.checked = false;
+      if (toggle && toggle.checked && !closing && !e.target.closest('.nav-mobile') && !e.target.closest('.nav-burger') && e.target !== toggle) closeMenu(false);
     });
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
@@ -288,15 +278,9 @@
         if (acct && acct.checked) { acct.checked = false; acct.focus(); }
         return;
       }
-      if (e.key === 'Tab' && toggle && toggle.checked) { // keep focus inside the header while the menu is open
-        var f = focusables(); if (!f.length) return;
-        var firstEl = f[0], lastEl = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === firstEl) { e.preventDefault(); lastEl.focus(); }
-        else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); firstEl.focus(); }
-      }
     });
     // A back/forward restore must never show the menu open.
-    window.addEventListener('pageshow', function () { if (toggle && toggle.checked) { toggle.checked = false; setInert(false); if (lenis) lenis.start(); } });
+    window.addEventListener('pageshow', function () { if (toggle && toggle.checked) toggle.checked = false; });
   }
 
   // Page progress -> CSS variable that drifts the two aurora backdrop layers (see motion.css).
