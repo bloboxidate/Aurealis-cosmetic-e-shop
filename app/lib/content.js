@@ -37,6 +37,20 @@ const DEFAULTS = {
     intro_tagline: 'Step into the light.',
     sound_default: true,
     hero_video_enabled: true,
+    // The ambient-sound track the admin uploaded (set only by the upload route, never by a form: see routes/admin.js).
+    // Blank = the built-in synthesised pad.
+    music_url: '',
+    music_name: '',
+  },
+  // Checkout payment options besides cash on delivery. InstaPay orders are still placed in Sariee as cash on delivery
+  // (Sariee has no other method), so the storefront marks them and tells the customer how to transfer.
+  payment: {
+    instapay_enabled: false,
+    instapay_title: 'InstaPay',
+    instapay_tagline: 'Pay by instant transfer',
+    instapay_handle: '',
+    instapay_name: '',
+    instapay_instructions: 'After you place your order, open the InstaPay app (or your bank app) and send the **total amount** to the InstaPay address shown above.\n\nWrite your **order number** in the transfer note so we can match your payment.\n\nWe prepare your order as soon as the transfer reaches us. Questions? [Contact us](/contact).',
   },
   // A slim message above the header (free shipping, a launch, a holiday closure…).
   announcement: {

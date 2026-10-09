@@ -192,6 +192,8 @@ if (usePg) {
       // manual existence check (schema.sql's CREATE TABLE IF NOT EXISTS only
       // helps brand-new tables).
       ensureColumn('categories', 'image_url', "TEXT NOT NULL DEFAULT ''");
+      ensureColumn('sariee_orders', 'payment_method', "TEXT NOT NULL DEFAULT 'cod'");
+      ensureColumn('sariee_orders', 'first_name', "TEXT NOT NULL DEFAULT ''");
       // One-time forward migration: carry any existing single category/
       // subcategory assignment into the new multi-category table. Idempotent
       // (INSERT OR IGNORE against the UNIQUE constraint) so it's safe to run

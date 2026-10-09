@@ -112,6 +112,7 @@ router.post('/forgot-password', verifyCsrf, authLimiter, ah(async (req, res) => 
   const email = (req.body.email || '').trim().toLowerCase();
   const genericMsg = 'If an account exists for that email, we\'ve sent a password reset link.';
 
+  const startedAt = Date.now();
   const user = emailRe.test(email) ? await db.get('SELECT id FROM users WHERE email = ?', [email]) : null;
   if (user) {
     const raw = crypto.randomBytes(32).toString('hex');
@@ -121,12 +122,17 @@ router.post('/forgot-password', verifyCsrf, authLimiter, ah(async (req, res) => 
       [user.id, hashToken(raw), expiresAt]
     );
     const link = `${req.protocol}://${req.get('host')}/reset-password/${raw}`;
-    mailer.send({
+    // Awaited: Vercel freezes the function once the response is sent, which would cut a background send short.
+    await mailer.send({
       to: email,
       subject: 'Reset your Auréalis password',
       text: `Click to reset your password (expires in 1 hour): ${link}\n\nIf you didn't request this, ignore this email.`,
     }).catch(() => {});
   }
+
+  // Sending takes a second or two, so pad every answer to the same minimum: the reply time must not reveal whether the email has an account.
+  const wait = 2500 - (Date.now() - startedAt);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
 
   flashNow(res, 'success', genericMsg);
   res.render('forgot-password', { title: 'Forgot password — Auréalis', submitted: true });
@@ -208,21 +214,23 @@ router.post('/account/orders/:id/cancel-request', verifyCsrf, requireAuth, ah(as
     note: (req.body.note || '').trim(),
   });
 
+  const sends = []; // awaited below: Vercel freezes the function once the response is sent
   const opsEmail = process.env.STORE_OPS_EMAIL;
   if (opsEmail) {
-    mailer.send({
+    sends.push(mailer.send({
       to: opsEmail,
       subject: `Cancellation requested — order ${req.params.id}`,
       text: `Customer ${res.locals.user.email} requested cancellation of order ${req.params.id}.\nNote: ${req.body.note || '(none)'}\n\nThis must be actioned manually in Sariee — there is no cancel API.`,
-    }).catch(() => {});
+    }));
   } else {
     console.log(`[cancellation] STORE_OPS_EMAIL not set — request recorded for order ${req.params.id}, not emailed. Set STORE_OPS_EMAIL to route these.`);
   }
-  mailer.send({
+  sends.push(mailer.send({
     to: res.locals.user.email,
     subject: `We received your cancellation request for order ${req.params.id}`,
     text: 'Our team will review and follow up shortly. This is a request, not a confirmed cancellation.',
-  }).catch(() => {});
+  }));
+  await Promise.all(sends);
 
   flash(req, 'success', 'Your cancellation request has been sent. We’ll follow up by email.');
   res.redirect('/account');

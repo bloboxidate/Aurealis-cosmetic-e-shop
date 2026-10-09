@@ -16,14 +16,18 @@ function hostOf(url) {
 }
 
 function sameOrigin(req, res, next) {
+  // Sec-Fetch-Site is set by the browser itself and cannot be forged by a page, so when it is present it decides alone.
+  // (Origin is unreliable for plain form posts: a page with a strict Referrer-Policy makes the browser send `Origin: null`
+  // even to its own site.)
   const site = req.get('Sec-Fetch-Site');
-  if (site && site !== 'same-origin' && site !== 'none') return reject(req, res);
+  if (site) return site === 'same-origin' || site === 'none' ? next() : reject(req, res);
 
+  // Older browsers send no Sec-Fetch-*: fall back to Origin, then Referer.
   const host = req.get('host');
   const origin = req.get('Origin');
   if (origin !== undefined) {
     if (origin === 'null' || hostOf(origin) !== host) return reject(req, res);
-  } else if (!site) {
+  } else {
     const ref = req.get('Referer');
     if (ref && hostOf(ref) !== host) return reject(req, res);
   }

@@ -1,0 +1,53 @@
+<%- include('../partials/admin-open') %>
+<%
+  const money = function (c) { return 'EGP ' + (c / 100).toFixed(2); };
+  const when = function (d) { try { return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return ''; } };
+%>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Orders</h1>
+    <p class="adm-sub">The latest orders placed on the website, with their live status from Sariee. When one changes (shipped, delivered, delayed…), write the new status here and the customer gets an email. Sariee does not tell the website when a status changes, so this is the one step done by hand.</p>
+  </div>
+</div>
+
+<% if (!mail.configured) { %><div class="notice" style="margin-bottom:18px;max-width:860px"><span><strong>No mail server is set up yet</strong>, so updates cannot be sent. See <a href="/admin/settings#email">Site settings, Email</a>.</span></div><% } %>
+
+<datalist id="status-suggestions"><% suggestions.forEach(function (s) { %><option value="<%= s %>"><% }); %></datalist>
+
+<div style="max-width:860px">
+  <% if (!list.length) { %>
+    <div class="card empty">
+      <div class="big">No orders yet</div>
+      <div>Orders placed through the website will appear here.</div>
+    </div>
+  <% } %>
+  <% list.forEach(function (it) { var o = it.o, r = it.row; var num = o ? o.number : String(r.sariee_order_id).slice(0, 8).toUpperCase(); var insta = r.payment_method === 'instapay'; %>
+    <article class="card rev">
+      <div class="row wrap between">
+        <div>
+          <div class="strong">Order <%= num %> <% if (insta) { %><span class="pill warn">InstaPay</span><% } %></div>
+          <div class="muted small"><%= r.first_name ? r.first_name + ' · ' : '' %><%= r.email %> · <%= o && o.date ? o.date : when(r.created_at) %></div>
+        </div>
+        <div style="text-align:right">
+          <% if (o) { %>
+            <div class="strong"><%= money(o.total_cents) %></div>
+            <div class="muted small" style="text-transform:capitalize">Status in Sariee: <%= o.status || 'unknown' %></div>
+          <% } else { %>
+            <div class="muted small">Sariee did not answer for this order.</div>
+          <% } %>
+        </div>
+      </div>
+      <% if (o && o.items.length) { %><div class="muted small" style="margin-top:8px"><%= o.items.map(function (i) { return i.name + ' × ' + i.qty; }).join(' · ') %></div><% } %>
+      <form method="post" action="/admin/orders/<%= encodeURIComponent(r.sariee_order_id) %>/notify" data-ajax style="margin-top:14px">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="number" value="<%= num %>">
+        <div class="grid g2">
+          <div class="fld" style="margin:0"><label for="st-<%= r.sariee_order_id %>">New status</label><input class="input" id="st-<%= r.sariee_order_id %>" name="status" list="status-suggestions" maxlength="60" autocomplete="off" placeholder="Shipped" value=""></div>
+          <div class="fld" style="margin:0"><label for="nt-<%= r.sariee_order_id %>">Message to the customer <span class="opt">optional</span></label><input class="input" id="nt-<%= r.sariee_order_id %>" name="note" maxlength="600" autocomplete="off" placeholder="Your courier will call before arriving."></div>
+        </div>
+        <div class="row" style="justify-content:flex-end;margin-top:10px"><button type="submit" class="btn btn-sm btn-solid" <%= mail.configured ? '' : 'disabled' %>>Email the customer</button></div>
+      </form>
+    </article>
+  <% }); %>
+</div>
+<%- include('../partials/admin-close') %>

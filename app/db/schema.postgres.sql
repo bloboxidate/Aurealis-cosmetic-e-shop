@@ -83,6 +83,9 @@ CREATE TABLE IF NOT EXISTS sariee_orders (
 );
 CREATE INDEX IF NOT EXISTS idx_sariee_orders_user ON sariee_orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_sariee_orders_email ON sariee_orders(email);
+-- Additive: what the customer chose at checkout ('cod' | 'instapay'; Sariee only knows cash on delivery), and their first name for order emails.
+ALTER TABLE sariee_orders ADD COLUMN IF NOT EXISTS payment_method text NOT NULL DEFAULT 'cod';
+ALTER TABLE sariee_orders ADD COLUMN IF NOT EXISTS first_name text NOT NULL DEFAULT '';
 
 -- Cancellation requests. Sariee has no cancel/void order endpoint (checked
 -- across all 425 documented endpoints), so this can't be automatic — it just

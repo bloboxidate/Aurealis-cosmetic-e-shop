@@ -76,7 +76,9 @@ CREATE TABLE IF NOT EXISTS sariee_orders (
   sariee_order_id TEXT NOT NULL UNIQUE,
   user_id         INTEGER REFERENCES users(id) ON DELETE SET NULL,
   email           TEXT NOT NULL DEFAULT '',
-  created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+  created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+  payment_method  TEXT NOT NULL DEFAULT 'cod',   -- 'cod' | 'instapay' (Sariee only knows cash on delivery)
+  first_name      TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_sariee_orders_user ON sariee_orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_sariee_orders_email ON sariee_orders(email);

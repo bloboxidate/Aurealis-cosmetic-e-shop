@@ -82,8 +82,10 @@ working locally.
 |------|---------|
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | Admin image uploads. Without them uploads fail with a clear message; everything else works. The service-role key is a secret — server-side only |
 | `SUPABASE_STORAGE_BUCKET` | Bucket name if not `site-images` |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Real emails (order confirmation, password reset, cancellation). Without `SMTP_HOST` the emails are **only logged** — so password-reset links never reach customers |
-| `STORE_OPS_EMAIL` | Inbox for customer cancellation requests (Sariee has no cancel API). Unset = stored in the DB, not emailed |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | Real emails (order confirmation, order updates, password reset, cancellation). Without `SMTP_HOST` the emails are **only logged** — so customers get nothing. GoDaddy Workspace/Professional Email: `smtpout.secureserver.net`, `465`, `true`, user = the full mailbox address, `MAIL_FROM="Auréalis <that same address>"`. Microsoft 365 mailbox: `smtp.office365.com`, `587`, `false` (SMTP AUTH must be enabled on the mailbox). Test it with **Admin → Site settings → Email → Send test email** |
+| `STORE_OPS_EMAIL` | The store's own inbox: gets a copy of every new order (InstaPay ones are flagged) and customer cancellation requests |
+
+**Email deliverability:** in the DNS of the domain, GoDaddy's mail setup normally adds the SPF record for you; also turn on DKIM in the GoDaddy/Microsoft email settings, or customers' providers may send order emails to spam.
 | `SARIEE_LOGIN_EMAIL`, `SARIEE_LOGIN_PASSWORD` | Sariee company-portal login, used only for Sariee's company-portal API. (Or set `SARIEE_API_BEARER_TOKEN` instead of the pair.) The app's own admin UI doesn't need them |
 
 **Optional tuning**: `SARIEE_TIMEOUT_MS` (default 20000), `SARIEE_DEFAULT_COUNTRY`

@@ -20,6 +20,11 @@ const activity = require('../lib/activity');
 const reviews = require('../lib/reviews');
 const storage = require('../lib/storage');
 const upload = require('../middleware/upload');
+const mailer = require('../lib/mailer');
+const emails = require('../lib/emails');
+const Orders = require('../lib/orders');
+const sariee = require('../lib/sariee');
+const { emailRe } = require('../lib/validators');
 const ah = require('../lib/ah');
 const { requireAuth, requireAdmin, flash } = require('../middleware/auth');
 const { verifyCsrf } = require('../middleware/csrf');
@@ -287,9 +292,9 @@ router.post('/subcategories/:id/delete', ah(async (req, res) => {
 
 // ---- Homepage, pages and site settings (all editable content) ------------
 const PAGE_KEYS = ['about', 'shop', 'shipping', 'refund', 'contact', 'footer'];
-const CONTENT_KEYS = ['home', 'site', 'announcement', ...PAGE_KEYS];
-const PAGE_LABEL = { home: 'Homepage', site: 'Site settings', announcement: 'Announcement bar', about: 'About page', shop: 'Shop page', shipping: 'Shipping policy', refund: 'Refund policy', contact: 'Contact page', footer: 'Footer' };
-const SETTINGS_BACK = { home: '/admin/homepage', site: '/admin/settings', announcement: '/admin/settings' };
+const CONTENT_KEYS = ['home', 'site', 'announcement', 'payment', ...PAGE_KEYS];
+const PAGE_LABEL = { home: 'Homepage', site: 'Site settings', announcement: 'Announcement bar', payment: 'Payment options', about: 'About page', shop: 'Shop page', shipping: 'Shipping policy', refund: 'Refund policy', contact: 'Contact page', footer: 'Footer' };
+const SETTINGS_BACK = { home: '/admin/homepage', site: '/admin/settings', announcement: '/admin/settings', payment: '/admin/settings#payments' };
 
 router.get('/homepage', ah(async (req, res) => {
   const home = await content.get('home');
@@ -297,8 +302,8 @@ router.get('/homepage', ah(async (req, res) => {
 }));
 
 router.get('/settings', ah(async (req, res) => {
-  const [site, announcement] = await Promise.all([content.get('site'), content.get('announcement')]);
-  res.render('admin/settings', { title: 'Site settings — Admin', adminActive: 'settings', site, announcement });
+  const [site, announcement, payment] = await Promise.all([content.get('site'), content.get('announcement'), content.get('payment')]);
+  res.render('admin/settings', { title: 'Site settings — Admin', adminActive: 'settings', site, announcement, payment, mail: mailer.status(), storageOn: storage.isConfigured(), audioMax: 4 });
 }));
 
 router.get('/pages', ah(async (req, res) => {
@@ -343,6 +348,76 @@ router.post('/content/:key/image', upload.single('image'), ah(async (req, res) =
   } catch (err) {
     res.status(500).json({ ok: false, message: err.message });
   }
+}));
+
+// ---- Ambient sound: the admin's own track ------------------------------------
+// Uploaded to Supabase Storage like the images. site.music_url / music_name are set only here (they are not in the content
+// schema), so no form post can point the storefront at an arbitrary address. Blank = the built-in synthesised pad.
+router.post('/site/music', upload.audio('track'), ah(async (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, message: 'No file uploaded.' });
+  try {
+    const ext = upload.AUDIO_TYPES[req.file.mimetype];
+    const url = await storage.uploadFile(req.file.buffer, req.file.mimetype, 'audio', ext);
+    const name = String(req.file.originalname || 'track').replace(/\.[^.]+$/, '').slice(0, 120);
+    await content.set('site', { music_url: url, music_name: name });
+    await note(res, 'Changed the ambient sound track');
+    res.json({ ok: true, url, name, message: 'Track saved. Visitors hear it from their next page load.' });
+  } catch (err) {
+    console.error('[admin] music upload failed:', err.message);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+}));
+
+router.post('/site/music/remove', ah(async (req, res) => {
+  await content.set('site', { music_url: '', music_name: '' });
+  await note(res, 'Went back to the built-in ambient sound');
+  done(req, res, { message: 'Back to the built-in sound.', redirect: '/admin/settings#sound' });
+}));
+
+// ---- Email -----------------------------------------------------------------
+// A real test send that shows the mail server's own answer (to the admin only), so a wrong password or port is obvious
+// without placing an order.
+router.post('/email/test', ah(async (req, res) => {
+  const to = String(req.body.to || '').trim() || (res.locals.user && res.locals.user.email) || '';
+  if (!emailRe.test(to)) return done(req, res, { ok: false, message: 'Enter a valid email address to send the test to.', redirect: '/admin/settings#email' });
+  if (!mailer.status().configured) return done(req, res, { ok: false, message: 'No mail server is set up yet: add the SMTP_* settings (see DEPLOY.md), then redeploy.', redirect: '/admin/settings#email' });
+  const r = await mailer.send({ to, ...emails.testMessage({ baseUrl: `${req.protocol}://${req.get('host')}` }) });
+  if (r.sent) await note(res, 'Sent a test email');
+  done(req, res, r.sent
+    ? { message: `Test email sent to ${to}. Check the inbox (and spam).`, redirect: '/admin/settings#email' }
+    : { ok: false, message: `The mail server said: ${r.reason}`, redirect: '/admin/settings#email', status: 502 });
+}));
+
+// ---- Orders: send the customer an update ------------------------------------
+// Sariee has no webhook for status changes, so updates are sent from here by hand. The recipient is always the email saved
+// with the order at checkout, never something typed into the form.
+const STATUS_SUGGESTIONS = ['Confirmed', 'Payment received', 'Being prepared', 'Shipped', 'Out for delivery', 'Delivered', 'Delayed', 'Cancelled'];
+
+router.get('/orders', ah(async (req, res) => {
+  const rows = await Orders.recent(25);
+  const list = await Promise.all(rows.map(async (row) => {
+    try {
+      const r = await Promise.race([
+        sariee.store.singleOrder({ order_id: row.sariee_order_id }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('slow')), 6000)),
+      ]);
+      return { row, o: Orders.mapOrder(row.sariee_order_id, r.data && r.data.data, row.payment_method) };
+    } catch (_) { return { row, o: null }; }
+  }));
+  res.render('admin/orders', { title: 'Orders — Admin', adminActive: 'orders', list, suggestions: STATUS_SUGGESTIONS, mail: mailer.status() });
+}));
+
+router.post('/orders/:id/notify', ah(async (req, res) => {
+  const order = await Orders.find(req.params.id);
+  if (!order || !emailRe.test(order.email || '')) return done(req, res, { ok: false, message: 'That order has no customer email saved, so nothing can be sent.', redirect: '/admin/orders' });
+  const status = String(req.body.status || '').replace(/\s+/g, ' ').trim().slice(0, 60);
+  if (!status) return done(req, res, { ok: false, message: 'Write the new status first (for example "Shipped").', redirect: '/admin/orders' });
+  const number = String(req.body.number || '').trim().slice(0, 30) || String(order.sariee_order_id).slice(0, 8).toUpperCase();
+  const msg = emails.orderUpdate({ number, firstName: order.first_name || '', status, note: String(req.body.note || '').trim().slice(0, 600), baseUrl: `${req.protocol}://${req.get('host')}` });
+  const r = await mailer.send({ to: order.email, ...msg });
+  if (r.sent) await note(res, `Emailed an update for order ${number}: ${status}`);
+  const why = r.reason === 'not-configured' ? 'No mail server is set up yet (see Site settings, Email).' : `The mail server said: ${r.reason}`;
+  done(req, res, r.sent ? { message: `Update sent to ${order.email}.`, redirect: '/admin/orders' } : { ok: false, message: why, redirect: '/admin/orders', status: 502 });
 }));
 
 // ---- Review moderation ---------------------------------------------------

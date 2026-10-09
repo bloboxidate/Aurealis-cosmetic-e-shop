@@ -26,11 +26,16 @@ function isConfigured() {
 // public URL. `keyPrefix` groups uploads by feature (e.g. "content/home",
 // "categories") for easier browsing in the Supabase dashboard.
 async function uploadImage(buffer, mimetype, keyPrefix) {
+  const ext = (mimetype.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/[^a-z0-9]/gi, '');
+  return uploadFile(buffer, mimetype, keyPrefix, ext);
+}
+
+// Same, for any file type (the ambient-sound track): the caller picks the extension.
+async function uploadFile(buffer, mimetype, keyPrefix, ext) {
   const sb = getClient();
   if (!sb) {
-    throw new Error('Image uploads aren\'t configured yet — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
+    throw new Error('File uploads aren\'t configured yet — set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
   }
-  const ext = (mimetype.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace(/[^a-z0-9]/gi, '');
   const objectPath = `${keyPrefix}/${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
   const { error } = await sb.storage.from(BUCKET).upload(objectPath, buffer, {
     contentType: mimetype,
@@ -41,4 +46,4 @@ async function uploadImage(buffer, mimetype, keyPrefix) {
   return data.publicUrl;
 }
 
-module.exports = { uploadImage, isConfigured, BUCKET };
+module.exports = { uploadImage, uploadFile, isConfigured, BUCKET };

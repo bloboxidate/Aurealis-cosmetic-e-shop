@@ -23,6 +23,9 @@ is only the traps.
   session/token on public pages by design, so a token would break add-to-bag for first-time visitors. The middleware checks `Sec-Fetch-Site` /
   `Origin` / `Referer` and refuses cross-site posts. New anonymous-facing POST routes should use `sameOrigin` plus a limiter from `middleware/rate-limit.js`.
   Limiters keep their counters in each serverless instance's memory (not shared); a Vercel Firewall rate-limit rule is the strict backstop.
+- **`sameOrigin` trusts `Sec-Fetch-Site` first and treats `Origin: null` as unusable.** `server.js` sends `Referrer-Policy: same-origin`
+  (not helmet's `no-referrer`): with `no-referrer` a browser sends `Origin: null` on every plain same-origin form POST, which made Remove / +/- /
+  promo in the bag 403 while the fetch()-based add-to-bag kept working. Don't set `no-referrer` again; test cart forms with a real browser click.
 - **CSRF is applied per route** (`verifyCsrf` on the route), never `router.use(verifyCsrf)`
   in a router mounted at `/`: all routers share that mount, so it 403s every router
   registered after it (this broke the wishlist). `admin.js` is safe — it's mounted at `/admin`.
@@ -53,6 +56,18 @@ is only the traps.
   generic message.
 - Admin image uploads need Supabase Storage (`lib/storage.js`); the Vercel filesystem is
   not persistent — don't write uploads to disk.
+
+## Payments, email, music (added 2026-10-09)
+- **InstaPay.** Sariee only has cash on delivery, so an InstaPay order is placed there as `paymentId` (COD) and marked on our side:
+  `sariee_orders.payment_method`/`first_name` (both schema files + `ensureColumn`; `lib/orders.js` falls back if the columns are missing),
+  the store email subject (`[INSTAPAY ...]`) and the confirmation page. The method is validated server-side in `routes/checkout.js`, never taken from the form.
+  Admin text lives in content key `payment` (Site settings → Payments).
+- **Email must be awaited** (`await mailer.send`): Vercel freezes the function after the response, so fire-and-forget sends can be lost. `mailer.send` never
+  throws and caps itself at 12 s. Templates are in `lib/emails.js`. Sariee has no status-change webhook, so order *updates* are sent by hand from Admin → Orders
+  (recipient = the email saved with the order, never a form field).
+- **Ambient music.** `site.music_url`/`music_name` are set only by `POST /admin/site/music` (not in `SCHEMA`, so a form post can't set an arbitrary URL), uploaded to
+  Supabase Storage. Vercel bodies are capped near 4.5 MB, hence the 4 MB limit in `middleware/upload.js`. CSP `media-src` allows the `SUPABASE_URL` origin;
+  `sound.js` reads `<meta name="au-music">` and falls back to the synthesised pad if the file fails.
 
 ## Removed
 `/api/sariee/*` (a public JSON proxy nobody used) was deleted because it exposed catalog, cart, login and checkout with no CSRF,

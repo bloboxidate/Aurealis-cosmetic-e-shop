@@ -30,6 +30,10 @@ app.set('trust proxy', 1);
 // (admin/products.ejs) — tightening that further needs an external-file
 // refactor, out of scope here. img-src stays open to https: since product
 // photos are served from Sariee's CDN, whose exact host isn't fixed.
+function supabaseOrigin() {
+  try { return [new URL(process.env.SUPABASE_URL).origin]; } catch (_) { return []; }
+}
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -48,6 +52,8 @@ app.use(helmet({
       scriptSrcAttr: ["'unsafe-inline'"],
       imgSrc: ["'self'", 'data:', 'https:'],
       connectSrc: ["'self'", 'https://vitals.vercel-insights.com'],
+      // The ambient-sound track the admin uploads lives in Supabase Storage (see routes/admin.js), so <audio> may load from there.
+      mediaSrc: ["'self'", ...supabaseOrigin()],
       // helmet's default adds `upgrade-insecure-requests`. On the https production site that's harmless, but
       // opened over plain HTTP from another device (http://192.168.x.x:3000 on a phone) the browser rewrites
       // every same-origin /js, /css and /assets request to https:// — which a dev server can't answer — so
@@ -56,6 +62,10 @@ app.use(helmet({
       upgradeInsecureRequests: isProd ? [] : null,
     },
   },
+  // 'same-origin', not helmet's default 'no-referrer': with no-referrer a browser sends `Origin: null` on every plain form POST
+  // (even to our own site), which middleware/same-origin.js cannot tell from a hostile request - Remove / +/- / promo in the bag
+  // all came back 403. Same-origin still sends nothing to other sites.
+  referrerPolicy: { policy: 'same-origin' },
 }));
 
 // Views

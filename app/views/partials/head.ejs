@@ -5,6 +5,7 @@
      color-scheme when the OS is in dark mode, which is what was making
      near-white elements (category chips, etc.) render dark on phones. -->
 <meta name="color-scheme" content="light only">
+<% if (typeof site !== 'undefined' && site.music_url) { %><meta name="au-music" content="<%= site.music_url %>"><% } %>
 <% var _motion = (typeof noMotion === 'undefined' || !noMotion); var _av = (typeof assetV !== 'undefined' ? assetV : '1'); %>
 <% if (_motion && typeof home !== 'undefined' && home && home.hero_image) { %>
 <!-- The hero image is the LCP element: fetch it at top priority, before CSS/JS discovery. -->

@@ -12,6 +12,8 @@
     <a href="#entrance">Entrance</a>
     <a href="#sound">Sound</a>
     <a href="#hero-video">Hero video</a>
+    <a href="#payments">Payments</a>
+    <a href="#email">Email</a>
     <a href="#backup">Backup</a>
   </nav>
 
@@ -48,6 +50,23 @@
           <%- F.toggle('sound_default', site.sound_default, { label: 'Sound on by default' }) %>
         </div>
         <p class="hint" style="margin:0">Switching this off doesn’t remove the speaker icon: visitors can still turn the sound on. Anyone who has already chosen for themselves keeps their choice.</p>
+
+        <div class="fld" style="margin-top:22px" id="music">
+          <label for="music-file">Your own music</label>
+          <% if (site.music_url) { %>
+            <div class="row wrap" style="margin-bottom:10px" id="music-current">
+              <strong id="music-name"><%= site.music_name || 'Your track' %></strong>
+              <audio controls preload="none" src="<%= site.music_url %>" style="height:36px;max-width:100%"></audio>
+            </div>
+          <% } else { %>
+            <div class="hint" id="music-current" style="margin-bottom:10px">Using the built-in sound. Upload a track to replace it.</div>
+          <% } %>
+          <div class="row wrap">
+            <input type="file" id="music-file" accept="audio/mpeg,audio/mp4,audio/x-m4a,audio/aac,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav" class="input" style="padding:8px;max-width:340px" <%= storageOn ? '' : 'disabled' %>>
+            <% if (site.music_url) { %><button type="button" class="btn btn-ghost" id="music-remove">Use the built-in sound</button><% } %>
+          </div>
+          <div class="hint" id="music-status">An MP3, M4A, OGG or WAV file up to <%= audioMax %>&nbsp;MB, which is about four minutes of MP3 at 128&nbsp;kbps. It plays on a loop, so pick something calm that repeats well. The chime when something is added to the bag stays. Make sure you have the right to use the track.<%- storageOn ? '' : ' <strong>Uploads need Supabase Storage (SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY).</strong>' %></div>
+        </div>
       </section>
 
       <section class="card card-pad section" id="hero-video">
@@ -59,6 +78,41 @@
 
       <div class="row" style="justify-content:flex-end"><button type="submit" class="btn btn-solid">Save settings</button></div>
     </form>
+
+    <form method="post" action="/admin/content/payment" data-ajax data-guard class="card card-pad section" id="payments">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="card-h">
+        <div><h2 class="card-t">Payment options: InstaPay</h2><p class="card-d">Adds an InstaPay choice at checkout next to cash on delivery. When a customer picks it, a box shows the details and instructions below, and the same instructions appear on their confirmation page and in their email together with their order number and total. Sariee only knows cash on delivery, so these orders are placed there as cash on delivery: the order email to the store says "InstaPay, do not collect cash", and the Orders page and the customer’s account show InstaPay.</p></div>
+        <%- F.toggle('instapay_enabled', payment.instapay_enabled, { label: 'Offer InstaPay at checkout' }) %>
+      </div>
+      <div class="grid g2">
+        <%- F.text('instapay_title', 'Name shown at checkout', payment.instapay_title, { max: 40 }) %>
+        <%- F.text('instapay_tagline', 'Short line beside it', payment.instapay_tagline, { max: 80, opt: true }) %>
+      </div>
+      <div class="grid g2">
+        <%- F.text('instapay_handle', 'InstaPay address or number to send to', payment.instapay_handle, { max: 120, opt: true, placeholder: 'yourstore@instapay', hint: 'Exactly what a customer types or scans in their app.' }) %>
+        <%- F.text('instapay_name', 'Account name', payment.instapay_name, { max: 80, opt: true, placeholder: 'Auréalis', hint: 'The name they should see before confirming.' }) %>
+      </div>
+      <%- F.rich('instapay_instructions', 'How to complete the transfer', payment.instapay_instructions, { max: 3000, rows: 7, hint: 'Shown in the box at checkout, on the confirmation page and in the email. Blank line = new paragraph &middot; <code>- bullet</code> &middot; <code>**bold**</code> &middot; <code>[link](https://&hellip;)</code>.' }) %>
+      <% if (!payment.instapay_handle) { %><div class="notice" style="margin-bottom:14px"><span>Add the address or number customers should send to, otherwise the box only shows your instructions and the amount.</span></div><% } %>
+      <div class="row" style="justify-content:flex-end;margin-top:6px"><button type="submit" class="btn btn-solid">Save payment options</button></div>
+    </form>
+
+    <section class="card card-pad section" id="email">
+      <div class="card-h"><div><h2 class="card-t">Email</h2><p class="card-d">Order confirmations go to the customer the moment an order is placed, and a copy goes to the store. Password-reset links and cancellation requests use the same mailbox. For an order that changes later (shipped, delivered…), use the Orders page to send the customer an update.</p></div></div>
+      <% if (mail.configured) { %>
+        <div class="notice ok" style="margin-bottom:14px"><span>Mail server set: <strong><%= mail.host %></strong>, port <%= mail.port %> (<%= mail.secure ? 'SSL' : 'STARTTLS' %>), signing in as <strong><%= mail.user || '(no username)' %></strong><%= mail.hasPassword ? '' : ' — no password set' %>. Emails come from <strong><%= mail.from %></strong>.</span></div>
+        <% if (!mail.opsEmail) { %><div class="notice" style="margin-bottom:14px"><span>No store inbox is set, so you are not emailed when an order arrives. Set <code>STORE_OPS_EMAIL</code> to the address that should receive them.</span></div><% } else { %><p class="hint" style="margin:0 0 14px">New-order copies and cancellation requests go to <strong><%= mail.opsEmail %></strong>.</p><% } %>
+      <% } else { %>
+        <div class="notice" style="margin-bottom:14px"><span><strong>No mail server is set up yet</strong>, so no email is being sent (they are only written to the server log). Add the SMTP settings from <code>DEPLOY.md</code> to the hosting environment and redeploy.</span></div>
+      <% } %>
+      <form method="post" action="/admin/email/test" data-ajax class="row wrap" style="align-items:flex-end">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="fld" style="margin:0;flex:1 1 260px"><label for="f-to">Send a test email to</label><input class="input" id="f-to" type="email" name="to" value="<%= user.email %>" autocomplete="off"></div>
+        <button type="submit" class="btn" <%= mail.configured ? '' : 'disabled' %>>Send test email</button>
+      </form>
+      <div class="hint">If it fails, the message shows exactly what the mail server answered.</div>
+    </section>
 
     <section class="card card-pad section" id="backup">
       <div class="card-h"><div><h2 class="card-t">Backup</h2><p class="card-d">Download a copy of everything you have written and arranged here: page text, categories, product order, flags and product extras. It never includes customers or their emails.</p></div></div>
@@ -72,6 +126,24 @@
   </div>
 </div>
 <script>
+(function () {
+  var file = document.getElementById('music-file'), status = document.getElementById('music-status'), rm = document.getElementById('music-remove');
+  if (file) file.addEventListener('change', function () {
+    var f = file.files[0]; if (!f) return;
+    if (f.size > <%= audioMax %> * 1024 * 1024) { ADMUI.toast('That file is over <%= audioMax %> MB. Compress it and try again.', 'error'); file.value = ''; return; }
+    var fd = new FormData(); fd.append('track', f);
+    status.textContent = 'Uploading…';
+    ADMUI.post('/admin/site/music', fd).then(function (j) {
+      if (j.ok) { ADMUI.toast(j.message || 'Track saved.'); location.hash = '#sound'; location.reload(); }
+      else { status.textContent = j.message || 'Upload failed.'; ADMUI.toast(j.message || 'Upload failed.', 'error'); }
+    }).catch(function () { status.textContent = 'Upload failed.'; ADMUI.toast('Upload failed.', 'error'); });
+  });
+  if (rm) rm.addEventListener('click', function () {
+    ADMUI.post('/admin/site/music/remove', new URLSearchParams()).then(function (j) {
+      if (j.ok) { ADMUI.toast(j.message); location.reload(); } else ADMUI.toast(j.message || 'Could not change it.', 'error');
+    });
+  });
+})();
 (function () {
   var t = document.getElementById('f-text'), l = document.getElementById('f-link_label'), on = document.querySelector('#announcement input[type="checkbox"][name="enabled"]');
   var pt = document.getElementById('ann-text'), pl = document.getElementById('ann-link'), box = document.getElementById('ann-preview');

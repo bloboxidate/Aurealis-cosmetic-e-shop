@@ -1,6 +1,7 @@
 /* Auréalis — ambient sound. ON by default; the small speaker button in the header turns it off and the choice is
  * remembered. Everything is synthesised live with the Web Audio API (no audio files): a slow, open pad whose
  * brightness follows how far down the page you are, plus a soft chime when something is added to the bag.
+ * If the admin uploaded their own track (<meta name="au-music">) that loops instead of the synthesised pad; the chime stays.
  * Browsers only allow audio after a gesture, so it begins at the visitor's first tap, click or key press (the first
  * tap on the entrance, if it is skipped, counts). Visitors on data-saver never get it. */
 (function () {
@@ -14,6 +15,9 @@
 
   var KEY = 'au-sound';
   var on = false, ctx = null, master = null, filter = null, tick = 0;
+  var meta = document.querySelector('meta[name="au-music"]');
+  var track = meta && /^https?:/i.test(meta.getAttribute('content') || '') ? meta.getAttribute('content') : '';   // '' = use the built-in pad
+  var audio = null, fadeId = 0, VOL = 0.5;
 
   // A visitor's own choice wins; otherwise the admin's default (data-au-sound on <html>, set in head.ejs).
   function saved() {
@@ -31,6 +35,12 @@
     for (var c = 0; c < 2; c++) { var d = ir.getChannelData(c); for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
     var verb = ctx.createConvolver(); verb.buffer = ir;
     var wet = ctx.createGain(); wet.gain.value = 0.6; verb.connect(wet); wet.connect(master);
+    window.AuSound._verb = verb;
+    if (!track) pad(verb);
+  }
+
+  // The built-in pad: used when no track was uploaded, or the uploaded one cannot be played.
+  function pad(verb) {
     filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 700; filter.Q.value = 0.35;
     var dry = ctx.createGain(); dry.gain.value = 0.55;
     filter.connect(dry); dry.connect(master); filter.connect(verb);
@@ -45,11 +55,10 @@
     // A very slow LFO breathes the filter.
     var lfo = ctx.createOscillator(); lfo.frequency.value = 0.06;
     var lg = ctx.createGain(); lg.gain.value = 180; lfo.connect(lg); lg.connect(filter.frequency); lfo.start();
-    window.AuSound._verb = verb;
   }
 
   function follow() { // brighter as you travel down the page
-    if (!ctx || !on) return;
+    if (!ctx || !on || !filter) return;
     var p = parseFloat(root.style.getPropertyValue('--au-p')) || 0;
     filter.frequency.setTargetAtTime(520 + p * 1500, ctx.currentTime, 0.8);
   }
@@ -58,7 +67,7 @@
     on = v; if (!auto) save(v); paint();
     if (v) {
       build();
-      var start = function () { ctx.resume(); master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0.9, ctx.currentTime, 1.1); tick = tick || setInterval(follow, 250); };
+      var start = function () { ctx.resume(); master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0.9, ctx.currentTime, 1.1); tick = tick || setInterval(follow, 250); playTrack(); };
       if (fromGesture || ctx.state === 'running') start();
       else { // remembered "on": wait for the first gesture
         var evs = ['pointerup', 'click', 'touchend', 'keydown'];   // touchend/click are the gestures iOS and Android accept
@@ -67,10 +76,43 @@
       }
     } else if (ctx) {
       master.gain.cancelScheduledValues(ctx.currentTime); master.gain.setTargetAtTime(0, ctx.currentTime, 0.25);
-      clearInterval(tick); tick = 0;
+      clearInterval(tick); tick = 0; stopTrack();
       setTimeout(function () { if (!on && ctx) ctx.suspend(); }, 1400);
     }
   }
+
+  // The uploaded track: a plain looping <audio> element (no CORS needed), faded in and out with .volume
+  // (iOS ignores .volume, so there it simply starts and stops).
+  function fade(to, ms, done) {
+    clearInterval(fadeId);
+    var from = audio.volume, t0 = Date.now();
+    fadeId = setInterval(function () {
+      var k = Math.min(1, (Date.now() - t0) / ms);
+      try { audio.volume = from + (to - from) * k; } catch (e) {}
+      if (k >= 1) { clearInterval(fadeId); if (done) done(); }
+    }, 50);
+  }
+  function playTrack() {
+    if (!track) return;
+    if (!audio) {
+      audio = new Audio(); audio.loop = true; audio.preload = 'auto'; audio.src = track;
+      try { audio.volume = 0; } catch (e) {}
+      audio.addEventListener('error', function () {   // cannot load/play it: fall back to the built-in pad
+        track = ''; audio = null; clearInterval(fadeId);
+        if (ctx && !filter) { pad(window.AuSound._verb); if (on) tick = tick || setInterval(follow, 250); }
+      });
+    }
+    var p = audio.play(); if (p && p.catch) p.catch(function () {});
+    fade(VOL, 2500);
+  }
+  function stopTrack() {
+    if (!audio) return;
+    var a = audio; fade(0, 600, function () { if (!on && a) a.pause(); });
+  }
+  document.addEventListener('visibilitychange', function () {   // a track should not keep playing in a hidden tab
+    if (!audio || !on) return;
+    if (document.hidden) audio.pause(); else { var p = audio.play(); if (p && p.catch) p.catch(function () {}); }
+  });
 
   // A soft two-partial bell on a pentatonic note, for "added to bag".
   function chime() {

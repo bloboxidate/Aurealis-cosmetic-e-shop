@@ -12,6 +12,19 @@
     <div style="font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#6b6357">Secure Checkout</div>
   </div>
   <%- include('partials/flash') %>
+  <style>
+    .pay-opt{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-radius:10px;font-size:14px;background:#fff;border:1.5px solid rgba(58,53,46,.25);cursor:pointer;margin-bottom:10px}
+    .pay-opt:has(input:checked){border-color:#3a352e}
+    .pay-box{display:none;margin:2px 0 4px;padding:20px 22px;border-radius:12px;background:rgba(255,255,255,.75);border:1px solid rgba(58,53,46,.15);font-size:14px;line-height:1.6;color:#3a352e}
+    .pay-box.is-open{display:block}
+    .pay-card{padding:12px 14px;border-radius:10px;background:#fff9f3;margin-bottom:12px}
+    .pay-card > div{display:flex;gap:12px;padding:3px 0}
+    .pay-k{color:#6b6357;min-width:110px}
+    .pay-v{overflow-wrap:anywhere}
+    .pay-text p{margin:0 0 10px}.pay-text p:last-child{margin-bottom:0}
+    .pay-text a{color:#a8501f}
+  </style>
+  <noscript><style>.pay-box{display:block}</style></noscript>
 
   <form action="/checkout" method="post">
   <input type="hidden" name="_csrf" value="<%= csrfToken %>">
@@ -50,10 +63,27 @@
 
       <div>
         <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#a8501f;font-weight:700;margin-bottom:12px">Payment</div>
-        <label style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-radius:10px;font-size:14px;background:#fff;border:1.5px solid #3a352e">
-          <span><input type="radio" name="payment_id" value="<%= codPaymentId %>" checked style="margin-right:10px"><%= codName %></span>
+        <label class="pay-opt">
+          <span><input type="radio" name="payment_method" value="cod" <%= values.payment_method === 'instapay' && payment.instapay_enabled ? '' : 'checked' %> style="margin-right:10px"><%= codName %></span>
           <span style="color:#6b6357">Pay on delivery</span>
         </label>
+        <% if (payment.instapay_enabled) { %>
+        <label class="pay-opt">
+          <span><input type="radio" name="payment_method" value="instapay" <%= values.payment_method === 'instapay' ? 'checked' : '' %> id="pay-instapay" aria-controls="instapay-box" style="margin-right:10px"><%= payment.instapay_title %></span>
+          <span style="color:#6b6357"><%= payment.instapay_tagline %></span>
+        </label>
+        <div class="pay-box" id="instapay-box" role="region" aria-label="How to pay with <%= payment.instapay_title %>">
+          <div style="font-weight:700;margin-bottom:10px">How to pay with <%= payment.instapay_title %></div>
+          <% if (payment.instapay_handle || payment.instapay_name) { %>
+          <div class="pay-card">
+            <% if (payment.instapay_handle) { %><div><span class="pay-k">Send to</span><strong class="pay-v"><%= payment.instapay_handle %></strong></div><% } %>
+            <% if (payment.instapay_name) { %><div><span class="pay-k">Account name</span><span class="pay-v"><%= payment.instapay_name %></span></div><% } %>
+            <div><span class="pay-k">Amount</span><strong class="pay-v"><%= money(total_cents) %></strong></div>
+          </div>
+          <% } %>
+          <div class="pay-text"><%- richText(payment.instapay_instructions) %></div>
+        </div>
+        <% } %>
       </div>
     </div>
 
@@ -90,6 +120,16 @@
 
 </main>
 </div>
+<script>
+(function () {
+  var box = document.getElementById('instapay-box');
+  if (!box) return;
+  var radios = document.querySelectorAll('input[name="payment_method"]');
+  function sync() { var on = document.getElementById('pay-instapay').checked; box.classList.toggle('is-open', on); }
+  Array.prototype.forEach.call(radios, function (r) { r.addEventListener('change', sync); });
+  sync();
+})();
+</script>
 <script src="/js/app.js"></script>
 </body>
 </html>
