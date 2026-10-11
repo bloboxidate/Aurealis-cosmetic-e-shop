@@ -43,6 +43,7 @@
         <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin-bottom:12px">
           <span style="color:#6b6357">Amount</span><strong><%= money(order.total_cents) %></strong>
           <% if (payment.instapay_handle) { %><span style="color:#6b6357">Send to</span><strong style="overflow-wrap:anywhere"><%= payment.instapay_handle %></strong><% } %>
+          <% if (payment.instapay_bank) { %><span style="color:#6b6357">Bank</span><span><%= payment.instapay_bank %></span><% } %>
           <% if (payment.instapay_name) { %><span style="color:#6b6357">Account name</span><span><%= payment.instapay_name %></span><% } %>
           <span style="color:#6b6357">Reference</span><strong><%= order.order_number %></strong>
         </div>

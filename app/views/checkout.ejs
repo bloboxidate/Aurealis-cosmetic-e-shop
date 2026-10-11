@@ -74,9 +74,10 @@
         </label>
         <div class="pay-box" id="instapay-box" role="region" aria-label="How to pay with <%= payment.instapay_title %>">
           <div style="font-weight:700;margin-bottom:10px">How to pay with <%= payment.instapay_title %></div>
-          <% if (payment.instapay_handle || payment.instapay_name) { %>
+          <% if (payment.instapay_handle || payment.instapay_name || payment.instapay_bank) { %>
           <div class="pay-card">
             <% if (payment.instapay_handle) { %><div><span class="pay-k">Send to</span><strong class="pay-v"><%= payment.instapay_handle %></strong></div><% } %>
+            <% if (payment.instapay_bank) { %><div><span class="pay-k">Bank</span><span class="pay-v"><%= payment.instapay_bank %></span></div><% } %>
             <% if (payment.instapay_name) { %><div><span class="pay-k">Account name</span><span class="pay-v"><%= payment.instapay_name %></span></div><% } %>
             <div><span class="pay-k">Amount</span><strong class="pay-v" data-sum="total"><%= money(total_cents) %></strong></div>
           </div>

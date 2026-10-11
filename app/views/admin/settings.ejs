@@ -90,6 +90,9 @@
         <%- F.text('instapay_tagline', 'Short line beside it', payment.instapay_tagline, { max: 80, opt: true }) %>
       </div>
       <div class="grid g2">
+        <%- F.text('instapay_bank', 'Bank name', payment.instapay_bank, { max: 80, opt: true, placeholder: 'CIB', hint: 'The bank the account is with. Shown to customers next to the address.' }) %>
+      </div>
+      <div class="grid g2">
         <%- F.text('instapay_handle', 'InstaPay address or number to send to', payment.instapay_handle, { max: 120, opt: true, placeholder: 'yourstore@instapay', hint: 'Exactly what a customer types or scans in their app.' }) %>
         <%- F.text('instapay_name', 'Account name', payment.instapay_name, { max: 80, opt: true, placeholder: 'Auréalis', hint: 'The name they should see before confirming.' }) %>
       </div>

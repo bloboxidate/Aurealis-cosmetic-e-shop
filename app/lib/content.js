@@ -50,6 +50,7 @@ const DEFAULTS = {
     instapay_tagline: 'Pay by instant transfer',
     instapay_handle: '',
     instapay_name: '',
+    instapay_bank: '',
     instapay_instructions: 'After you place your order, open the InstaPay app (or your bank app) and send the **total amount** to the InstaPay address shown above.\n\nWrite your **order number** in the transfer note so we can match your payment.\n\nWe prepare your order as soon as the transfer reaches us. Questions? [Contact us](/contact).',
   },
   // A slim message above the header (free shipping, a launch, a holiday closure…).

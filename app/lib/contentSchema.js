@@ -23,7 +23,7 @@ const SCHEMA = {
     ritual_eyebrow: text(40, true), ritual_title: text(100, true), ritual_hint: text(40, true),
   },
   site: { intro_enabled: bool(), intro_tagline: text(60, true), sound_default: bool(), hero_video_enabled: bool() },
-  payment: { instapay_enabled: bool(), instapay_title: text(40, true), instapay_tagline: text(80), instapay_handle: text(120), instapay_name: text(80), instapay_instructions: rich(3000) },
+  payment: { instapay_enabled: bool(), instapay_title: text(40, true), instapay_tagline: text(80), instapay_handle: text(120), instapay_name: text(80), instapay_bank: text(80), instapay_instructions: rich(3000) },
   announcement: { enabled: bool(), text: text(160), link_label: text(40), link_url: url(300) },
   about: { eyebrow: text(80), title: text(160), body: rich(8000) },
   shop: { title: text(100), intro: rich(1000) },

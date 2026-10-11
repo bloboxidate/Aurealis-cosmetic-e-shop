@@ -48,6 +48,7 @@ function instapayHtml(pay, order, base) {
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
 ${row('Amount', `<strong>${money(order.total_cents)}</strong>`)}
 ${pay.instapay_handle ? row('Send to', `<strong>${esc(pay.instapay_handle)}</strong>`) : ''}
+${pay.instapay_bank ? row('Bank', esc(pay.instapay_bank)) : ''}
 ${pay.instapay_name ? row('Account name', esc(pay.instapay_name)) : ''}
 ${row('Reference', `<strong>${esc(order.order_number)}</strong>`)}
 </table>
@@ -56,7 +57,7 @@ ${row('Reference', `<strong>${esc(order.order_number)}</strong>`)}
 
 function instapayText(pay, order) {
   return [`PAY WITH ${String(pay.instapay_title).toUpperCase()}`, `Amount: ${money(order.total_cents)}`,
-    pay.instapay_handle ? `Send to: ${pay.instapay_handle}` : '', pay.instapay_name ? `Account name: ${pay.instapay_name}` : '',
+    pay.instapay_handle ? `Send to: ${pay.instapay_handle}` : '', pay.instapay_bank ? `Bank: ${pay.instapay_bank}` : '', pay.instapay_name ? `Account name: ${pay.instapay_name}` : '',
     `Reference: ${order.order_number}`, '', stripMarks(pay.instapay_instructions)].filter((l, i, a) => l !== '' || a[i - 1] !== '').join('\n');
 }
 
