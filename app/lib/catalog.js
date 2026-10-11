@@ -92,6 +92,8 @@ function mapProduct(p) {
     // Sariee's own category slug, used as a fallback when unassigned locally.
     sariee_category: typeof p.categories === 'string' ? p.categories : (p.categories && p.categories.name) || '',
     stock: Number(bc.quantity) || 0,
+    // Sariee's barcode weight (kg); null until it is filled in there. Feeds the shipping fee (lib/shipping.js).
+    weight_kg: Number(bc.weight) > 0 ? Number(bc.weight) : null,
     is_active: p.status !== false,
     images: files.map((f, i) => ({ id: f.id, url: f.src, sort_order: f.sorting ?? i })),
   };

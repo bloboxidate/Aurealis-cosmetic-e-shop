@@ -111,3 +111,12 @@ rate limit or auth. The storefront talks to Sariee only server-side through `lib
 - Admin form classes are `.fld`/`.input`/etc. under `.adm` (`admin.css`). Do not name anything `.field`: the storefront's `head.ejs` already defines it.
 - Product text from Sariee is plain text with blank-line (CRLF) paragraph breaks: render it with `paragraphs()` (res.locals), never a bare `<%= %>`.
 - The first-visit entrance waits up to 1.3 s for the aurora shader's first frame, else uses the CSS orb; sound defaults come from `data-au-sound` on `<html>` (set in `head.ejs` from the `site` settings).
+
+## Shipping fee (added 2026-10-11)
+- **The fee is ours, not Sariee's.** `app/lib/shipping.js` holds Sariee's 2026 rate card (`sariee/shipping prices.pdf`): zone by governorate (Sariee state
+  name), first 2 kg + per started extra kg, plus a 1% COD fee for cash-on-delivery orders only (never InstaPay). Weight is `weight_kg` on the catalog product
+  (Sariee barcode `weight`, assumed kg; empty weight counts as 0). `routes/checkout.js` `pricing()` recomputes everything on submit; the form's numbers are never trusted.
+- **Sariee's order does not contain our fee** unless its own shipping setting matches. After placing an order the route compares Sariee's `final_amount` with ours,
+  logs a warning and adds an "Amounts differ" banner to the store email. The courier collects what Sariee holds. The COD fee never reaches Sariee.
+- Changing rates or zones: edit `RATES` / `ZONE_STATES` in `lib/shipping.js` (Qalyubia is assumed Delta; Faiyum/Beni Suef Upper Egypt). A governorate missing from the map is charged zone 6 and logged.
+- The account page's order history still shows Sariee's own shipping figure.

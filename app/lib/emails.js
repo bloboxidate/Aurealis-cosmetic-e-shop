@@ -35,6 +35,7 @@ function totalsTable(o) {
     + r('Subtotal', money(o.subtotal_cents))
     + (o.discount_cents > 0 ? r(`Discount${o.promo_code ? ' (' + esc(o.promo_code) + ')' : ''}`, '&minus;' + money(o.discount_cents)) : '')
     + r('Shipping', o.shipping_cents > 0 ? money(o.shipping_cents) : 'Free')
+    + (o.cod_fee_cents > 0 ? r('Cash on delivery fee', money(o.cod_fee_cents)) : '')
     + r('Total', money(o.total_cents), true) + '</table>';
 }
 
@@ -77,7 +78,7 @@ function orderConfirmation({ order, payment, baseUrl }) {
     footer: FOOT(baseUrl),
   });
   const text = `Thank you, ${name}!\n\nYour order ${order.order_number} is confirmed.\n\n${itemsText(order.items)}\n\n`
-    + `Subtotal: ${money(order.subtotal_cents)}\n${order.discount_cents > 0 ? `Discount: -${money(order.discount_cents)}\n` : ''}Shipping: ${order.shipping_cents > 0 ? money(order.shipping_cents) : 'Free'}\nTotal: ${money(order.total_cents)}\n\n`
+    + `Subtotal: ${money(order.subtotal_cents)}\n${order.discount_cents > 0 ? `Discount: -${money(order.discount_cents)}\n` : ''}Shipping: ${order.shipping_cents > 0 ? money(order.shipping_cents) : 'Free'}\n${order.cod_fee_cents > 0 ? `Cash on delivery fee: ${money(order.cod_fee_cents)}\n` : ''}Total: ${money(order.total_cents)}\n\n`
     + (insta ? instapayText(payment, order) + '\n\n' : 'Payment: cash on delivery. Please have the amount ready for the courier.\n\n')
     + `Delivering to: ${addressLine(order)}\n\nQuestions? Just reply to this email.`;
   return { subject, text, html };
@@ -99,18 +100,29 @@ function orderUpdate({ number, firstName, status, note, baseUrl }) {
 }
 
 // The store's own copy of every new order, so nobody has to open Sariee to find out an order arrived.
+// Sariee only knows its own shipping setting, so its amount can differ from what the customer was charged here. Say so,
+// because the courier collects what Sariee holds. Empty when the two agree (the COD fee is ours alone, never in Sariee).
+function mismatchNote(order) {
+  if (order.sariee_total_cents == null) return '';
+  const ours = order.total_cents - (order.cod_fee_cents || 0);
+  if (order.sariee_total_cents === ours) return '';
+  return `Amounts differ: the customer was charged ${money(ours)} before any COD fee, but Sariee holds ${money(order.sariee_total_cents)}. Check the shipping fee in Sariee before the courier collects.`;
+}
+
 function newOrderForStore({ order, phone, baseUrl }) {
   const insta = order.payment_method === 'instapay';
+  const diff = mismatchNote(order);
   const subject = `${insta ? '[INSTAPAY - awaiting transfer] ' : ''}New order ${order.order_number} - ${money(order.total_cents)}`;
   const html = layout({
     preheader: `${order.ship_first || ''} ${order.ship_last || ''} placed an order for ${money(order.total_cents)}.`,
     heading: `New order ${order.order_number}`,
-    bodyHtml: (insta ? `<p style="margin:0 0 14px;padding:12px 14px;background:#fdecd9;border-radius:10px;"><strong>Paid by InstaPay.</strong> Sariee shows this order as Cash On Delivery: do not collect cash. Wait for a transfer of <strong>${money(order.total_cents)}</strong> with reference <strong>${esc(order.order_number)}</strong>.</p>` : '')
+    bodyHtml: (diff ? `<p style="margin:0 0 14px;padding:12px 14px;background:#fdecd9;border-radius:10px;"><strong>${esc(diff)}</strong></p>` : '')
+      + (insta ? `<p style="margin:0 0 14px;padding:12px 14px;background:#fdecd9;border-radius:10px;"><strong>Paid by InstaPay.</strong> Sariee shows this order as Cash On Delivery: do not collect cash. Wait for a transfer of <strong>${money(order.total_cents)}</strong> with reference <strong>${esc(order.order_number)}</strong>.</p>` : '')
       + `<table role="presentation" cellpadding="0" cellspacing="0" width="100%">${row('Customer', esc(`${order.ship_first || ''} ${order.ship_last || ''}`.trim()))}${row('Email', esc(order.email))}${row('Mobile', esc(phone || ''))}${row('Address', esc(addressLine(order)))}${row('Payment', insta ? 'InstaPay' : 'Cash on delivery')}</table>`
       + itemsTable(order.items) + totalsTable(order),
     footer: `Open it in Sariee to prepare and ship. Sent automatically by ${esc(baseUrl)}.`,
   });
-  const text = `${insta ? 'PAID BY INSTAPAY - Sariee shows Cash On Delivery, do not collect cash. Wait for a transfer of ' + money(order.total_cents) + ' with reference ' + order.order_number + '.\n\n' : ''}`
+  const text = `${diff ? diff + '\n\n' : ''}${insta ? 'PAID BY INSTAPAY - Sariee shows Cash On Delivery, do not collect cash. Wait for a transfer of ' + money(order.total_cents) + ' with reference ' + order.order_number + '.\n\n' : ''}`
     + `New order ${order.order_number}\n\nCustomer: ${order.ship_first || ''} ${order.ship_last || ''}\nEmail: ${order.email}\nMobile: ${phone || ''}\nAddress: ${addressLine(order)}\nPayment: ${insta ? 'InstaPay' : 'Cash on delivery'}\n\n${itemsText(order.items)}\n\nTotal: ${money(order.total_cents)}`;
   return { subject, text, html };
 }

@@ -57,7 +57,7 @@
       </div>
       <% } %>
       <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:12px;color:#5a5148">
-        <span>Shipping</span><span>Free</span>
+        <span>Shipping</span><span>Calculated at checkout</span>
       </div>
       <form action="/cart/promo" method="post" style="display:flex;gap:10px;margin:20px 0">
         <input type="text" name="code" value="<%= promoCode %>" placeholder="Promo code" style="flex:1 1 0;width:0;min-width:0;padding:12px 14px;border-radius:100px;border:1px solid rgba(58,53,46,.3);font-size:13px;background:#fff9f3">
@@ -66,7 +66,7 @@
       <% if (promoError) { %><div style="font-size:12px;color:#8a3d16;margin:-8px 0 12px"><%= promoError %></div><% } %>
       <% if (discount_cents > 0) { %><div style="font-size:12px;color:#2f4a26;margin:-8px 0 12px">Promo applied 🎉</div><% } %>
       <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding-top:18px;border-top:1px solid rgba(58,53,46,.15);margin-bottom:26px">
-        <span>Total</span><span><%= money(total_cents) %></span>
+        <span>Total before shipping</span><span><%= money(Math.max(0, subtotal_cents - discount_cents)) %></span>
       </div>
       <% if (items.length) { %>
         <a class="au-link btn-primary" href="/checkout" style="display:block;width:100%">Checkout</a>

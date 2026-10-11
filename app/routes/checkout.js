@@ -16,6 +16,7 @@ const { emailRe, mobileRe } = require('../lib/validators');
 const mailer = require('../lib/mailer');
 const emails = require('../lib/emails');
 const content = require('../lib/content');
+const shipping = require('../lib/shipping');
 
 // Resolve the store's Cash-On-Delivery method (offline, paymentId 0), with a
 // safe fallback so checkout still renders if the lookup hiccups.
@@ -41,6 +42,34 @@ function findCity(g, cityId) {
   return null;
 }
 
+// What the customer owes: our own shipping fee (Sariee's rate card by governorate and cart weight, lib/shipping.js)
+// and, for cash on delivery only, the 1% COD fee. `state` is the chosen city's governorate, or null before a city is picked.
+function pricing(t, state, method) {
+  const net = Math.max(0, t.subtotal_cents - t.discount_cents);
+  const weightKg = shipping.cartWeightKg(t.items);
+  const ship = state ? shipping.quote(state.name, weightKg).cents : 0;
+  const cod = method === 'cod' ? shipping.codFeeCents(net + ship) : 0;
+  return { shipping_cents: ship, cod_fee_cents: cod, total_cents: net + ship + cod };
+}
+
+// For the checkout page's live summary: shipping fee per city id, so picking a city updates the total without a request.
+function quotesByCity(t, groups) {
+  const weightKg = shipping.cartWeightKg(t.items);
+  const out = {};
+  for (const st of groups) {
+    const cents = shipping.quote(st.name, weightKg).cents;
+    for (const c of st.cities) out[c.id] = cents;
+  }
+  return out;
+}
+
+// Everything the checkout template needs on top of the cart totals; `values` is what the form currently holds.
+function checkoutView(t, g, values) {
+  const city = values.city_id ? findCity(g, values.city_id) : null;
+  const method = values.payment_method === 'instapay' ? 'instapay' : 'cod';
+  return { ...t, ...pricing(t, city && city.state, method), shipQuotes: quotesByCity(t, g.states), codPercent: shipping.COD_PERCENT };
+}
+
 router.get('/checkout', ah(async (req, res) => {
   const t = await cart.totals(req, { promoCode: req.session.promo || '' });
   if (t.items.length === 0) {
@@ -48,16 +77,17 @@ router.get('/checkout', ah(async (req, res) => {
     return res.redirect('/cart');
   }
   const [g, cod, payment] = await Promise.all([geo.cityGroups(), codMethod(req), content.get('payment')]);
+  const values = res.locals.user
+    ? { email: res.locals.user.email, first_name: res.locals.user.first_name, last_name: res.locals.user.last_name }
+    : {};
   res.render('checkout', {
     title: 'Checkout — Auréalis',
-    ...t,
+    ...checkoutView(t, g, values),
     cityGroups: g.states,
     codPaymentId: cod.id,
     codName: cod.name,
     payment,
-    values: res.locals.user
-      ? { email: res.locals.user.email, first_name: res.locals.user.first_name, last_name: res.locals.user.last_name }
-      : {},
+    values,
   });
 }));
 
@@ -76,7 +106,7 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
     flashNow(res, 'error', msg); // shown by this render (flash() would only appear on the next page)
     const [g, cod, payment] = await Promise.all([geo.cityGroups(), codMethod(req), content.get('payment')]);
     return res.status(status).render('checkout', {
-      title: 'Checkout — Auréalis', ...t,
+      title: 'Checkout — Auréalis', ...checkoutView(t, g, f),
       cityGroups: g.states, codPaymentId: cod.id, codName: cod.name, payment, values: f,
     });
   };
@@ -115,9 +145,9 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
   // The order is already placed in Sariee and the session is only saved when this response ends, and the function has a
   // 30 s budget: keep everything after the order short, or a timeout here would leave a full bag and invite a second order.
   // Read the order back for a short readable number (an InstaPay customer writes it in the transfer, a bare uuid will not do)
-  // and for Sariee's own final amount (the shipping fee can depend on the city).
+  // and to compare Sariee's own amount with ours.
   let orderNumber = data.order_number;
-  let finalCents = null;
+  let sarieeFinalCents = null;
   if (orderId) {
     try {
       const d = await Promise.race([
@@ -126,10 +156,19 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
       ]);
       const so = d && d.data && d.data.data;
       if (so && so.invoice_number && !orderNumber) orderNumber = `#${so.invoice_number}`;
-      if (so && Number(so.final_amount) > 0) finalCents = Math.round(Number(so.final_amount) * 100);
-    } catch (_) { /* fall back to the cart's figures and the short id below */ }
+      if (so && Number(so.final_amount) > 0) sarieeFinalCents = Math.round(Number(so.final_amount) * 100);
+    } catch (_) { /* nothing to compare; the short id below still identifies the order */ }
   }
   if (!orderNumber) orderNumber = String(orderId || '').slice(0, 8).toUpperCase();
+
+  // The customer was charged our figures (shipping from the rate card, plus the COD fee). Sariee's order only carries its
+  // own shipping setting, so flag any difference: the courier collects what Sariee holds, and the store has to reconcile.
+  const price = pricing(t, city.state, method);
+  const sarieeShipFee = sarieeFinalCents != null ? sarieeFinalCents - Math.max(0, t.subtotal_cents - t.discount_cents) : null;
+  if (sarieeFinalCents != null && sarieeFinalCents !== price.total_cents - price.cod_fee_cents) {
+    console.warn('[checkout] order %s: Sariee final %d vs ours %d (shipping %d, COD fee %d, Sariee shipping %s) cents',
+      orderId, sarieeFinalCents, price.total_cents, price.shipping_cents, price.cod_fee_cents, sarieeShipFee);
+  }
 
   // Snapshot the order for the confirmation page (Sariee is the source of truth;
   // this just renders the immediate thank-you without an extra round-trip).
@@ -147,8 +186,10 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
     promo_code: t.promo,
     subtotal_cents: t.subtotal_cents,
     discount_cents: t.discount_cents,
-    shipping_cents: finalCents != null ? Math.max(0, finalCents - (t.subtotal_cents - t.discount_cents)) : t.shipping_cents,
-    total_cents: finalCents != null ? finalCents : t.total_cents,
+    shipping_cents: price.shipping_cents,
+    cod_fee_cents: price.cod_fee_cents,
+    total_cents: price.total_cents,
+    sariee_total_cents: sarieeFinalCents, // for the store email only
     items: t.items.map((it) => ({ name: it.name, size: it.size, unit_price_cents: it.price_cents, qty: it.qty })),
   };
 

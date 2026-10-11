@@ -64,6 +64,7 @@ async function mapItems(cart) {
       color: '',
       image_url: (prod.image && prod.image.src) || (cat && cat.image_url) || '',
       qty: it.quantity,
+      weight_kg: (cat && cat.weight_kg) || 0,
       size: '',
       price_cents: Math.round((Number(prod.price) || 0) * 100),
       line_cents: Math.round((Number(it.total) || 0) * 100),
