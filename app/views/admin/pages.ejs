@@ -2,7 +2,7 @@
 <%
   const TABS = [
     ['about', 'About', '/about'], ['shop', 'Shop', '/shop'], ['shipping', 'Shipping policy', '/shipping-policy'],
-    ['refund', 'Refund policy', '/refund-policy'], ['contact', 'Contact', '/contact'], ['footer', 'Footer', '/'],
+    ['refund', 'Refund policy', '/refund-policy'], ['privacy', 'Privacy policy', '/privacy-policy'], ['contact', 'Contact', '/contact'], ['footer', 'Footer', '/'],
   ];
   const cur = TABS.find(function (t) { return t[0] === tab; }) || TABS[0];
   const c = content[cur[0]] || {};
@@ -34,7 +34,7 @@
     <% } else if (cur[0] === 'shop') { %>
       <%- F.text('title', 'Heading (when no category is chosen)', c.title, { max: 100 }) %>
       <%- F.rich('intro', 'Intro line', c.intro, { rows: 4, max: 1000, hint: 'Shown under the heading. Leave blank for none.' }) %>
-    <% } else if (cur[0] === 'shipping' || cur[0] === 'refund') { %>
+    <% } else if (cur[0] === 'shipping' || cur[0] === 'refund' || cur[0] === 'privacy') { %>
       <%- F.text('title', 'Page title', c.title, { max: 100 }) %>
       <%- F.rich('intro', 'Intro line (under the title)', c.intro, { rows: 3, max: 1000 }) %>
       <%- F.rich('body', 'Policy text', c.body, { rows: 18, max: 10000 }) %>

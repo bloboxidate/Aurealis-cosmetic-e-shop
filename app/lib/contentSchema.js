@@ -29,6 +29,7 @@ const SCHEMA = {
   shop: { title: text(100), intro: rich(1000) },
   shipping: { title: text(100), intro: rich(1000), body: rich(10000) },
   refund: { title: text(100), intro: rich(1000), body: rich(10000) },
+  privacy: { title: text(100), intro: rich(1000), body: rich(10000) },
   contact: { title: text(100), intro: rich(1500), email: text(120), phone: text(40), hours: area(400), address: area(400), extra: rich(3000) },
   footer: { tagline: area(240), email: text(120), phone: text(40), instagram: url(300), tiktok: url(300), copyright: text(120) },
 };

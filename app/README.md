@@ -37,8 +37,8 @@ empty/error state (logged as `[catalog]`, `[shop]`, `[admin]`…) instead of a 5
   requests** (Sariee has no cancel API — the request is stored and emailed to
   `STORE_OPS_EMAIL` for manual handling).
 - Policy pages in the footer: **Shipping Policy** (`/shipping-policy`),
-  **Refund Policy** (`/refund-policy`) and **Contact Us** (`/contact`, shows email +
-  phone). All three are editable in the admin.
+  **Refund Policy** (`/refund-policy`), **Privacy Policy** (`/privacy-policy`) and **Contact Us** (`/contact`, shows email +
+  phone). All four are editable in the admin.
 - Wishlist (signed-in only). Prices display in **EGP** (`lib/format.js`).
 - `/en` and `/en/*` 301-redirect to the unprefixed path; there is no i18n and no `/ar`.
 
@@ -49,7 +49,7 @@ empty/error state (logged as `[catalog]`, `[shop]`, `[admin]`…) instead of a 5
   Products themselves are created and edited in Sariee's own dashboard.
 - **Categories** — create / rename / delete categories and subcategories, upload
   a category image.
-- **Page Content** — edit Home, About, Shop, Shipping Policy, Refund Policy,
+- **Page Content** — edit Home, About, Shop, Shipping Policy, Refund Policy, Privacy Policy,
   Contact Us and Footer copy; upload the hero (Home) and About images. Policy
   text supports light formatting (blank line = paragraph, `## Heading`,
   `- bullet`, `**bold**`, `*italic*`, `[link](url)`; HTML is always escaped —

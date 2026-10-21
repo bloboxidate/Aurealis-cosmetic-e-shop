@@ -17,7 +17,7 @@ function ensureToken(req) {
 // saved: for every first-time visitor and every crawler. None of these pages embeds a token for a signed-out visitor
 // (the only token on them is the logout form, shown to signed-in users), so they get an empty one and no session.
 // Anything else - login, signup, checkout, account, admin, every POST - still gets a real token as before.
-const PUBLIC_PAGES = /^\/(?:$|shop\/?$|product\/|about\/?$|contact\/?$|shipping-policy\/?$|refund-policy\/?$)/;
+const PUBLIC_PAGES = /^\/(?:$|shop\/?$|product\/|about\/?$|contact\/?$|shipping-policy\/?$|refund-policy\/?$|privacy-policy\/?$)/;
 
 function csrfLocals(req, res, next) {
   if ((req.method === 'GET' || req.method === 'HEAD') && !req.session.userId && !req.session.csrfToken && PUBLIC_PAGES.test(req.path)) {

@@ -291,9 +291,9 @@ router.post('/subcategories/:id/delete', ah(async (req, res) => {
 }));
 
 // ---- Homepage, pages and site settings (all editable content) ------------
-const PAGE_KEYS = ['about', 'shop', 'shipping', 'refund', 'contact', 'footer'];
+const PAGE_KEYS = ['about', 'shop', 'shipping', 'refund', 'privacy', 'contact', 'footer'];
 const CONTENT_KEYS = ['home', 'site', 'announcement', 'payment', ...PAGE_KEYS];
-const PAGE_LABEL = { home: 'Homepage', site: 'Site settings', announcement: 'Announcement bar', payment: 'Payment options', about: 'About page', shop: 'Shop page', shipping: 'Shipping policy', refund: 'Refund policy', contact: 'Contact page', footer: 'Footer' };
+const PAGE_LABEL = { home: 'Homepage', site: 'Site settings', announcement: 'Announcement bar', payment: 'Payment options', about: 'About page', shop: 'Shop page', shipping: 'Shipping policy', refund: 'Refund policy', privacy: 'Privacy policy', contact: 'Contact page', footer: 'Footer' };
 const SETTINGS_BACK = { home: '/admin/homepage', site: '/admin/settings', announcement: '/admin/settings', payment: '/admin/settings#payments' };
 
 router.get('/homepage', ah(async (req, res) => {
