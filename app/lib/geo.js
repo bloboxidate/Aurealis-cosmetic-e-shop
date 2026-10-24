@@ -8,6 +8,31 @@ const sariee = require('./sariee');
 const TTL_MS = Number(process.env.GEO_CACHE_MS || 60 * 60 * 1000); // 1h
 const DEFAULT_COUNTRY = process.env.SARIEE_DEFAULT_COUNTRY || 'Egypt';
 
+// Sariee's city names are a transliterated-Arabic dataset with diacritics ("Al Ḩawāmidīyah", "Madīnat Sittah Uktūbar"). Customers see
+// plain English: diacritics and apostrophes are stripped, and the few names that would still look odd get their usual spelling.
+// Only the display name changes; the city id sent to Sariee is untouched.
+const COMMON_NAMES = {
+  'Madinat Sittah Uktubar': '6th of October City',
+  'Kawm Umbu': 'Kom Ombo',
+  'Idfu': 'Edfu',
+  'Isna': 'Esna',
+  'Qina': 'Qena',
+  'Jirja': 'Girga',
+  'Al Mansurah': 'Mansoura',
+  'Al Minya': 'Minya',
+  'Al Fayyum': 'Faiyum',
+  'Bani Suwayf': 'Beni Suef',
+  'Kafr ash Shaykh': 'Kafr el-Sheikh',
+};
+
+function tidyCityName(name) {
+  const plain = String(name || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')       // combining marks (diacritics)
+    .replace(/[\u02BB\u02BC\u02BE\u02BF\u2018\u2019'`]/g, '') // apostrophe-like marks
+    .replace(/\s+/g, ' ').trim();
+  return COMMON_NAMES[plain] || plain || String(name || '');
+}
+
 let cache = null; // { at, country, states: [{ id, name, cities: [{id,name}] }] }
 
 async function build() {
@@ -27,7 +52,7 @@ async function build() {
       const r = await sariee.helpers.cities({ state_id: st.id });
       cities = (r.data && r.data.data) || [];
     } catch (_) { /* leave empty */ }
-    return { id: st.id, name: st.name, cities: cities.map((c) => ({ id: c.id, name: c.name })) };
+    return { id: st.id, name: st.name, cities: cities.map((c) => ({ id: c.id, name: tidyCityName(c.name) })) };
   }));
 
   return {
@@ -52,4 +77,4 @@ async function isValidCity(cityId) {
 
 function invalidate() { cache = null; }
 
-module.exports = { cityGroups, isValidCity, invalidate, DEFAULT_COUNTRY };
+module.exports = { cityGroups, isValidCity, invalidate, tidyCityName, DEFAULT_COUNTRY };
