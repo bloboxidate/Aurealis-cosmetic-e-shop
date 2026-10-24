@@ -17,6 +17,7 @@ const overlay = require('../lib/overlay');
 const content = require('../lib/content');
 const schema = require('../lib/contentSchema');
 const activity = require('../lib/activity');
+const issues = require('../lib/issues');
 const reviews = require('../lib/reviews');
 const storage = require('../lib/storage');
 const upload = require('../middleware/upload');
@@ -35,7 +36,7 @@ router.use(requireAuth, requireAdmin, verifyCsrf);
 router.use((req, res, next) => { res.locals.noMotion = true; res.locals.F = require('../lib/adminForm'); next(); });
 // The sidebar shows how many reviews are waiting.
 router.use(ah(async (req, res, next) => {
-  res.locals.adminBadges = { reviews: await reviews.pendingCount().catch(() => 0) };
+  res.locals.adminBadges = { reviews: await reviews.pendingCount().catch(() => 0), problems: await issues.count() };
   next();
 }));
 
@@ -418,6 +419,16 @@ router.post('/orders/:id/notify', ah(async (req, res) => {
   if (r.sent) await note(res, `Emailed an update for order ${number}: ${status}`);
   const why = r.reason === 'not-configured' ? 'No mail server is set up yet (see Site settings, Email).' : `The mail server said: ${r.reason}`;
   done(req, res, r.sent ? { message: `Update sent to ${order.email}.`, redirect: '/admin/orders' } : { ok: false, message: why, redirect: '/admin/orders', status: 502 });
+}));
+
+// ---- Problems: failed checkouts, emails and errors (lib/issues.js) -----------------
+router.get('/problems', ah(async (req, res) => {
+  res.render('admin/problems', { title: 'Problems — Admin', adminActive: 'problems', items: await issues.list() });
+}));
+
+router.post('/problems/clear', ah(async (req, res) => {
+  await issues.clear();
+  done(req, res, { message: 'Cleared.', redirect: '/admin/problems' });
 }));
 
 // ---- Review moderation ---------------------------------------------------

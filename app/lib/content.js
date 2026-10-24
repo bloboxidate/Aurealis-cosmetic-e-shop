@@ -64,6 +64,8 @@ const DEFAULTS = {
   product_extras: {},
   // The last things changed in the admin, newest first: { items: [{ t, who, text }] }.
   activity: { items: [] },
+  // Things that went wrong (failed checkouts, emails, errors), newest first: { items: [{ t, kind, title, details }] }. See lib/issues.js.
+  issues: { items: [] },
   about: {
     eyebrow: 'Our Story',
     title: "Light doesn't have one color. Neither does your glow.",

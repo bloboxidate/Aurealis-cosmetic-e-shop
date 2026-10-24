@@ -17,6 +17,7 @@ const mailer = require('../lib/mailer');
 const emails = require('../lib/emails');
 const content = require('../lib/content');
 const shipping = require('../lib/shipping');
+const issues = require('../lib/issues');
 
 // Resolve the store's Cash-On-Delivery method (offline, paymentId 0), with a
 // safe fallback so checkout still renders if the lookup hiccups.
@@ -69,8 +70,9 @@ function checkoutView(t, g, values) {
   return { ...t, ...pricing(t, city && city.state), shipQuotes: quotesByCity(t, g.states) };
 }
 
-// After a failed checkout-action: the id of the website order Sariee saved for this customer since `since` (epoch ms), or
-// null. Matches on customer name and creation time (the company sales list carries no email); never throws.
+// After a failed checkout-action: { id } of the website order Sariee saved for this customer since `since` (epoch ms), or
+// { id: null, error } when there is none or the lookup itself failed. Matches on customer name and creation time (the
+// company sales list carries no email); never throws.
 async function findPlacedOrder(f, since) {
   const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
   try {
@@ -84,10 +86,10 @@ async function findPlacedOrder(f, since) {
     const hits = (Array.isArray(list) ? list : []).filter((o) =>
       o.type === 'order' && norm(o.customer_name) === want && Date.parse(o.created_at) >= since - 60000);
     hits.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
-    return hits[0] ? hits[0].id : null;
+    return { id: hits[0] ? hits[0].id : null, error: hits[0] ? '' : 'no matching order in Sariee' };
   } catch (err) {
     console.error('[checkout] could not look for a saved order: %s', err.message);
-    return null;
+    return { id: null, error: 'lookup failed: ' + err.message };
   }
 }
 
@@ -162,7 +164,17 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
       err.status, err.message, JSON.stringify(err.body || '').slice(0, 500));
     // A 5xx can come after the order was saved (Sariee's "OrderPlacedNotification not found" crash runs after the insert),
     // so look for it before telling the customer anything: an error here would invite a second, duplicate order.
-    const placedId = err.status >= 500 ? await findPlacedOrder(f, startedAt) : null;
+    const found = err.status >= 500 ? await findPlacedOrder(f, startedAt) : { id: null, error: 'not looked up (not a 5xx)' };
+    const placedId = found.id;
+    await issues.log('checkout', placedId ? 'Sariee errored but the order was saved (recovered)' : 'Checkout failed, no order was created', {
+      'Sariee status': err.status || 'no response',
+      'Sariee said': (err.body && (err.body.message || JSON.stringify(err.body.data))) || err.message,
+      'Order lookup': placedId ? 'found ' + placedId : found.error,
+      Customer: `${f.first_name} ${f.last_name}`.trim(),
+      Email: f.email, Mobile: f.mobile, City: city.name,
+      Items: t.items.map((it) => `${it.name} x${it.qty}`).join(', '),
+      Payment: method,
+    });
     if (!placedId) {
       return rerender('We couldn’t place your order right now. Please check your details and try again; if it keeps failing, contact us before retrying.', 502);
     }
@@ -226,18 +238,26 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
   // Record the Sariee order so it shows in the customer's account history.
   try {
     await orders.record({ sarieeOrderId: orderId, userId: req.session.userId || null, email: f.email, paymentMethod: method, firstName: f.first_name });
-  } catch (_) { /* non-fatal */ }
+  } catch (err) {
+    // Non-fatal, but the order will be missing from Admin → Orders and the customer's account history.
+    await issues.log('checkout', 'Order placed but not saved in our database', { Order: orderNumber, 'Sariee id': orderId, Email: f.email, Error: err.message });
+  }
 
   // Confirmation to the customer and a copy to the store. They are awaited (each bounded by mailer's timeout) because
   // Vercel freezes the function as soon as the response is sent, which would cut a fire-and-forget send short. A mail
   // failure never fails the order, which already succeeded on Sariee. Logs instead of sending if SMTP isn't configured.
   const baseUrl = `${req.protocol}://${req.get('host')}`;
   const ops = (process.env.STORE_OPS_EMAIL || '').trim();
-  const [custMail] = await Promise.all([
+  const [custMail, storeMail] = await Promise.all([
     mailer.send({ to: f.email, timeoutMs: 6000, ...emails.orderConfirmation({ order, payment, baseUrl }) }),
     ops ? mailer.send({ to: ops, timeoutMs: 6000, replyTo: f.email, ...emails.newOrderForStore({ order, phone: f.mobile, baseUrl }) }) : null,
   ]);
   order.emailed = !!(custMail && custMail.sent);
+  // 'not-configured' is a known state (Admin → Site settings → Email), not a failure of this order.
+  const failedMail = [['customer', f.email, custMail], ['store', ops, storeMail]].filter(([, , r]) => r && !r.sent && r.reason !== 'not-configured');
+  for (const [who, to, r] of failedMail) {
+    await issues.log('email', `Order ${orderNumber}: the ${who} email did not go out`, { To: to, 'Mail server said': r.reason, Order: orderNumber });
+  }
 
   await cart.clear(req);
   req.session.promo = '';

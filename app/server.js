@@ -155,8 +155,14 @@ app.use((req, res) => {
 });
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use(async (err, req, res, next) => {
   console.error(err);
+  // Also shown in Admin → Problems. Awaited (it never throws) because Vercel freezes the function once the response is sent.
+  await require('./lib/issues').log('error', `${req.method} ${String(req.path).slice(0, 120)}: ${err && err.message}`, {
+    Page: req.originalUrl && req.originalUrl.split('?')[0],
+    Error: err && err.message,
+    Where: err && err.stack && String(err.stack).split(String.fromCharCode(10)).slice(1, 4).map((l) => l.trim()).join(' | '),
+  });
   res.status(500).render('error', {
     title: 'Something went wrong — Auréalis',
     heading: 'Something went wrong',

@@ -26,6 +26,7 @@
     ['settings', 'Site settings', '/admin/settings', 'sliders'],
     ['orders', 'Orders', '/admin/orders', 'mail'],
     ['reviews', 'Reviews', '/admin/reviews', 'star'],
+    ['problems', 'Problems', '/admin/problems', 'search'],
   ];
   const current = nav.find(function (n) { return n[0] === a; });
 %><!doctype html>
@@ -47,6 +48,7 @@
         <a href="<%= n[2] %>" class="<%= a === n[0] ? 'is-active' : '' %>"<%- a === n[0] ? ' aria-current="page"' : '' %>>
           <svg viewBox="0 0 24 24" aria-hidden="true"><%- I[n[3]] %></svg><%= n[1] %>
           <% if (n[0] === 'reviews' && badges.reviews > 0) { %><span class="count" aria-label="<%= badges.reviews %> pending"><%= badges.reviews %></span><% } %>
+          <% if (n[0] === 'problems' && badges.problems > 0) { %><span class="count" aria-label="<%= badges.problems %> logged"><%= badges.problems %></span><% } %>
         </a>
       <% }); %>
     </nav>

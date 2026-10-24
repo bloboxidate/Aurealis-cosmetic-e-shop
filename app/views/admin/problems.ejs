@@ -1,0 +1,41 @@
+<%- include('../partials/admin-open') %>
+<%
+  const when = function (t) { try { return new Date(t).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Cairo' }); } catch (e) { return ''; } };
+  const label = { checkout: 'Checkout', email: 'Email', error: 'Error' };
+  const tone = { checkout: 'bad', email: 'warn', error: 'bad' };
+%>
+<div class="adm-head">
+  <div>
+    <h1 class="adm-h1">Problems</h1>
+    <p class="adm-sub">Things that went wrong on the site: a checkout that failed (with what Sariee answered and the customer’s details, so you can contact them), an email that did not go out, or an unexpected error. The newest 100 are kept. Times are Cairo time.</p>
+  </div>
+  <% if (items.length) { %>
+  <form method="post" action="/admin/problems/clear" data-ajax>
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <button type="submit" class="btn btn-sm">Clear all</button>
+  </form>
+  <% } %>
+</div>
+
+<div style="max-width:860px">
+  <% if (!items.length) { %>
+    <div class="card empty">
+      <div class="big">Nothing has gone wrong</div>
+      <div>Failed checkouts, emails that did not send and unexpected errors will be listed here.</div>
+    </div>
+  <% } %>
+  <% items.forEach(function (it) { %>
+    <article class="card rev">
+      <div class="row wrap between">
+        <div class="strong"><span class="pill <%= tone[it.kind] || '' %>"><%= label[it.kind] || it.kind %></span> <%= it.title %></div>
+        <div class="muted small"><%= when(it.t) %></div>
+      </div>
+      <% var keys = Object.keys(it.details || {}); if (keys.length) { %>
+      <dl style="margin:12px 0 0;display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;font-size:13px">
+        <% keys.forEach(function (k) { %><dt class="muted"><%= k %></dt><dd style="margin:0;word-break:break-word"><%= it.details[k] %></dd><% }); %>
+      </dl>
+      <% } %>
+    </article>
+  <% }); %>
+</div>
+<%- include('../partials/admin-close') %>

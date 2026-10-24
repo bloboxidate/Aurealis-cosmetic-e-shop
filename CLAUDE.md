@@ -125,3 +125,8 @@ rate limit or auth. The storefront talks to Sariee only server-side through `lib
 - Sariee's `checkout-action` can answer 500 `Class "Modules\Frontend\Traits\Checkout\OrderPlacedNotification" not found` **after** it saved the order.
   `routes/checkout.js` `findPlacedOrder()` looks the order up in the company sales list (`get-api-company-sales`, by customer name + time) on any 5xx
   and continues as a success; otherwise the customer sees a generic message. Never show Sariee's raw error text, and don't tell customers to just retry.
+
+## Admin → Problems (added 2026-10-24)
+- `lib/issues.js` keeps the newest 100 failures (failed/recovered checkouts with Sariee's raw answer and the customer's contact details, emails that did not go out,
+  unexpected 500s from `server.js`) in content key `issues`, shown at `/admin/problems` (sidebar badge = count; "Clear all" empties it). No table, same pattern as `lib/activity.js`.
+  `issues.log()` never throws and must be **awaited** on Vercel. Put new failure points through it; keep details to short flat facts. Entries hold customer PII: admin-only, never render them publicly.
