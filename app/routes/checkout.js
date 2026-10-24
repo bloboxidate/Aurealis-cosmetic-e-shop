@@ -42,14 +42,14 @@ function findCity(g, cityId) {
   return null;
 }
 
-// What the customer owes: our own shipping fee (Sariee's rate card by governorate and cart weight, lib/shipping.js)
-// and, for cash on delivery only, the 1% COD fee. `state` is the chosen city's governorate, or null before a city is picked.
-function pricing(t, state, method) {
+// What the customer owes: the order net of discount plus our own shipping fee (Sariee's rate card by governorate and cart
+// weight, lib/shipping.js). The courier's cash-on-delivery percentage is paid by the store, never added here. `state` is the
+// chosen city's governorate, or null before a city is picked.
+function pricing(t, state) {
   const net = Math.max(0, t.subtotal_cents - t.discount_cents);
   const weightKg = shipping.cartWeightKg(t.items);
   const ship = state ? shipping.quote(state.name, weightKg).cents : 0;
-  const cod = method === 'cod' ? shipping.codFeeCents(net + ship) : 0;
-  return { shipping_cents: ship, cod_fee_cents: cod, total_cents: net + ship + cod };
+  return { shipping_cents: ship, total_cents: net + ship };
 }
 
 // For the checkout page's live summary: shipping fee per city id, so picking a city updates the total without a request.
@@ -66,8 +66,29 @@ function quotesByCity(t, groups) {
 // Everything the checkout template needs on top of the cart totals; `values` is what the form currently holds.
 function checkoutView(t, g, values) {
   const city = values.city_id ? findCity(g, values.city_id) : null;
-  const method = values.payment_method === 'instapay' ? 'instapay' : 'cod';
-  return { ...t, ...pricing(t, city && city.state, method), shipQuotes: quotesByCity(t, g.states), codPercent: shipping.COD_PERCENT };
+  return { ...t, ...pricing(t, city && city.state), shipQuotes: quotesByCity(t, g.states) };
+}
+
+// After a failed checkout-action: the id of the website order Sariee saved for this customer since `since` (epoch ms), or
+// null. Matches on customer name and creation time (the company sales list carries no email); never throws.
+async function findPlacedOrder(f, since) {
+  const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  try {
+    const r = await Promise.race([
+      sariee.call('get-api-company-sales', { query: { per_page: 10 } }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('slow')), 5000)),
+    ]);
+    const list = (r.data && r.data.data) || [];
+    const want = norm(`${f.first_name} ${f.last_name}`);
+    // 60 s of slack for the difference between Sariee's clock and ours.
+    const hits = (Array.isArray(list) ? list : []).filter((o) =>
+      o.type === 'order' && norm(o.customer_name) === want && Date.parse(o.created_at) >= since - 60000);
+    hits.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+    return hits[0] ? hits[0].id : null;
+  } catch (err) {
+    console.error('[checkout] could not look for a saved order: %s', err.message);
+    return null;
+  }
 }
 
 router.get('/checkout', ah(async (req, res) => {
@@ -127,6 +148,7 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
   const cod = await codMethod(req);
 
   // Place the order on Sariee (Cash On Delivery — no card is taken).
+  const startedAt = Date.now();
   let result;
   try {
     result = await sariee.checkout.action(cart.token(req), {
@@ -135,8 +157,17 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
       address: { street: f.street, building: f.building, city_id: f.city_id },
     });
   } catch (err) {
-    const detail = err.body && (err.body.message || (err.body.data && JSON.stringify(err.body.data)));
-    return rerender('We couldn’t place your order: ' + (detail || err.message), 502);
+    // Sariee's raw text (PHP errors) is for the log only, never for the customer.
+    console.error('[checkout] Sariee checkout-action failed: status %s, %s, body %s',
+      err.status, err.message, JSON.stringify(err.body || '').slice(0, 500));
+    // A 5xx can come after the order was saved (Sariee's "OrderPlacedNotification not found" crash runs after the insert),
+    // so look for it before telling the customer anything: an error here would invite a second, duplicate order.
+    const placedId = err.status >= 500 ? await findPlacedOrder(f, startedAt) : null;
+    if (!placedId) {
+      return rerender('We couldn’t place your order right now. Please check your details and try again; if it keeps failing, contact us before retrying.', 502);
+    }
+    console.warn('[checkout] order %s was saved by Sariee despite the error; continuing as success', placedId);
+    result = { data: { data: { order_id: placedId } } };
   }
 
   const data = (result.data && result.data.data) || {};
@@ -161,13 +192,13 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
   }
   if (!orderNumber) orderNumber = String(orderId || '').slice(0, 8).toUpperCase();
 
-  // The customer was charged our figures (shipping from the rate card, plus the COD fee). Sariee's order only carries its
+  // The customer was charged our figures (shipping from the rate card). Sariee's order only carries its
   // own shipping setting, so flag any difference: the courier collects what Sariee holds, and the store has to reconcile.
-  const price = pricing(t, city.state, method);
+  const price = pricing(t, city.state);
   const sarieeShipFee = sarieeFinalCents != null ? sarieeFinalCents - Math.max(0, t.subtotal_cents - t.discount_cents) : null;
-  if (sarieeFinalCents != null && sarieeFinalCents !== price.total_cents - price.cod_fee_cents) {
-    console.warn('[checkout] order %s: Sariee final %d vs ours %d (shipping %d, COD fee %d, Sariee shipping %s) cents',
-      orderId, sarieeFinalCents, price.total_cents, price.shipping_cents, price.cod_fee_cents, sarieeShipFee);
+  if (sarieeFinalCents != null && sarieeFinalCents !== price.total_cents) {
+    console.warn('[checkout] order %s: Sariee final %d vs ours %d (shipping %d, Sariee shipping %s) cents',
+      orderId, sarieeFinalCents, price.total_cents, price.shipping_cents, sarieeShipFee);
   }
 
   // Snapshot the order for the confirmation page (Sariee is the source of truth;
@@ -187,7 +218,6 @@ router.post('/checkout', verifyCsrf, checkoutLimiter, ah(async (req, res) => {
     subtotal_cents: t.subtotal_cents,
     discount_cents: t.discount_cents,
     shipping_cents: price.shipping_cents,
-    cod_fee_cents: price.cod_fee_cents,
     total_cents: price.total_cents,
     sariee_total_cents: sarieeFinalCents, // for the store email only
     items: t.items.map((it) => ({ name: it.name, size: it.size, unit_price_cents: it.price_cents, qty: it.qty })),

@@ -1,10 +1,9 @@
 // Shipping fee from Sariee's 2026 rate card (sariee/shipping prices.pdf): door-to-door, EGP, VAT included.
 // The fee is the first-2-kg price of the destination zone plus the zone's per-kg rate for every started kilo above 2.
 // Zones are keyed by Sariee's state (governorate) names, which is what the checkout city list is grouped by.
-// A 1% cash-on-delivery fee (also from the rate card) is added on top for COD orders only.
+// The rate card's 1% cash-on-delivery fee is paid by the store, so it is not charged to the customer.
 
 const BASE_KG = 2;
-const COD_PERCENT = 1;
 
 // zone: [price of the first 2 kg, price per extra kg], in whole EGP
 const RATES = {
@@ -53,9 +52,4 @@ function quote(stateName, weightKg) {
   return { zone, cents: (base + extraKg * extra) * 100 };
 }
 
-// 1% of what the customer owes before this fee, rounded to the nearest piastre.
-function codFeeCents(baseCents) {
-  return Math.round(Math.max(0, baseCents) * COD_PERCENT / 100);
-}
-
-module.exports = { quote, zoneFor, cartWeightKg, codFeeCents, COD_PERCENT };
+module.exports = { quote, zoneFor, cartWeightKg };

@@ -114,9 +114,14 @@ rate limit or auth. The storefront talks to Sariee only server-side through `lib
 
 ## Shipping fee (added 2026-10-11)
 - **The fee is ours, not Sariee's.** `app/lib/shipping.js` holds Sariee's 2026 rate card (`sariee/shipping prices.pdf`): zone by governorate (Sariee state
-  name), first 2 kg + per started extra kg, plus a 1% COD fee for cash-on-delivery orders only (never InstaPay). Weight is `weight_kg` on the catalog product
+  name), first 2 kg + per started extra kg. The rate card's 1% COD fee is paid by the store (removed from the customer's total on 2026-10-24); never add it back to `pricing()`. Weight is `weight_kg` on the catalog product
   (Sariee barcode `weight`, assumed kg; empty weight counts as 0). `routes/checkout.js` `pricing()` recomputes everything on submit; the form's numbers are never trusted.
 - **Sariee's order does not contain our fee** unless its own shipping setting matches. After placing an order the route compares Sariee's `final_amount` with ours,
-  logs a warning and adds an "Amounts differ" banner to the store email. The courier collects what Sariee holds. The COD fee never reaches Sariee.
+  logs a warning and adds an "Amounts differ" banner to the store email. The courier collects what Sariee holds.
 - Changing rates or zones: edit `RATES` / `ZONE_STATES` in `lib/shipping.js` (Qalyubia is assumed Delta; Faiyum/Beni Suef Upper Egypt). A governorate missing from the map is charged zone 6 and logged.
 - The account page's order history still shows Sariee's own shipping figure.
+
+## Sariee checkout crash after the order is saved (2026-10-24)
+- Sariee's `checkout-action` can answer 500 `Class "Modules\Frontend\Traits\Checkout\OrderPlacedNotification" not found` **after** it saved the order.
+  `routes/checkout.js` `findPlacedOrder()` looks the order up in the company sales list (`get-api-company-sales`, by customer name + time) on any 5xx
+  and continues as a success; otherwise the customer sees a generic message. Never show Sariee's raw error text, and don't tell customers to just retry.

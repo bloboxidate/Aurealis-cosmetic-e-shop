@@ -110,9 +110,6 @@
       <div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:20px;color:#5a5148">
         <span>Shipping</span><span data-sum="shipping"><%= shipping_cents > 0 ? money(shipping_cents) : 'Select your city' %></span>
       </div>
-      <div data-sum-row="cod" style="display:<%= cod_fee_cents > 0 ? 'flex' : 'none' %>;justify-content:space-between;font-size:14px;margin:-8px 0 20px;color:#5a5148">
-        <span>Cash on delivery fee</span><span data-sum="cod"><%= money(cod_fee_cents) %></span>
-      </div>
       <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;padding-top:18px;border-top:1px solid rgba(58,53,46,.15);margin-bottom:26px">
         <span>Total</span><span data-sum="total"><%= money(total_cents) %></span>
       </div>
@@ -134,27 +131,20 @@
     sync();
   }
 
-  // Live summary: the shipping fee per city comes from the server (Sariee's rate card, by governorate and cart weight);
-  // the cash-on-delivery fee applies only while "pay on delivery" is chosen. The server recomputes both on submit.
+  // Live summary: the shipping fee per city comes from the server (Sariee's rate card, by governorate and cart weight).
+  // The server recomputes it on submit.
   var quotes = <%- JSON.stringify(shipQuotes) %>;
   var net = <%= Math.max(0, subtotal_cents - discount_cents) %>;
-  var codPct = <%= codPercent %>;
   var city = document.querySelector('select[name="city_id"]');
   function money(c) { return 'EGP ' + (c / 100).toFixed(2); }
   function set(k, v) { Array.prototype.forEach.call(document.querySelectorAll('[data-sum="' + k + '"]'), function (n) { n.textContent = v; }); }
   function update() {
     var has = city && Object.prototype.hasOwnProperty.call(quotes, city.value);
     var ship = has ? quotes[city.value] : 0;
-    var pm = document.querySelector('input[name="payment_method"]:checked');
-    var cod = !pm || pm.value === 'cod' ? Math.round((net + ship) * codPct / 100) : 0;
     set('shipping', has ? money(ship) : 'Select your city');
-    set('cod', money(cod));
-    set('total', money(net + ship + cod));
-    var row = document.querySelector('[data-sum-row="cod"]');
-    if (row) row.style.display = cod > 0 ? 'flex' : 'none';
+    set('total', money(net + ship));
   }
   if (city) city.addEventListener('change', update);
-  Array.prototype.forEach.call(radios, function (r) { r.addEventListener('change', update); });
   update();
 })();
 </script>

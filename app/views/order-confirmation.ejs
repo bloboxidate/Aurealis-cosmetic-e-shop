@@ -34,7 +34,6 @@
       <div style="display:flex;justify-content:space-between;font-size:14px;color:#5a5148;margin-top:16px"><span>Subtotal</span><span><%= money(order.subtotal_cents) %></span></div>
       <% if (order.discount_cents > 0) { %><div style="display:flex;justify-content:space-between;font-size:14px;color:#2f4a26;margin-top:8px"><span>Discount (<%= order.promo_code %>)</span><span>−<%= money(order.discount_cents) %></span></div><% } %>
       <div style="display:flex;justify-content:space-between;font-size:14px;color:#5a5148;margin-top:8px"><span>Shipping (<%= order.ship_method %>)</span><span><%= order.shipping_cents > 0 ? money(order.shipping_cents) : 'Free' %></span></div>
-      <% if (order.cod_fee_cents > 0) { %><div style="display:flex;justify-content:space-between;font-size:14px;color:#5a5148;margin-top:8px"><span>Cash on delivery fee</span><span><%= money(order.cod_fee_cents) %></span></div><% } %>
       <div style="display:flex;justify-content:space-between;font-size:18px;font-weight:700;margin-top:16px;padding-top:16px;border-top:1px solid rgba(58,53,46,.15)"><span>Total</span><span><%= money(order.total_cents) %></span></div>
 
       <% if (order.payment_method === 'instapay') { %>

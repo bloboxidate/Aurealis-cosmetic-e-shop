@@ -35,7 +35,6 @@ function totalsTable(o) {
     + r('Subtotal', money(o.subtotal_cents))
     + (o.discount_cents > 0 ? r(`Discount${o.promo_code ? ' (' + esc(o.promo_code) + ')' : ''}`, '&minus;' + money(o.discount_cents)) : '')
     + r('Shipping', o.shipping_cents > 0 ? money(o.shipping_cents) : 'Free')
-    + (o.cod_fee_cents > 0 ? r('Cash on delivery fee', money(o.cod_fee_cents)) : '')
     + r('Total', money(o.total_cents), true) + '</table>';
 }
 
@@ -79,7 +78,7 @@ function orderConfirmation({ order, payment, baseUrl }) {
     footer: FOOT(baseUrl),
   });
   const text = `Thank you, ${name}!\n\nYour order ${order.order_number} is confirmed.\n\n${itemsText(order.items)}\n\n`
-    + `Subtotal: ${money(order.subtotal_cents)}\n${order.discount_cents > 0 ? `Discount: -${money(order.discount_cents)}\n` : ''}Shipping: ${order.shipping_cents > 0 ? money(order.shipping_cents) : 'Free'}\n${order.cod_fee_cents > 0 ? `Cash on delivery fee: ${money(order.cod_fee_cents)}\n` : ''}Total: ${money(order.total_cents)}\n\n`
+    + `Subtotal: ${money(order.subtotal_cents)}\n${order.discount_cents > 0 ? `Discount: -${money(order.discount_cents)}\n` : ''}Shipping: ${order.shipping_cents > 0 ? money(order.shipping_cents) : 'Free'}\nTotal: ${money(order.total_cents)}\n\n`
     + (insta ? instapayText(payment, order) + '\n\n' : 'Payment: cash on delivery. Please have the amount ready for the courier.\n\n')
     + `Delivering to: ${addressLine(order)}\n\nQuestions? Just reply to this email.`;
   return { subject, text, html };
@@ -102,12 +101,12 @@ function orderUpdate({ number, firstName, status, note, baseUrl }) {
 
 // The store's own copy of every new order, so nobody has to open Sariee to find out an order arrived.
 // Sariee only knows its own shipping setting, so its amount can differ from what the customer was charged here. Say so,
-// because the courier collects what Sariee holds. Empty when the two agree (the COD fee is ours alone, never in Sariee).
+// because the courier collects what Sariee holds. Empty when the two agree.
 function mismatchNote(order) {
   if (order.sariee_total_cents == null) return '';
-  const ours = order.total_cents - (order.cod_fee_cents || 0);
+  const ours = order.total_cents;
   if (order.sariee_total_cents === ours) return '';
-  return `Amounts differ: the customer was charged ${money(ours)} before any COD fee, but Sariee holds ${money(order.sariee_total_cents)}. Check the shipping fee in Sariee before the courier collects.`;
+  return `Amounts differ: the customer was charged ${money(ours)}, but Sariee holds ${money(order.sariee_total_cents)}. Check the shipping fee in Sariee before the courier collects.`;
 }
 
 function newOrderForStore({ order, phone, baseUrl }) {
